@@ -124,12 +124,13 @@ function renderTimeline(rows,W,LW,full){
  return {html:`<div class="tl" style="width:${W}px">${head}${body}</div>`,h:86+(list.length?bodyH+1:48),tx:LW+tx};
 }
 function renderBoard(){
- const W=board.clientWidth||960;lastW=W;
- const N=C.N,X0=18,LW=W<600?170:W<900?250:330,FV=C.fs,vs=stepsShown(),NC=Math.max(1,vs.length),CW=Math.max(W<600?126:146,Math.floor((W-LW-X0-28)/NC)),RH=42,P=14,D=10;
+ const W=board.clientWidth||960,zf=mapZ;lastW=W;
+ // Zoom scales the map's geometry here; --z (set on #grid below) scales its text and markers in app.css.
+ const N=C.N,X0=18*zf,LW0=W<600?170:W<900?250:330,LW=Math.round(LW0*zf),FV=C.fs,vs=stepsShown(),NC=Math.max(1,vs.length),CW=Math.round(Math.max(W<600?126:146,Math.floor((W-LW0-18-28)/NC))*zf),RH=Math.round(42*zf),P=14*zf,D=10*zf;
  const bc=Array(N+2).fill(0);{const vset=new Set(vs);let k=0;for(let g=0;g<=N+1;g++){if(vset.has(g))k++;bc[g]=k}}
  const bx=g=>bc[Math.max(0,Math.min(N+1,g))]*CW;
  const flags={};C.rel.forEach(x=>{if(x.land)(flags[x.land]??=[]).push(x.r.name||'Release')});
- const HH=50+(Object.keys(flags).length?17:0);
+ const HH=Math.round((50+(Object.keys(flags).length?17:0))*zf);
  const rows=rowsVisible(),TL=renderTimeline(rows,W,LW),H=Math.max(rows.length,1)*RH,F=focusSet(),rx=selRel&&C.rel.find(x=>x.r.id===selRel);
  const ri={};rows.forEach((r,i)=>ri[r.id]=i);const kinds=rows.map(r=>r.type),occ=[];
  const free=(r,x,w)=>{const o=occ[r];return !o||x+w/2+3<o[0]||x-w/2-3>o[1]};
@@ -138,9 +139,9 @@ function renderBoard(){
  const grpIn=it=>!F||tasksUnder(it).some(t=>F.has(t.id));
  const cy=i=>i*RH+RH/2;
  let L='',B='',BG='',E='',G='',T='';
- const msMark=(m,i)=>{const g=C.step[m.id],ef=C.eff[m.id],cls=[ef,lateHeld(m.id)?'lchain':'',held(m.id)?'chain':'',C.df[m.id]?.od?'late':C.df[m.id]?.rk?'risk':'',critOn&&C.crit.has(m.id)?'crit':'',sel===m.id?'on':'',F&&!F.has(m.id)?'dim':''].join(' ');return `<div class="mk ${cls}" data-id="${m.id}" title="${esc(C.code[m.id])} ${esc(m.name)}: ${LBL[ef]}, gate after step ${g}${m.gate?' (pinned)':''}. Drag to move" style="left:${bx(g)-7.5}px;top:${cy(i)-7.5}px"></div>`};
- const dueTag=(n,i,x)=>{const f=C.df[n.id]||{},dl=n.type==='ext'&&n.status==='delivered'?(n.doneOn?'Delivered '+fd(dn(n.doneOn)):''):n.due?(n.type==='ext'?'Expected ':'Due ')+fd(dn(n.due)):'';return dl?`<span class="xd${f.od?' late':''}" style="left:${x}px;top:${cy(i)-9}px">${dl}</span>`:''};
- const xMark=(x,i,bar)=>{const g=C.step[x.id],ef=C.eff[x.id],f=C.df[x.id]||{},dm=F&&!F.has(x.id)?' dim':'',cls=[ef,lateHeld(x.id)?'lchain':'',f.od?'late':'',critOn&&C.crit.has(x.id)?'crit':'',sel===x.id?'on':''].join(' ');const tip=`${esc(C.code[x.id])} ${esc(x.name)}${x.team?' ('+esc(x.team)+')':''}: ${LBL[ef]}${x.due?', expected '+fd(dn(x.due)):''}`;return (bar&&g>0?`<div class="xb ${ef}${dm}" data-id="${x.id}" title="${tip}" style="left:0;width:${Math.max(0,bx(g)-12)}px;top:${cy(i)-4}px"></div>`:'')+`<div class="xk ${cls}${dm}" data-id="${x.id}" title="${tip}${x.gate?`, pinned to ${gateTxt(g)}`:''}. Drag to move" style="left:${bx(g)-9}px;top:${cy(i)-9}px"></div>`};
+ const msMark=(m,i)=>{const g=C.step[m.id],ef=C.eff[m.id],cls=[ef,lateHeld(m.id)?'lchain':'',held(m.id)?'chain':'',C.df[m.id]?.od?'late':C.df[m.id]?.rk?'risk':'',critOn&&C.crit.has(m.id)?'crit':'',sel===m.id?'on':'',F&&!F.has(m.id)?'dim':''].join(' ');return `<div class="mk ${cls}" data-id="${m.id}" title="${esc(C.code[m.id])} ${esc(m.name)}: ${LBL[ef]}, gate after step ${g}${m.gate?' (pinned)':''}. Drag to move" style="left:${bx(g)-7.5*zf}px;top:${cy(i)-7.5*zf}px"></div>`};
+ const dueTag=(n,i,x)=>{const f=C.df[n.id]||{},dl=n.type==='ext'&&n.status==='delivered'?(n.doneOn?'Delivered '+fd(dn(n.doneOn)):''):n.due?(n.type==='ext'?'Expected ':'Due ')+fd(dn(n.due)):'';return dl?`<span class="xd${f.od?' late':''}" style="left:${x}px;top:${cy(i)-9*zf}px">${dl}</span>`:''};
+ const xMark=(x,i,bar)=>{const g=C.step[x.id],ef=C.eff[x.id],f=C.df[x.id]||{},dm=F&&!F.has(x.id)?' dim':'',cls=[ef,lateHeld(x.id)?'lchain':'',f.od?'late':'',critOn&&C.crit.has(x.id)?'crit':'',sel===x.id?'on':''].join(' ');const tip=`${esc(C.code[x.id])} ${esc(x.name)}${x.team?' ('+esc(x.team)+')':''}: ${LBL[ef]}${x.due?', expected '+fd(dn(x.due)):''}`;return (bar&&g>0?`<div class="xb ${ef}${dm}" data-id="${x.id}" title="${tip}" style="left:0;width:${Math.max(0,bx(g)-12*zf)}px;top:${cy(i)-4*zf}px"></div>`:'')+`<div class="xk ${cls}${dm}" data-id="${x.id}" title="${tip}${x.gate?`, pinned to ${gateTxt(g)}`:''}. Drag to move" style="left:${bx(g)-9*zf}px;top:${cy(i)-9*zf}px"></div>`};
  rows.forEach((it,i)=>{
   const y=i*RH;
   if(it.type==='exth'){BG+=`<div class="rbg exth" style="top:${y}px;height:${RH}px"></div>`;const xd=C.exts.filter(x=>C.done(x.id)).length;L+=`<div class="lr exth" data-tog="__ext" role="button" tabindex="0" aria-expanded="${!S.extCollapsed}" style="height:${RH}px;padding-left:4px"><span class="car" aria-hidden="true">${S.extCollapsed?'▸':'▾'}</span><span class="nm">External dependencies</span><span class="ow">${xd} of ${C.exts.length} delivered</span></div>`;if(S.extCollapsed)C.exts.filter(x=>!FV||FV.has(x.id)).forEach(x=>B+=xMark(x,i,false));return}
@@ -156,21 +157,21 @@ function renderBoard(){
   const ef=C.eff[it.id],chn=(it.type==='task'||it.type==='ms'||it.type==='ext')&&held(it.id)?' chain':'';
   const relN=it.type==='task'?S.releases.find(r=>r.id===C.relOf[it.id])?.name:it.type==='feat'?S.releases.find(r=>r.id===it.rel)?.name:'';
   const icon=it.type==='task'?`<span class="dot ${ef}${lateHeld(it.id)?' lchain':''}${chn}" title="${LBL[ef]}${lateHeld(it.id)?', held up by overdue work':''}"></span>`:it.type==='ms'?`<span class="dia ${ef}${chn}" title="${LBL[ef]}"></span>`:it.type==='ext'?`<span class="xq ${ef}" title="${LBL[ef]}"></span>`:`<button class="car" data-tog="${it.id}" aria-expanded="${!it.collapsed}" aria-label="${it.collapsed?'Expand':'Collapse'} ${cd}">${it.collapsed?'▸':'▾'}</button>`;
-  L+=`<div class="lr ${it.type}${on}${dim}" data-id="${it.id}" role="button" tabindex="0" style="height:${RH}px;padding-left:${4+lvl*(W<600?10:18)}px">${fcs(it)}${icon}<span class="cd">${cd}</span>${it.key?`<span class="ky">${esc(it.key)}</span>`:''}<span class="nm">${esc(it.name)||'Untitled'}</span>${relN&&(it.type==='feat'||it.rel)?`<i class="rp" title="Release: ${esc(relN)}">${esc(relN)}</i>`:''}${it.type==='ext'&&!C.df[it.id]?.od&&C.df[it.id]?.their?'':latePill(it.id)}${it.type==='task'&&it.due&&it.status!=='done'&&!latePill(it.id)?`<span class="du" title="Due">${fd(dn(it.due))}</span>`:''}${it.type==='ext'?`${it.team?`<i class="rp" title="External team">${esc(it.team)}</i>`:''}<span class="ow">${LBL[ef]}</span>`:it.type==='ms'?(it.target?`<span class="ow">${esc(it.target)}</span>`:''):it.owner?`<span class="ow">${esc(it.owner)}</span>`:''}</div>`;
+  L+=`<div class="lr ${it.type}${on}${dim}" data-id="${it.id}" role="button" tabindex="0" style="height:${RH}px;padding-left:${(4+lvl*(W<600?10:18))*zf}px">${fcs(it)}${icon}<span class="cd">${cd}</span>${it.key?`<span class="ky">${esc(it.key)}</span>`:''}<span class="nm">${esc(it.name)||'Untitled'}</span>${relN&&(it.type==='feat'||it.rel)?`<i class="rp" title="Release: ${esc(relN)}">${esc(relN)}</i>`:''}${it.type==='ext'&&!C.df[it.id]?.od&&C.df[it.id]?.their?'':latePill(it.id)}${it.type==='task'&&it.due&&it.status!=='done'&&!latePill(it.id)?`<span class="du" title="Due">${fd(dn(it.due))}</span>`:''}${it.type==='ext'?`${it.team?`<i class="rp" title="External team">${esc(it.team)}</i>`:''}<span class="ow">${LBL[ef]}</span>`:it.type==='ms'?(it.target?`<span class="ow">${esc(it.target)}</span>`:''):it.owner?`<span class="ow">${esc(it.owner)}</span>`:''}</div>`;
   if(it.type==='task'){
-   const s=C.step[it.id],h=RH-14;occ[i]=[bx(s-1)+P,bx(s)-P];const ext=rx&&F&&F.has(it.id)&&!rx.ids.has(it.id)?'ext':'';
+   const s=C.step[it.id],h=Math.round(RH-14*zf);occ[i]=[bx(s-1)+P,bx(s)-P];const ext=rx&&F&&F.has(it.id)&&!rx.ids.has(it.id)?'ext':'';
    const df=C.df[it.id]||{},cls=[ef,lateHeld(it.id)?'lchain':'',chn,C.warn[it.id]?'warn':'',df.ls?'lstart':'',df.od?'over':df.rk?'risk':'',critOn&&C.crit.has(it.id)?'crit':'',ext,on,dim].join(' ');
-   B+=`<div class="b ${cls}" data-id="${it.id}" title="${cd} ${esc(it.name)}: ${LBL[ef]}${relN?', '+esc(relN):''}${C.warn[it.id]?'. Status breaks a link':''}${dateTip(it.id)}" style="${fcol(it)?`--fc:inset 0 4px 0 ${fcol(it)};`:''}left:${bx(s-1)+P}px;top:${y+7}px;width:${CW-2*P}px;height:${h}px;line-height:${h-3}px"><span class="cd">${cd}</span>${esc(it.name)}</div>`;
+   B+=`<div class="b ${cls}" data-id="${it.id}" title="${cd} ${esc(it.name)}: ${LBL[ef]}${relN?', '+esc(relN):''}${C.warn[it.id]?'. Status breaks a link':''}${dateTip(it.id)}" style="${fcol(it)?`--fc:inset 0 4px 0 ${fcol(it)};`:''}left:${bx(s-1)+P}px;top:${y+7*zf}px;width:${CW-2*P}px;height:${h}px;line-height:${h-3}px"><span class="cd">${cd}</span>${esc(it.name)}</div>`;
   }else if(it.type==='ext'){
-   B+=xMark(it,i,true)+dueTag(it,i,bx(C.step[it.id])+16);occ[i]=[0,bx(C.step[it.id])+150];
+   B+=xMark(it,i,true)+dueTag(it,i,bx(C.step[it.id])+16*zf);occ[i]=[0,bx(C.step[it.id])+150*zf];
   }else if(it.type==='ms'){
-   B+=msMark(it,i)+dueTag(it,i,bx(C.step[it.id])+16);
-   const g=C.step[it.id];occ[i]=[bx(g)-10,bx(g)+(it.due?110:10)];G+=`<line class="g ${ef}${chn}${dim}" x1="${bx(g)}" y1="${cy(i)+D}" x2="${bx(g)}" y2="${H}"/>`;
+   B+=msMark(it,i)+dueTag(it,i,bx(C.step[it.id])+16*zf);
+   const g=C.step[it.id];occ[i]=[bx(g)-10*zf,bx(g)+(it.due?110:10)*zf];G+=`<line class="g ${ef}${chn}${dim}" x1="${bx(g)}" y1="${cy(i)+D}" x2="${bx(g)}" y2="${H}"/>`;
   }else{
    const ts=tasksUnder(it);if(!ts.length)return;
-   const ss=ts.map(t=>C.step[t.id]),a=Math.min(...ss),z=Math.max(...ss),d=ts.filter(t=>t.status==='done').length,h=RH-20;occ[i]=[bx(a-1)+P/2,bx(z)-P/2];
+   const ss=ts.map(t=>C.step[t.id]),a=Math.min(...ss),z=Math.max(...ss),d=ts.filter(t=>t.status==='done').length,h=Math.round(RH-20*zf);occ[i]=[bx(a-1)+P/2,bx(z)-P/2];
    const oc=it.type==='obj'?objCount(it):null;
-   B+=`<div class="sp ${it.type}${on}${dim}" data-id="${it.id}" title="${cd} spans steps ${a} to ${z}" style="${it.type==='feat'&&fcol(it)?`background:color-mix(in srgb,${fcol(it)} 30%,var(--bg));box-shadow:inset 6px 0 0 ${fcol(it)};`:''}left:${bx(a-1)+P/2}px;top:${y+10}px;width:${Math.max(24,bx(z)-bx(a-1)-P)}px;height:${h}px;line-height:${h}px">${oc?`${oc.d} of ${oc.n} ${oc.n===1?'feature':'features'} done`:`${d} of ${ts.length} done`}</div>`;
+   B+=`<div class="sp ${it.type}${on}${dim}" data-id="${it.id}" title="${cd} spans steps ${a} to ${z}" style="${it.type==='feat'&&fcol(it)?`background:color-mix(in srgb,${fcol(it)} 30%,var(--bg));box-shadow:inset 6px 0 0 ${fcol(it)};`:''}left:${bx(a-1)+P/2}px;top:${y+10*zf}px;width:${Math.max(24*zf,bx(z)-bx(a-1)-P)}px;height:${h}px;line-height:${h}px">${oc?`${oc.d} of ${oc.n} ${oc.n===1?'feature':'features'} done`:`${d} of ${ts.length} done`}</div>`;
   }
  });
   const port=(id,side,row,tgt)=>{const n=map[id],y=cy(row);if(n.type==='ms'||n.type==='ext')return {x:bx(C.step[id]),y,v:true};if(n.type==='feat'){const ss=tasksUnder(n).map(t=>C.step[t.id]),a=Math.min(...ss),z=Math.max(...ss);return side==='S'?{x:bx(a-1)+P/2,y,d:tgt?1:-1}:{x:bx(z)-P/2,y,d:tgt?-1:1}}const s=C.step[id];return side==='S'?{x:bx(s-1)+P,y,d:tgt?1:-1}:{x:bx(s)-P,y,d:tgt?-1:1}};
@@ -188,11 +189,11 @@ function renderBoard(){
   const tip=`${C.code[l.id]} → ${C.code[n.id]}: ${TYPES[l.type]}${l.lag?`, lag ${lagTxt(l)}`:''}, ${linkState(l)}${ov?`, ${C.code[l.id]} is overdue`:''}`;
   if(critOn&&(n.type==='feat'?tasksUnder(n).some(t=>C.critE.has(l.id+'>'+t.id)):C.critE.has(l.id+'>'+n.id)))E=`<path class="e u${dim}" d="${pa}"/>`+E;
   E+=`<path class="e ${cls}" d="${pa}" marker-end="url(#m${bk?'bk':sat?'ok':ov?'ovd':l.type})"><title>${esc(tip)}</title></path>`;
-  if(tagsOn){const tx=l.st==='blocked'?tag(l):l.type+lagTxt(l),w=tx.length*8+10,[x0,y]=tagAt(pts,w,RH,kinds,free),x=Math.max(w/2+3-X0,x0);T+=`<span class="tp lk ${cls}" data-lk="${n.id}" data-from="${l.id}" title="${esc(tip)}" style="left:${x}px;top:${y}px">${esc(tx)}</span>`}
+  if(tagsOn){const tx=l.st==='blocked'?tag(l):l.type+lagTxt(l),w=(tx.length*8+10)*zf,[x0,y]=tagAt(pts,w,RH,kinds,free),x=Math.max(w/2+3-X0,x0);T+=`<span class="tp lk ${cls}" data-lk="${n.id}" data-from="${l.id}" title="${esc(tip)}" style="left:${x}px;top:${y}px">${esc(tx)}</span>`}
  }
  const cols=vs.map((k,ci)=>{const gp=ci>0&&vs[ci-1]!==k-1;if(gp)BG+=`<div class="gapl" style="left:${ci*CW-1}px;height:${H}px"></div>`;return `<div class="ch${gp?' gap':''}" style="width:${CW}px"${gp?` title="${k-vs[ci-1]-1===1?'Step '+(k-1)+' is':'Steps '+(vs[ci-1]+1)+' to '+(k-1)+' are'} hidden by the filter"`:''}><b>Step ${k}</b><span>${per[k]} ${per[k]===1?'task':'tasks'}${lateS[k]?` · <span class="ltc">${lateS[k]} late</span>`:''}</span>${flags[k]?`<em title="Last task of ${esc(flags[k].join(', '))} lands here">${esc(flags[k].join(', '))}</em>`:''}</div>`}).join('');
  geo={LW,X0,CW,H,N,HH,vs};
- grid.style.width=LW+X0+NC*CW+([...C.mss,...C.exts].some(n=>C.step[n.id]>=vs[vs.length-1])?120:28)+'px';
+ grid.style.width=LW+X0+NC*CW+([...C.mss,...C.exts].some(n=>C.step[n.id]>=vs[vs.length-1])?120:28)*zf+'px';grid.style.setProperty('--z',zf);
  const otl=grid.querySelector('.tlb'),tsl=otl?otl.scrollLeft:null,tst=otl?otl.scrollTop:null;
  grid.innerHTML=`<div class="hdr" style="height:${HH}px"><div class="corner" style="width:${LW}px">Work breakdown</div><div style="flex:none;width:${X0}px"></div>${cols}</div>${TL.html}<div class="labels" style="width:${LW}px;min-height:${H}px">${L||(FV?'<p class="none" style="padding:10px 12px">Nothing matches the filter. <button class="lnk2" data-fp="all">Show all</button></p>':'<p class="none" style="padding:10px 12px">Add an objective to start.</p>')}</div><div class="chart" style="left:${LW+X0}px;top:${HH+TL.h}px;width:${NC*CW+1}px;height:${H}px;background-size:${CW}px 100%">${BG}<svg class="edges" width="${NC*CW}" height="${H}" aria-hidden="true">${DEFS}${G}${E}</svg>${B}${T}</div>`;
  {const te=grid.querySelector('.tl'),ch=grid.querySelector('.chart');if(te&&ch&&te.offsetHeight)ch.style.top=(HH+te.offsetHeight)+'px'}
@@ -550,6 +551,56 @@ $('#exp').onclick=()=>{S.items.forEach(i=>i.collapsed=false);S.msCollapsed=false
 $('#col').onclick=()=>{S.items.forEach(i=>{if(i.type==='feat')i.collapsed=true;if(i.type==='obj')i.collapsed=false});render()};
 $('#crit').onclick=()=>{critOn=!critOn;render()};
 $('#tags').onclick=()=>{tagsOn=!tagsOn;render()};
+
+// Map zoom and full screen are view-only, so they skip mut(). The zoom level is a per-viewer
+// preference (localStorage 'planner.mapzoom', loaded in wiring.js). renderBoard() redraws the
+// map at mapZ, so it stays sharp and drag hit areas match what's drawn.
+const ZMIN=.5,ZMAX=2,ZSTEPS=[.5,.67,.75,.8,.9,1,1.1,1.25,1.5,1.75,2];
+let mapZ=1,zPend=null,zRaf=0,gz=null,fsOn=false;
+const zClamp=v=>Number.isFinite(v)?Math.min(ZMAX,Math.max(ZMIN,v)):1;
+// Zoom to z keeping the map point under (cx,cy) where it is; default is the middle of the map.
+// Requests are batched to one redraw per frame.
+function zoomTo(z,cx,cy){
+ if(view!=='map'||drag||td)return;
+ const r=board.getBoundingClientRect();
+ zPend={z:zClamp(z),cx:cx??r.left+r.width/2,cy:cy??r.top+r.height/2};
+ if(!zRaf)zRaf=requestAnimationFrame(zoomApply);
+}
+function zoomApply(){
+ zRaf=0;const p=zPend;zPend=null;
+ if(!p||view!=='map'||!C||Math.abs(p.z-mapZ)<1e-4)return;
+ // The labels column and the step header are sticky, so a point under them anchors at the chart's visible edge.
+ const r=board.getBoundingClientRect(),ax=p.cx-r.left-board.clientLeft,ay=p.cy-r.top-board.clientTop,k=p.z/mapZ,c0=grid.querySelector('.chart');
+ const x=board.scrollLeft+Math.max(ax,geo.LW)-(c0?c0.offsetLeft:0),y=board.scrollTop+Math.max(ay,geo.HH)-(c0?c0.offsetTop:0);
+ mapZ=p.z;LS.set('planner.mapzoom',String(mapZ));renderBoard();zoomUi();
+ const c1=grid.querySelector('.chart');
+ board.scrollLeft=(c1?c1.offsetLeft:0)+x*k-Math.max(ax,geo.LW);board.scrollTop=(c1?c1.offsetTop:0)+y*k-Math.max(ay,geo.HH);
+}
+function zoomUi(){const off=view!=='map',b=$('#zm-0');$('#zm-out').disabled=off||mapZ<=ZMIN+1e-3;$('#zm-in').disabled=off||mapZ>=ZMAX-1e-3;b.disabled=off;b.textContent=Math.round(mapZ*100)+'%'}
+$('#zm-in').onclick=()=>zoomTo(ZSTEPS.find(s=>s>mapZ+.005)??ZMAX);
+$('#zm-out').onclick=()=>zoomTo([...ZSTEPS].reverse().find(s=>s<mapZ-.005)??ZMIN);
+$('#zm-0').onclick=()=>zoomTo(1);
+// Ctrl/Cmd + wheel, and trackpad pinch (Chrome, Edge and Firefox send it as Ctrl + wheel; Safari as gesture events).
+board.addEventListener('wheel',e=>{
+ if(!e.ctrlKey&&!e.metaKey)return;e.preventDefault();
+ const dy=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?400:1);
+ zoomTo((zPend?zPend.z:mapZ)*2**(-Math.max(-25,Math.min(25,dy))/100),e.clientX,e.clientY);
+},{passive:false});
+board.addEventListener('gesturestart',e=>{e.preventDefault();gz=mapZ});
+board.addEventListener('gesturechange',e=>{e.preventDefault();if(gz!==null)zoomTo(gz*e.scale,e.clientX,e.clientY)});
+board.addEventListener('gestureend',e=>{e.preventDefault();gz=null});
+// Full screen hides the sidebar, header, tallies and legend, and asks the browser for real full screen
+// when it can. Without the Fullscreen API (or if the browser refuses) the page still fills the window.
+function fullScreen(on){
+ fsOn=on;$('#app').classList.toggle('fullmap',on);
+ const b=$('#fs-btn');b.setAttribute('aria-pressed',String(on));b.textContent=on?'Exit full screen':'Full screen';
+ const de=document.documentElement;
+ try{if(on&&!document.fullscreenElement&&de.requestFullscreen)Promise.resolve(de.requestFullscreen()).catch(()=>{});
+  else if(!on&&document.fullscreenElement)Promise.resolve(document.exitFullscreen()).catch(()=>{})}catch(_){}
+ if(C)renderView();
+}
+$('#fs-btn').onclick=()=>fullScreen(!fsOn);
+document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&fsOn)fullScreen(false)});
 const exportText=()=>JSON.stringify({title:S.title,tl:S.tl,msCollapsed:S.msCollapsed,extCollapsed:S.extCollapsed,cal:S.cal,releases:S.releases,items:S.items},null,1);
 const _unused_json=()=>ov('Export plan','Copy this and keep it somewhere safe. Paste it into Import to restore the plan or hand it to someone else.',JSON.stringify({title:S.title,tl:S.tl,msCollapsed:S.msCollapsed,extCollapsed:S.extCollapsed,cal:S.cal,releases:S.releases,items:S.items},null,1),'json');
 const _unused_csv=()=>ov('Export CSV','One row per milestone, objective, feature, task and release. Links read like "1.2.2 FS", "1.1.3 SS+1" or "1.2.2 FS blocked". Paste into Excel, or save as .csv for a Jira import.',csv(),'csv');
@@ -561,7 +612,7 @@ $('#ovgo').onclick=async()=>{let s=null;try{s=norm(JSON.parse($('#ovx').value))}
 document.addEventListener('keydown',e=>{
  if(e.key==='Escape'&&drag){dragEnd(true);return}
  if(e.key==='Escape'&&td){tdEnd(true);return}
- if(e.key==='Escape'){for(const d of ['#impd','#vdl'])if(!$(d).hidden){$(d).hidden=true;return}if(!$('#more').hidden){closeMenu();return}if(!$('#add').hidden){addMenu(false);$('#add-btn').focus();return}if(!$('#flt').hidden){fltMenu(false);$('#flt-btn').focus();return}if(histOpen&&!sel&&!selRel&&!calOpen){histOpen=false;renderHist();return}if(!$('#ov').hidden)$('#ov').hidden=true;else if(sel||selRel||calOpen){sel=null;selRel=null;calOpen=false;render()}}
+ if(e.key==='Escape'){for(const d of ['#impd','#vdl'])if(!$(d).hidden){$(d).hidden=true;return}if(!$('#more').hidden){closeMenu();return}if(!$('#add').hidden){addMenu(false);$('#add-btn').focus();return}if(!$('#flt').hidden){fltMenu(false);$('#flt-btn').focus();return}if(histOpen&&!sel&&!selRel&&!calOpen){histOpen=false;renderHist();return}if(!$('#ov').hidden)$('#ov').hidden=true;else if(sel||selRel||calOpen){sel=null;selRel=null;calOpen=false;render()}else if(fsOn)fullScreen(false)}
  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'&&!e.shiftKey&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName||'')){e.preventDefault();undo()}
 });
 
@@ -569,7 +620,7 @@ document.addEventListener('keydown',e=>{
 function renderView(){
  board.hidden=view!=='map';$('#gridv').hidden=view!=='grid';$('#ganttv').hidden=view!=='gantt';$('#relv').hidden=view!=='rel';
  document.querySelectorAll('.tabs [data-view]').forEach(b=>b.setAttribute('aria-selected',b.dataset.view===view));
- const rv=view==='rel';for(const s of ['#flt-btn','#exp','#col','#crit','#tags'])$(s).disabled=rv;if(rv)fltMenu(false);$('#fltsum').hidden=rv||!fltOn();
+ const rv=view==='rel';for(const s of ['#flt-btn','#exp','#col','#crit','#tags'])$(s).disabled=rv;if(rv)fltMenu(false);$('#fltsum').hidden=rv||!fltOn();zoomUi();
  lastVW=views.clientWidth;
  if(view==='map')renderBoard();else if(view==='grid')renderGrid();else if(view==='gantt')renderGantt();else renderRelv();
 }

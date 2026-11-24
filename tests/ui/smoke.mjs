@@ -58,6 +58,16 @@ try {
   ok($('#dr').classList.contains('open'), 'clicking a bar opens the editor');
   $('#dr [data-act=close]').click(); await sleep(30);
 
+  // map zoom and full screen
+  const h0 = parseFloat($('#grid .b').style.height);
+  $('#zm-in').click(); await sleep(60);
+  ok($('#zm-0').textContent === '110%' && parseFloat($('#grid .b').style.height) > h0 && w.localStorage.getItem('planner.mapzoom') === '1.1', 'zoom in redraws the map larger and remembers the level');
+  $('#zm-0').click(); await sleep(60);
+  ok($('#zm-0').textContent === '100%' && parseFloat($('#grid .b').style.height) === h0, 'reset zoom returns to 100%');
+  $('#fs-btn').click(); await sleep(20);
+  ok($('#app').classList.contains('fullmap') && $('#fs-btn').getAttribute('aria-pressed') === 'true', 'Full screen hides the sidebar and header');
+  d.dispatchEvent(new w.KeyboardEvent('keydown', {key: 'Escape', bubbles: true})); await sleep(20);
+  ok(!$('#app').classList.contains('fullmap'), 'Esc leaves full screen');
   // milestones and externals: pin to a later gate, reset to auto, undo
   const x2 = () => $$('#grid .xk').find(e => e.title.startsWith('X2')), bar221 = () => $$('#grid .b').find(b => b.querySelector('.cd').textContent === '2.2.1').style.left;
   const left0 = bar221();

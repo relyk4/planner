@@ -8,25 +8,6 @@ run them one at a time or rebase often.
 
 ---
 
-## 4. Full screen and zoom for the dependency map
-
-**Do:**
-- A full-screen button on the map. Use the browser Fullscreen API, with a
-  fallback that hides the sidebar and header if it's unavailable. Esc exits.
-- Zoom in and out: Ctrl/Cmd + mouse wheel and trackpad pinch over the map,
-  plus `+`/`−`/reset buttons. Zoom scales the chart (step width, row height,
-  text) around the cursor and keeps it sharp. Don't apply a CSS
-  `transform` scale on the whole thing if that blurs it or breaks drag hit
-  areas.
-- Dragging bars and the timeline still lands where expected at every zoom.
-- Zoom level is a per-viewer preference (localStorage).
-
-**Done when:**
-- Zooming between 50% and 200% is smooth on a 100-task plan.
-- Drag-to-move still works at every zoom.
-
----
-
 ## 5. Ticket keys become links
 
 **Do:**
@@ -123,3 +104,10 @@ drag-to-move behavior changes.
   what waits on it moves along. Dropping it earlier than its links allow
   snaps it to the earliest valid gate and says which link holds it. *Reset to
   auto* clears the pin.
+- **Full screen and zoom for the dependency map** (Nov 2026). *Full screen*
+  in the toolbar hides the sidebar, header, tallies and legend and uses the
+  browser's full screen when it can; Esc exits. The map zooms from 50% to
+  200% with the `−`/`%`/`+` buttons, Ctrl/Cmd + wheel or a trackpad pinch,
+  around the cursor. The map is redrawn at each zoom, so it stays sharp and
+  drag still lands on the right step. The zoom level is remembered per
+  viewer. The embedded timeline keeps its own Days/Weeks/Months scale.
