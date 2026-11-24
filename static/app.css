@@ -269,7 +269,7 @@ button,input,select,textarea{font-family:inherit}
 .rq{width:100%;background:#202a3d;border:1px solid var(--railline);color:#fff;border-radius:6px;padding:8px 10px;font-size:14px}
 .rq::placeholder{color:var(--railmute)}
 .rhd{font-size:13px;font-weight:700;color:var(--railmute);padding:4px 4px 0}
-.plans{display:flex;flex-direction:column;gap:2px;flex:1;overflow:auto;min-height:80px}
+.plans{display:flex;flex-direction:column;gap:2px;flex:none;overflow:auto;max-height:45vh}
 .pl{display:grid;grid-template-columns:10px minmax(0,1fr) auto;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;cursor:pointer;color:inherit}
 .pl:hover,.rail-rel-i:hover{background:var(--railhi)}.pl.on,.rail-rel-i.on{background:#2c3a57;box-shadow:inset 3px 0 0 #6ea0ff}
 .pdot{width:8px;height:8px;border-radius:2px;background:#6ea0ff;opacity:.7}
@@ -277,7 +277,7 @@ button,input,select,textarea{font-family:inherit}
 .pl .pa{grid-column:2/-1;justify-self:start;margin-top:4px;background:none;border:1px solid var(--railline);color:inherit;border-radius:4px;padding:3px 10px;cursor:pointer;font-size:13px}
 .pe{color:var(--railmute);font-size:13px;margin:6px 4px}
 .rlink{background:none;border:0;color:var(--railmute);text-align:left;cursor:pointer;padding:6px 4px;font-size:13px}.rlink:hover{color:#fff}
-.rfoot{border-top:1px solid var(--railline);padding-top:10px;display:grid;gap:10px;font-size:13px;color:var(--railmute)}
+.rfoot{margin-top:auto;border-top:1px solid var(--railline);padding-top:10px;display:grid;gap:10px;font-size:13px;color:var(--railmute)}
 .me{display:block}.me input{display:block;width:100%;margin-top:4px;background:#202a3d;border:1px solid var(--railline);color:#fff;border-radius:6px;padding:7px 9px;font-size:14px}
 .conn{display:flex;gap:7px;align-items:center}.conn i{width:8px;height:8px;border-radius:50%;background:#37b24d;flex:none}.conn.off i{background:#f59f00}
 .rail-rel>summary{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--railmute);padding:4px;cursor:pointer;list-style:none}
