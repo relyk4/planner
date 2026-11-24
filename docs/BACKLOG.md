@@ -8,20 +8,6 @@ run them one at a time or rebase often.
 
 ---
 
-## 3. Done work shows translucent green on the map
-
-**Do:**
-- Done task bars: green (`--ok`), slightly translucent, with text still
-  readable in light and dark mode.
-- The small status dot next to a done task is solid green.
-- The legend matches.
-- Other states are unchanged.
-
-**Done when:** done work reads as clearly finished at a glance, and contrast
-is still acceptable for the bar text.
-
----
-
 ## 5. Ticket keys become links
 
 **Do:**
@@ -81,22 +67,6 @@ drag-to-move behavior changes.
 
 ---
 
-## 8. Drag milestones and external items to any step
-
-**Do:**
-- Milestones and external items can be dragged sideways on the map like
-  tasks. Dropping one sets a pinned gate position (a new optional field,
-  defaulted in `norm()`).
-- Moving one later pushes its successors.
-- Moving it earlier than its predecessors allow snaps to the earliest valid
-  gate and says why (use `C.whyMin`).
-- The editor shows the pin and has a "Reset to auto" option.
-
-**Done when:** pins survive reload, old plans without the field load unchanged,
-and undo works.
-
----
-
 ## Ideas not yet scheduled
 
 - Owner and team filters, plus a "My work" view (building on the status
@@ -124,6 +94,16 @@ and undo works.
   sideways instead of wrapping; *Add ▾* replaces the four add buttons and
   works with the keyboard. Releases moved off the plan page into their own
   tab, with a page per release, linked from the sidebar.
+- **Done work shows translucent green on the map** (Nov 2026). Done task
+  bars are a see-through green tint with a green outline and dark text (light
+  mode) or light text (dark mode); the status dot next to a done task is solid
+  green everywhere it appears, and the legend matches.
+- **Milestones and externals can be dragged to any gate** (Nov 2026). Drag
+  a milestone diamond or external square sideways on the map, or use
+  *Earlier gate* / *Later gate* in its editor. The drop pins it (`gate`);
+  what waits on it moves along. Dropping it earlier than its links allow
+  snaps it to the earliest valid gate and says which link holds it. *Reset to
+  auto* clears the pin.
 - **Full screen and zoom for the dependency map** (Nov 2026). *Full screen*
   in the toolbar hides the sidebar, header, tallies and legend and uses the
   browser's full screen when it can; Esc exits. The map zooms from 50% to

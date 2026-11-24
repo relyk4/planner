@@ -68,6 +68,18 @@ try {
   ok($('#app').classList.contains('fullmap') && $('#fs-btn').getAttribute('aria-pressed') === 'true', 'Full screen hides the sidebar and header');
   d.dispatchEvent(new w.KeyboardEvent('keydown', {key: 'Escape', bubbles: true})); await sleep(20);
   ok(!$('#app').classList.contains('fullmap'), 'Esc leaves full screen');
+  // milestones and externals: pin to a later gate, reset to auto, undo
+  const x2 = () => $$('#grid .xk').find(e => e.title.startsWith('X2')), bar221 = () => $$('#grid .b').find(b => b.querySelector('.cd').textContent === '2.2.1').style.left;
+  const left0 = bar221();
+  x2().click(); await sleep(50);
+  $('#dr [data-act=mvr]').click(); await sleep(50);
+  ok(x2().title.includes('pinned to the gate after step 1') && $('#dr [data-act=unpin]') && bar221() !== left0, 'Later gate pins an external item and pushes what waits on it');
+  $('#dr [data-act=unpin]').click(); await sleep(50);
+  ok(!x2().title.includes('pinned') && !$('#dr [data-act=unpin]') && bar221() === left0, 'Reset to auto clears the pin');
+  $('#undo').click(); await sleep(50);
+  ok(x2().title.includes('pinned'), 'undo restores the pin');
+  $('#undo').click(); await sleep(50);
+  $('#dr [data-act=close]').click(); await sleep(30);
 
   // grid and gantt
   $('[data-view=grid]').click(); await sleep(50);
