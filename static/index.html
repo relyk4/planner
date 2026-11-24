@@ -14,8 +14,7 @@
  </details>
  <details class="rsec" id="rail-rel" data-ls="planner.relrail" open><summary>Releases <span id="rail-rel-n"></span></summary><nav class="rail-rel-l" id="rail-rel-l" aria-label="Releases in this plan"></nav></details>
  <button class="rlink" id="show-arch" aria-pressed="false">Show archived</button>
- <div class="rfoot"><div id="conn" class="conn"></div><label class="me" for="me">Your name<input id="me" placeholder="Shown in history" autocomplete="name"></label>
-  <div class="thm"><span id="thm-l">Theme</span><div class="thmg" id="thm" role="group" aria-labelledby="thm-l"><button data-thm="system" aria-pressed="true" title="Follow your computer's light or dark setting">System</button><button data-thm="light" aria-pressed="false">Light</button><button data-thm="dark" aria-pressed="false">Dark</button></div></div></div>
+ <div class="rfoot"><div id="conn" class="conn"></div><label class="me" for="me">Your name<input id="me" placeholder="Shown in history" autocomplete="name"></label></div>
 </aside>
 <div class="scrim" id="scrim"></div>
 <main class="main">
@@ -26,9 +25,13 @@
   <span class="grow"></span>
   <button class="tbtn" id="hist-btn">History</button>
   <button class="tbtn" id="ver-btn" title="Save a named version you can come back to">Save version</button>
+  <div class="menu" id="set-m"><button class="tbtn" id="set-btn" aria-haspopup="true" aria-expanded="false" aria-controls="set">Settings ▾</button>
+   <div class="mlist" id="set" hidden role="menu" aria-label="Settings">
+    <button data-set="plan" role="menuitem">Plan settings<span class="msub">Apply to this plan, for everyone</span></button>
+    <button data-set="sys" role="menuitem">System settings<span class="msub">Apply to you, in this browser</span></button>
+   </div></div>
   <div class="menu"><button class="tbtn" id="more-btn" aria-haspopup="true" aria-expanded="false">More ▾</button>
    <div class="mlist" id="more" hidden role="menu">
-    <button data-m="settings" role="menuitem">Plan settings</button><hr>
     <button data-m="dup" role="menuitem">Duplicate plan</button><button data-m="arch" role="menuitem">Archive plan</button><hr>
     <button data-m="csvimp" role="menuitem">Import CSV or Excel</button><button data-m="impjson" role="menuitem">Import plan file (JSON)</button><hr>
     <button data-m="json" role="menuitem">Download plan (JSON)</button><button data-m="csv" role="menuitem">Download CSV</button><button data-m="backup" role="menuitem">Download backup of every plan</button><hr>
@@ -71,6 +74,7 @@
 </div>
 <aside id="dr" class="dr" aria-label="Edit item"></aside>
 <aside id="hp" class="dr hp" aria-label="History"></aside>
+<aside id="sysp" class="dr hp" aria-label="System settings"></aside>
 <div id="impd" class="ov" hidden><div class="dlg wide" role="dialog" aria-modal="true" aria-labelledby="impt">
  <h2 id="impt">Import from CSV or Excel</h2>
  <p>Works with Jira and Smartsheet exports (.csv or .xlsx). A plan file or full backup (.json) from this planner also works. Choose a file, check which column feeds each field, then import.</p>

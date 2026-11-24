@@ -347,7 +347,7 @@ function renderDrawer(){
  dr.innerHTML=h;dr.classList.add('open');dr.scrollTop=sc;
  if(act){const el=document.getElementById(act);if(el&&dr.contains(el))el.focus()}
 }
-function render(){if(sel||selRel)calOpen=false;if((sel||selRel||calOpen)&&histOpen){histOpen=false;renderHist()}S.view=view;recalc();renderStats();renderRailRels();renderView();renderDrawer();save()}
+function render(){if(sel||selRel)calOpen=false;if((sel||selRel||calOpen)&&histOpen){histOpen=false;renderHist()}if((sel||selRel||calOpen)&&sysOpen)sysPanel(false);S.view=view;recalc();renderStats();renderRailRels();renderView();renderDrawer();save()}
 function soft(){clearTimeout(tm);tm=setTimeout(()=>{recalc();renderStats();renderRailRels();renderView();save()},180)}
 
 function moveRow(it){const s=C.step[it.id],mn=C.minOf(it.id),pin=it.earliest&&it.earliest>mn;
@@ -706,7 +706,7 @@ document.addEventListener('keydown',e=>{
  if(e.key==='Escape'&&ld){lkEnd(true);return}
  if(e.key==='Escape'&&drag){dragEnd(true);return}
  if(e.key==='Escape'&&td){tdEnd(true);return}
- if(e.key==='Escape'){for(const d of ['#impd','#vdl'])if(!$(d).hidden){$(d).hidden=true;return}if(!$('#more').hidden){closeMenu();return}if(!$('#add').hidden){addMenu(false);$('#add-btn').focus();return}if(!$('#flt').hidden){fltMenu(false);$('#flt-btn').focus();return}if(histOpen&&!sel&&!selRel&&!calOpen){histOpen=false;renderHist();return}if(!$('#ov').hidden)$('#ov').hidden=true;else if(sel||selRel||calOpen){sel=null;selRel=null;calOpen=false;render()}else if(fsOn)fullScreen(false)}
+ if(e.key==='Escape'){for(const d of ['#impd','#vdl'])if(!$(d).hidden){$(d).hidden=true;return}if(!$('#more').hidden||!$('#set').hidden){closeMenu();return}if(!$('#add').hidden){addMenu(false);$('#add-btn').focus();return}if(!$('#flt').hidden){fltMenu(false);$('#flt-btn').focus();return}if(histOpen&&!sel&&!selRel&&!calOpen){histOpen=false;renderHist();return}if(sysOpen){sysPanel(false);$('#set-btn').focus();return}if(!$('#ov').hidden)$('#ov').hidden=true;else if(sel||selRel||calOpen){sel=null;selRel=null;calOpen=false;render()}else if(fsOn)fullScreen(false)}
  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'&&!e.shiftKey&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName||'')){e.preventDefault();undo()}
 });
 

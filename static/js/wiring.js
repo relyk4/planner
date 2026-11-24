@@ -3,9 +3,11 @@
 // load order is set in index.html.
 
 // ====================================================================== wiring
-function closeMenu(){$('#more').hidden=true;$('#more-btn').setAttribute('aria-expanded','false')}
-$('#more-btn').onclick=e=>{e.stopPropagation();fltMenu(false);addMenu(false);const h=$('#more').hidden;$('#more').hidden=!h;$('#more-btn').setAttribute('aria-expanded',String(h))};
-document.addEventListener('click',e=>{if(!$('#more').hidden&&e.target.closest('.menu')!==$('#more').parentNode)closeMenu()});
+// Appbar menus (Settings, More): one open at a time, and opening one closes the toolbar menus.
+function closeMenu(){for(const k of ['more','set']){$('#'+k).hidden=true;$('#'+k+'-btn').setAttribute('aria-expanded','false')}}
+const barMenu=k=>e=>{e.stopPropagation();fltMenu(false);addMenu(false);const h=$('#'+k).hidden;closeMenu();$('#'+k).hidden=!h;$('#'+k+'-btn').setAttribute('aria-expanded',String(h))};
+$('#more-btn').onclick=barMenu('more');$('#set-btn').onclick=barMenu('set');
+document.addEventListener('click',e=>{if((!$('#more').hidden||!$('#set').hidden)&&!e.target.closest('#more,#set'))closeMenu()});
 // Menus inside the toolbar are position:fixed so its sideways scrolling can't clip them.
 function placeMenu(m,b){if(m.hidden)return;const r=b.getBoundingClientRect();m.style.top=r.bottom+6+'px';m.style.maxHeight=Math.max(160,innerHeight-r.bottom-14)+'px';m.style.left=Math.max(8,Math.min(r.left,innerWidth-m.offsetWidth-8))+'px'}
 const placeMenus=()=>{placeMenu($('#flt'),$('#flt-btn'));placeMenu($('#add'),$('#add-btn'))};
@@ -46,7 +48,6 @@ $('#more').addEventListener('click',async e=>{
  const b=e.target.closest('[data-m]');if(!b)return;closeMenu();const m=b.dataset.m;
  if(m==='dup'){await flush();try{const p=await Store.create(null,null,cur.id);plans.unshift(p);await openPlan(p.id);toast('Copied. You are now editing the copy.')}catch(err){toast(err.message)}}
  else if(m==='arch'){await flush();try{await Store.patch(cur.id,{archived:true});plans=plans.filter(p=>p.id!==cur.id);cur=null;if(plans.length)await openPlan(plans[0].id);else await newPlan(blank(),'Untitled plan');toast('Plan archived. Find it under Show archived in the sidebar.')}catch(err){toast(err.message)}}
- else if(m==='settings'){openCal(null);$('#c-ids')?.focus()}
  else if(m==='csvimp')openImport();
  else if(m==='impjson')ov('Import plan file','Paste a plan file downloaded from this planner (JSON). It opens as a new plan.','','imp');
  else if(m==='json')download(fileSafe(S.title)+'.json',exportText());
@@ -54,6 +55,7 @@ $('#more').addEventListener('click',async e=>{
  else if(m==='backup'){try{const all=await Store.exportAll();download('planner-backup-'+todayIso()+'.json',JSON.stringify(all))}catch(err){toast(err.message)}}
  else if(m==='sample')await newPlan(sample(),'Sample plan');
 });
+$('#set').addEventListener('click',e=>{const b=e.target.closest('[data-set]');if(!b)return;closeMenu();if(b.dataset.set==='plan'){openCal(null);$('#c-ids')?.focus()}else sysPanel(true)});
 $('#plans').addEventListener('click',async e=>{
  const u=e.target.closest('[data-unarch]');
  if(u){e.stopPropagation();try{await Store.patch(u.dataset.unarch,{archived:false});archList=archList.filter(p=>p.id!==u.dataset.unarch);plans=await Store.list(false);renderPlans();toast('Plan restored to the list.')}catch(err){toast(err.message)}return}
@@ -72,16 +74,32 @@ $('#rail-rel-l').addEventListener('click',e=>{const b=e.target.closest('[data-rp
 // Collapsed sidebar sections and the map zoom are per-viewer preferences.
 for(const d of document.querySelectorAll('.rsec[data-ls]')){if(LS.get(d.dataset.ls)==='0')d.open=false;d.addEventListener('toggle',()=>LS.set(d.dataset.ls,d.open?'1':'0'))}
 mapZ=zClamp(parseFloat(LS.get('planner.mapzoom')));
-// Theme is per viewer and never stored in the plan. System (no data-theme) follows the OS live
-// through CSS color-scheme; the inline script in index.html applies it before the first paint.
+// System settings: per-viewer preferences that apply on every plan, kept in this browser and never
+// in the plan. Theme: System (no data-theme) follows the OS live through CSS color-scheme; the
+// inline script in index.html applies the saved choice before the first paint.
 function setTheme(t){
  if(t!=='light'&&t!=='dark')t='system';const r=document.documentElement;
  if(t==='system')delete r.dataset.theme;else r.dataset.theme=t;
- for(const b of $('#thm').children)b.setAttribute('aria-pressed',String(b.dataset.thm===t));
+ for(const b of document.querySelectorAll('[data-thm]'))b.setAttribute('aria-pressed',String(b.dataset.thm===t));
 }
-$('#thm').addEventListener('click',e=>{const b=e.target.closest('[data-thm]');if(!b)return;setTheme(b.dataset.thm);LS.set('planner.theme',b.dataset.thm)});
 setTheme(LS.get('planner.theme'));
-$('#hist-btn').onclick=()=>{histOpen=!histOpen;if(histOpen&&(sel||selRel||calOpen)){sel=null;selRel=null;calOpen=false;render()}renderHist()};
+function sysPanel(open){
+ sysOpen=open;const p=$('#sysp');p.classList.toggle('open',open);if(!open){p.innerHTML='';return}
+ if(histOpen){histOpen=false;renderHist()}
+ if(sel||selRel||calOpen){sel=null;selRel=null;calOpen=false;render()}
+ p.innerHTML=`<div class="dh"><span>System settings</span><button class="x" data-sp="close" aria-label="Close system settings">×</button></div>
+ <p class="dsay" style="margin-top:0">These apply to you, in this browser, on every plan. They are not saved in the plan, so your teammates keep their own.</p>
+ <h3 id="thm-l">Theme</h3>
+ <div class="seg" role="group" aria-labelledby="thm-l"><button data-thm="system">System</button><button data-thm="light">Light</button><button data-thm="dark">Dark</button></div>
+ <p class="none" style="margin-top:6px">System follows your computer's light or dark setting.</p>`;
+ setTheme(LS.get('planner.theme'));p.querySelector('[data-thm][aria-pressed=true]').focus();
+}
+$('#sysp').addEventListener('click',e=>{
+ const b=e.target.closest('button');if(!b)return;
+ if(b.dataset.sp==='close'){sysPanel(false);$('#set-btn').focus()}
+ else if(b.dataset.thm){setTheme(b.dataset.thm);LS.set('planner.theme',b.dataset.thm)}
+});
+$('#hist-btn').onclick=()=>{histOpen=!histOpen;if(histOpen&&sysOpen)sysPanel(false);if(histOpen&&(sel||selRel||calOpen)){sel=null;selRel=null;calOpen=false;render()}renderHist()};
 $('#ver-btn').onclick=()=>{if(Store.mode!=='server'){toast('Named versions need the local server.');return}$('#vdn').value='';$('#vdl').hidden=false;$('#vdn').focus()};
 $('#vd-close').onclick=()=>{$('#vdl').hidden=true};
 $('#vd-save').onclick=async()=>{

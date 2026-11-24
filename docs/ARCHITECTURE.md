@@ -59,7 +59,7 @@ time can only use names from its own file or an earlier one.
 | `js/grid.js` (`// ----- grid`) | `GCOLS`, `GEDIT`, `cellHtml`, `gridRows`, `renderGrid`, keyboard moves, `gridEdit`, `setCell`, `parseDeps` |
 | `js/history.js` (`// ===== history`) | change log and versions panel (`loadHist`, `renderHist`) |
 | `js/import.js` (`// ===== import`) | CSV parser, `.xlsx` reader (zip + `DecompressionStream`), column guessing, `buildImport` |
-| `js/wiring.js` (`// ===== wiring`) | menus (More, the toolbar's Add menu with arrow-key support, `placeMenu` for toolbar menus), filter menu (`renderFlt`, `fltLoad`, `fltSave`), dialogs, rail (including the release list) and tabs; ends with `boot()`, so it loads last |
+| `js/wiring.js` (`// ===== wiring`) | menus (Settings and More in the app bar, the toolbar's Add menu with arrow-key support, `placeMenu` for toolbar menus), filter menu (`renderFlt`, `fltLoad`, `fltSave`), the System settings panel (`sysPanel`, `setTheme`), dialogs, rail (including the release list) and tabs; ends with `boot()`, so it loads last |
 
 ### Data model (plan JSON, `S`)
 
@@ -229,9 +229,14 @@ Releases get `od`/`rk` from their tasks and externals.
   conflict dialog offers "load theirs" or "keep mine".
 - Per-viewer preferences use `LS` keys (`planner.user`, `planner.last`,
   `planner.flt.<planId>`, `planner.mapzoom` for the map zoom,
-  `planner.theme` (`system` | `light` | `dark`) for the Theme switch, and
+  `planner.theme` (`system` | `light` | `dark`) for *System settings* > *Theme*, and
   `planner.plansrail` / `planner.relrail` for the sidebar's Plans and
   Releases sections being collapsed) and never go into plan data.
+- *Settings* in the app bar has two entries. *Plan settings* (`calForm()` in
+  the editor drawer) holds options saved in the plan, for everyone. *System
+  settings* (`sysPanel()`, its own side panel `#sysp`, like History) holds
+  per-viewer options kept in localStorage. New settings go in whichever of the
+  two matches where they are stored.
 - Theme: `setTheme()` in `wiring.js` sets `data-theme` on `<html>` (removed
   for System, so CSS `color-scheme: light dark` follows the OS live). A tiny
   inline script at the top of `<head>` applies the saved choice before the
