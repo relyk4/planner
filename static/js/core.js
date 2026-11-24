@@ -95,7 +95,7 @@ function norm(s){
  const items=s.items.filter(i=>i&&i.id&&['obj','feat','task','ms','ext'].includes(i.type)).map(i=>({id:String(i.id),type:i.type,parent:i.parent&&i.type!=='ms'&&i.type!=='ext'?String(i.parent):null,name:String(i.name??''),owner:String(i.owner??''),status:(i.type==='ext'?XSV:['todo','doing','done','blocked']).includes(i.status)?i.status:i.type==='ext'?'pending':'todo',deps:normLinks(i.deps),blocker:String(i.blocker??''),earliest:+i.earliest>0?Math.floor(+i.earliest):null,collapsed:!!i.collapsed,notes:String(i.notes??''),rel:String(i.rel??''),target:String(i.target??''),due:okd(i.due),startBy:okd(i.startBy),startedOn:okd(i.startedOn),doneOn:okd(i.doneOn),team:String(i.team??''),ref:String(i.ref??''),color:/^#[0-9a-fA-F]{6}$/.test(String(i.color??''))?String(i.color):'',key:String(i.key??'')}));
  const releases=Array.isArray(s.releases)?s.releases.filter(r=>r&&r.id).map(r=>({id:String(r.id),name:String(r.name??''),target:String(r.target??''),status:RST[r.status]?r.status:'planned',notes:String(r.notes??''),due:okd(r.due)})):[];
  const cal={asof:okd((s.cal||{}).asof)},t=s.tl||{},tl={open:!!t.open,zoom:ZO[t.zoom]?t.zoom:'weeks',only:t.only!==false};
- return {title:String(s.title||'Untitled plan'),view:['map','grid','gantt'].includes(s.view)?s.view:'map',relOpen:s.relOpen!==false,sample:!!s.sample,msCollapsed:!!s.msCollapsed,extCollapsed:!!s.extCollapsed,cal,tl,releases,items};
+ return {title:String(s.title||'Untitled plan'),view:['map','grid','gantt','rel'].includes(s.view)?s.view:'map',relOpen:s.relOpen!==false,sample:!!s.sample,msCollapsed:!!s.msCollapsed,extCollapsed:!!s.extCollapsed,cal,tl,releases,items};
 }
 
 let S=blank();
@@ -182,7 +182,7 @@ function calc(){
  [...C.mss,...C.exts,...C.order].forEach(n=>{if(!C.done(n.id))up(n.id,new Set())});
  Object.assign(C,{T,df:F,endOf,lateUp:lu});
 }
-function recalc(){C=compute();C.rel=relStats();calc();if(sel&&!map[sel])sel=null;if(selRel&&!S.releases.some(r=>r.id===selRel))selRel=null;C.fs=fltSet()}
+function recalc(){C=compute();C.rel=relStats();calc();if(sel&&!map[sel])sel=null;if(selRel&&!S.releases.some(r=>r.id===selRel))selRel=null;if(relPage&&!S.releases.some(r=>r.id===relPage))relPage=null;C.fs=fltSet()}
 const FST=[['ready','Ready to start'],['doing','In progress'],['waiting','Waiting on links'],['blocked','Blocked'],['done','Done']];
 let flt={hide:[],compact:true};
 const fltOn=()=>flt.hide.length>0;

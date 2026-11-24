@@ -4,8 +4,27 @@
 
 // ====================================================================== wiring
 function closeMenu(){$('#more').hidden=true;$('#more-btn').setAttribute('aria-expanded','false')}
-$('#more-btn').onclick=e=>{e.stopPropagation();fltMenu(false);const h=$('#more').hidden;$('#more').hidden=!h;$('#more-btn').setAttribute('aria-expanded',String(h))};
+$('#more-btn').onclick=e=>{e.stopPropagation();fltMenu(false);addMenu(false);const h=$('#more').hidden;$('#more').hidden=!h;$('#more-btn').setAttribute('aria-expanded',String(h))};
 document.addEventListener('click',e=>{if(!$('#more').hidden&&e.target.closest('.menu')!==$('#more').parentNode)closeMenu()});
+// Menus inside the toolbar are position:fixed so its sideways scrolling can't clip them.
+function placeMenu(m,b){if(m.hidden)return;const r=b.getBoundingClientRect();m.style.top=r.bottom+6+'px';m.style.maxHeight=Math.max(160,innerHeight-r.bottom-14)+'px';m.style.left=Math.max(8,Math.min(r.left,innerWidth-m.offsetWidth-8))+'px'}
+const placeMenus=()=>{placeMenu($('#flt'),$('#flt-btn'));placeMenu($('#add'),$('#add-btn'))};
+addEventListener('scroll',placeMenus,true);addEventListener('resize',placeMenus);
+const addItems=()=>[...$('#add').querySelectorAll('[role=menuitem]')];
+function addMenu(open,last){
+ const m=$('#add');m.hidden=!open;$('#add-btn').setAttribute('aria-expanded',String(open));if(!open)return;
+ closeMenu();fltMenu(false);placeMenu(m,$('#add-btn'));const it=addItems();it[last?it.length-1:0].focus();
+}
+$('#add-btn').onclick=e=>{e.stopPropagation();addMenu($('#add').hidden)};
+$('#add-btn').addEventListener('keydown',e=>{if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();addMenu(true,e.key==='ArrowUp')}});
+$('#add').addEventListener('keydown',e=>{
+ const it=addItems(),i=it.indexOf(document.activeElement);
+ if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();it[(i+(e.key==='ArrowDown'?1:-1)+it.length)%it.length].focus()}
+ else if(e.key==='Home'||e.key==='End'){e.preventDefault();it[e.key==='Home'?0:it.length-1].focus()}
+ else if(e.key==='Tab')addMenu(false);
+});
+$('#add').addEventListener('click',e=>{const b=e.target.closest('[data-add]');if(!b)return;addMenu(false);const t=b.dataset.add;if(t==='rel')addRel();else addItem(t)});
+document.addEventListener('click',e=>{if(!$('#add').hidden&&e.target.isConnected&&!e.target.closest('#add-m'))addMenu(false)});
 function renderFlt(){
  const on=fltOn(),c={};C.order.forEach(t=>{c[C.eff[t.id]]=(c[C.eff[t.id]]||0)+1});
  const shown=on?C.order.filter(t=>C.fs.has(t.id)).length:C.order.length,b=$('#flt-btn');
@@ -18,8 +37,8 @@ function renderFlt(){
 }
 function fltSave(){if(cur)LS.set('planner.flt.'+cur.id,JSON.stringify(flt))}
 function fltLoad(){let v=null;try{v=JSON.parse(LS.get('planner.flt.'+(cur?cur.id:''))||'null')}catch(e){}flt={hide:Array.isArray(v&&v.hide)?FST.map(f=>f[0]).filter(k=>v.hide.includes(k)):[],compact:!(v&&v.compact===false)}}
-function fltMenu(open){$('#flt').hidden=!open;$('#flt-btn').setAttribute('aria-expanded',String(open))}
-$('#flt-btn').onclick=e=>{e.stopPropagation();closeMenu();fltMenu($('#flt').hidden)};
+function fltMenu(open){$('#flt').hidden=!open;$('#flt-btn').setAttribute('aria-expanded',String(open));if(open)placeMenu($('#flt'),$('#flt-btn'))}
+$('#flt-btn').onclick=e=>{e.stopPropagation();closeMenu();addMenu(false);fltMenu($('#flt').hidden)};
 document.addEventListener('click',e=>{if(!$('#flt').hidden&&e.target.isConnected&&!e.target.closest('#flt-m'))fltMenu(false)});
 $('#flt').addEventListener('change',e=>{const k=e.target.dataset.fs;if(k){const h=new Set(flt.hide);if(e.target.checked)h.delete(k);else h.add(k);flt.hide=FST.map(f=>f[0]).filter(x=>h.has(x))}else if(e.target.hasAttribute('data-fc'))flt.compact=e.target.checked;else return;fltSave();render()});
 document.addEventListener('click',e=>{const p=e.target.closest('[data-fp]');if(!p)return;e.preventDefault();const v=p.dataset.fp;flt.hide=v==='done'?['done']:v==='stuck'?['ready','doing','done']:[];fltSave();render()});
@@ -41,13 +60,16 @@ $('#plans').addEventListener('click',async e=>{
 });
 $('#plans').addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.dataset&&e.target.dataset.plan){e.preventDefault();openPlan(e.target.dataset.plan)}});
 $('#plan-q').addEventListener('input',renderPlans);
-$('#show-arch').onclick=async()=>{showArch=!showArch;if(showArch){try{archList=await Store.list(true)}catch(e){archList=[]}}renderPlans()};
+$('#show-arch').onclick=async()=>{showArch=!showArch;$('#rail-plans').open=true;if(showArch){try{archList=await Store.list(true)}catch(e){archList=[]}}renderPlans()};
 $('#new-plan').onclick=async()=>{await newPlan(blank(),'Untitled plan');ttl.focus();ttl.select()};
 $('#imp-file').onclick=()=>{$('#app').classList.remove('railopen');openImport()};
 $('#me').addEventListener('change',()=>{LS.set('planner.user',$('#me').value.trim());toast('Name saved. Your next changes will show it in History.')});
 $('#rail-tg').onclick=()=>$('#app').classList.toggle('railopen');
 $('#scrim').onclick=()=>$('#app').classList.remove('railopen');
-document.querySelector('.tabs').addEventListener('click',e=>{const b=e.target.closest('[data-view]');if(!b)return;view=b.dataset.view;tlReset=true;gsel=null;render();if(view==='grid')$('#gridv').focus({preventScroll:true})});
+document.querySelector('.tabs').addEventListener('click',e=>{const b=e.target.closest('[data-view]');if(!b)return;view=b.dataset.view;if(view==='rel')relPage=null;tlReset=true;gsel=null;render();if(view==='grid')$('#gridv').focus({preventScroll:true})});
+$('#rail-rel-l').addEventListener('click',e=>{const b=e.target.closest('[data-rp]');if(b)openRel(b.dataset.rp)});
+// Collapsed sidebar sections are a per-viewer preference.
+for(const d of document.querySelectorAll('.rsec[data-ls]')){if(LS.get(d.dataset.ls)==='0')d.open=false;d.addEventListener('toggle',()=>LS.set(d.dataset.ls,d.open?'1':'0'))}
 $('#hist-btn').onclick=()=>{histOpen=!histOpen;if(histOpen&&(sel||selRel||calOpen)){sel=null;selRel=null;calOpen=false;render()}renderHist()};
 $('#ver-btn').onclick=()=>{if(Store.mode!=='server'){toast('Named versions need the local server.');return}$('#vdn').value='';$('#vdl').hidden=false;$('#vdn').focus()};
 $('#vd-close').onclick=()=>{$('#vdl').hidden=true};

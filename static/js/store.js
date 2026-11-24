@@ -48,7 +48,7 @@ const Store={
   const all=[];for(const p of [...this.lidx()])all.push(await this.get(p.id));return {exported:Date.now()/1000,plans:all};
  }
 };
-let cur=null,plans=[],archList=[],showArch=false,lastSaved='',saveT=0,saving=false,histOpen=false,histTab='changes',view='map',gsel=null,gedit=null,lastVW=0;
+let cur=null,plans=[],archList=[],showArch=false,lastSaved='',saveT=0,saving=false,histOpen=false,histTab='changes',view='map',relPage=null,gsel=null,gedit=null,lastVW=0;
 const tmFmt=ts=>{const d=new Date(ts*1000);return d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})};
 const dtFmt=ts=>{const d=new Date(ts*1000);return d.toLocaleDateString([],{month:'short',day:'numeric'})+' '+tmFmt(ts)};
 const ago=ts=>{const s=Date.now()/1000-ts;return s<60?'just now':s<3600?Math.floor(s/60)+'m ago':s<86400?Math.floor(s/3600)+'h ago':new Date(ts*1000).toLocaleDateString([],{month:'short',day:'numeric'})};
@@ -84,7 +84,7 @@ async function openPlan(id){
  let p;try{p=await Store.get(id)}catch(e){toast('Could not open that plan: '+e.message);return}
  S=norm(p.data)||blank();if(!S.title)S.title=p.name;
  cur={id:p.id,rev:p.rev,name:p.name,archived:p.archived};view=S.view||'map';fltLoad();
- hist=[];sel=null;selRel=null;calOpen=false;focus=null;gsel=null;gedit=null;tlReset=true;
+ hist=[];sel=null;selRel=null;relPage=null;calOpen=false;focus=null;gsel=null;gedit=null;tlReset=true;
  lastSaved=JSON.stringify(S);LS.set('planner.last',p.id);
  setSave(p.updated?('Last saved '+dtFmt(p.updated)+(p.updated_by?' by '+p.updated_by:'')):'');
  $('#app').classList.remove('railopen');render();renderPlans();if(histOpen)loadHist();
@@ -96,6 +96,7 @@ async function refreshPlans(){
 function renderPlans(){
  const qv=$('#plan-q').value.trim().toLowerCase(),list=(showArch?archList:plans).filter(p=>!qv||String(p.name).toLowerCase().includes(qv));
  $('#plans').innerHTML=list.map(p=>`<div class="pl${cur&&p.id===cur.id?' on':''}" data-plan="${esc(p.id)}" role="button" tabindex="0" title="${esc(p.name)}"><span class="pdot"></span><span class="pn">${esc(p.name)||'Untitled plan'}</span><span class="pt">${esc(ago(p.updated))}</span>${showArch?`<button class="pa" data-unarch="${esc(p.id)}">Restore</button>`:''}</div>`).join('')||`<p class="pe">${showArch?'No archived plans.':qv?'No plans match.':'No plans yet.'}</p>`;
+ $('#plans-h').textContent=showArch?'Archived plans':'Plans';$('#plans-n').textContent=(showArch?archList:plans).length;
  $('#show-arch').textContent=showArch?'Back to plans':'Show archived';
  $('#show-arch').setAttribute('aria-pressed',showArch);
  const c=$('#conn');c.className='conn'+(Store.mode==='server'?'':' off');

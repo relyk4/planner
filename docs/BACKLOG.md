@@ -8,25 +8,6 @@ run them one at a time or rebase often.
 
 ---
 
-## 2. One toolbar row above the map, with a single Add menu
-
-**Do:**
-- Move the plan toolbar (view tabs, Filter, add buttons, Undo, Expand all,
-  Collapse features, Critical path, Link tags) out of the sticky top
-  area. Put it directly above the active view, below the tallies and
-  releases.
-- Combine *+ Objective*, *+ Milestone*, *+ External* and *+ Release* into one
-  **Add ▾** menu.
-- Everything fits on one line at 1280px and wider. On narrow screens it
-  may scroll sideways rather than wrap.
-
-**Done when:**
-- There is one line at 1280px and above.
-- The Add menu works with the keyboard (Enter, arrows, Esc).
-- It works in all three views.
-
----
-
 ## 3. Done work shows translucent green on the map
 
 **Do:**
@@ -157,3 +138,8 @@ and undo works.
 - **Split `index.html` into a few files** (Nov 2026). Styles in
   `static/app.css`, the script in classic `<script src>` files under
   `static/js/`. No visible change.
+- **One toolbar row above the view, a single Add menu, and a Releases tab**
+  (Nov 2026). The toolbar sits directly above the active view and scrolls
+  sideways instead of wrapping; *Add ▾* replaces the four add buttons and
+  works with the keyboard. Releases moved off the plan page into their own
+  tab, with a page per release, linked from the sidebar.

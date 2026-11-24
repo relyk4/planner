@@ -65,6 +65,39 @@ try {
   ok($('#ganttv').innerHTML.length > 1000, 'gantt view renders');
   $('[data-view=map]').click(); await sleep(50);
 
+  // releases: own tab, a page per release, and links in the left rail
+  $('[data-view=rel]').click(); await sleep(50);
+  ok(!$('#relv').hidden && $$('#relv .rr').length === 3, 'Releases tab lists the releases');
+  $('#relv .rr').click(); await sleep(50);
+  ok($('#relv .relp h2')?.textContent === 'R0 Foundations' && $$('#relv .relp-t tbody tr').length > 0, 'clicking a release opens its page with its tasks');
+  $$('#rail-rel-l [data-rp]')[2].click(); await sleep(50);
+  ok($('#relv .relp h2')?.textContent === 'R1 Ingest MVP' && $('#rail-rel-l .on')?.dataset.rp === $$('#rail-rel-l [data-rp]')[2].dataset.rp, 'a release in the sidebar opens its page');
+  $('#relv [data-act=rel-map]').click(); await sleep(50);
+  ok(!$('#board').hidden && $('#dr').classList.contains('open') && $('#f-rdue'), 'Show on map focuses the release on the map');
+  $('#dr [data-act=close]').click(); await sleep(30);
+
+  // Add menu, keyboard first
+  const key = k => d.activeElement.dispatchEvent(new w.KeyboardEvent('keydown', {key: k, bubbles: true}));
+  $('#add-btn').focus(); key('ArrowDown'); await sleep(20);
+  ok(!$('#add').hidden && d.activeElement === $('#add [data-add=obj]'), 'ArrowDown opens the Add menu on its first item');
+  key('ArrowDown'); key('ArrowDown');
+  ok(d.activeElement === $('#add [data-add=ext]'), 'arrow keys move through the Add menu');
+  key('ArrowUp'); key('ArrowUp'); key('ArrowUp');
+  ok(d.activeElement === $('#add [data-add=rel]'), 'arrow keys wrap around');
+  key('Escape'); await sleep(20);
+  ok($('#add').hidden && d.activeElement === $('#add-btn'), 'Esc closes the Add menu and returns focus');
+  const objs = $$('#grid .lr.obj').length;
+  $('#add-btn').click(); await sleep(20);
+  $('#add [data-add=obj]').click(); await sleep(50);
+  ok($('#add').hidden && $$('#grid .lr.obj').length === objs + 1 && d.activeElement === $('#f-name'), 'Add > Objective adds one and opens its editor');
+  $('#undo').click(); await sleep(50);
+  $('#add-btn').click(); await sleep(20);
+  $('#add [data-add=rel]').click(); await sleep(50);
+  ok(!$('#relv').hidden && $('#relv .relp h2')?.textContent === 'R4' && $('#rail-rel-n').textContent === '4', 'Add > Release opens the new release page');
+  $('#undo').click(); await sleep(50);
+  ok($('#relv .relp') === null && $$('#relv .rr').length === 3, 'undoing it returns to the release list');
+  $('[data-view=map]').click(); await sleep(50);
+
   // undo
   const name0 = $('#grid .lr.task .nm').textContent;
   $('#grid .lr.task').click(); await sleep(30);

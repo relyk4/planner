@@ -4,12 +4,14 @@
 <link rel="stylesheet" href="app.css">
 </head><body>
 <div class="app" id="app">
-<aside class="rail" id="rail" aria-label="Plans">
+<aside class="rail" id="rail" aria-label="Plans and releases">
  <div class="brand"><span class="logo" aria-hidden="true"></span><b>Planner</b></div>
  <div class="rail-acts"><button class="rbtn pri" id="new-plan">New plan</button><button class="rbtn" id="imp-file">Import</button></div>
- <input id="plan-q" class="rq" type="search" placeholder="Search plans" aria-label="Search plans" autocomplete="off">
- <div class="rhd">Plans</div>
- <nav id="plans" class="plans" aria-label="Plan list"></nav>
+ <details class="rsec" id="rail-plans" data-ls="planner.plansrail" open><summary><span id="plans-h">Plans</span> <span id="plans-n"></span></summary>
+  <input id="plan-q" class="rq" type="search" placeholder="Search plans" aria-label="Search plans" autocomplete="off">
+  <nav id="plans" class="plans" aria-label="Plan list"></nav>
+ </details>
+ <details class="rsec" id="rail-rel" data-ls="planner.relrail" open><summary>Releases <span id="rail-rel-n"></span></summary><nav class="rail-rel-l" id="rail-rel-l" aria-label="Releases in this plan"></nav></details>
  <button class="rlink" id="show-arch" aria-pressed="false">Show archived</button>
  <div class="rfoot"><div id="conn" class="conn"></div><label class="me" for="me">Your name<input id="me" placeholder="Shown in history" autocomplete="name"></label></div>
 </aside>
@@ -30,25 +32,27 @@
     <button data-m="sample" role="menuitem">New sample plan</button>
    </div></div>
  </header>
+ <div class="content">
+ <div id="tal" class="tal" aria-label="Tallies; click one to highlight those items"></div>
+ <p class="note" id="note" hidden>This is a sample plan to show how everything works. Create your own with New plan, or import a CSV or Excel export.</p>
  <div class="toolbar" role="toolbar" aria-label="Plan tools">
-  <div class="tabs" role="tablist" aria-label="View"><button role="tab" data-view="map" aria-selected="true">Dependency map</button><button role="tab" data-view="grid" aria-selected="false">Grid</button><button role="tab" data-view="gantt" aria-selected="false">Gantt</button></div>
+  <div class="tabs" role="tablist" aria-label="View"><button role="tab" data-view="map" aria-selected="true">Dependency map</button><button role="tab" data-view="grid" aria-selected="false">Grid</button><button role="tab" data-view="gantt" aria-selected="false">Gantt</button><button role="tab" data-view="rel" aria-selected="false">Releases</button></div>
   <span class="tsep"></span>
-  <div class="menu" id="flt-m"><button class="tbtn" id="flt-btn" aria-haspopup="true" aria-expanded="false" aria-pressed="false">Filter</button><div class="mlist fl" id="flt" hidden aria-label="Filter by status"></div></div><span class="fltsum" id="fltsum" hidden></span>
+  <div class="menu" id="flt-m"><button class="tbtn" id="flt-btn" aria-haspopup="true" aria-expanded="false" aria-pressed="false">Filter</button><div class="mlist fl" id="flt" hidden aria-label="Filter by status"></div></div>
   <span class="tsep"></span>
-  <button class="tbtn" id="add-obj">+ Objective</button><button class="tbtn" id="add-ms">+ Milestone</button><button class="tbtn" id="add-ext">+ External</button><button class="tbtn" id="add-rel2">+ Release</button>
+  <div class="menu" id="add-m"><button class="tbtn" id="add-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="add">Add ▾</button>
+   <div class="mlist" id="add" hidden role="menu" aria-label="Add to plan"><button data-add="obj" role="menuitem" tabindex="-1">Objective</button><button data-add="ms" role="menuitem" tabindex="-1">Milestone</button><button data-add="ext" role="menuitem" tabindex="-1">External dependency</button><button data-add="rel" role="menuitem" tabindex="-1">Release</button></div></div>
   <span class="tsep"></span>
   <button class="tbtn" id="undo">Undo</button><button class="tbtn" id="exp">Expand all</button><button class="tbtn" id="col">Collapse features</button>
   <span class="tsep"></span>
   <button class="tbtn tog" id="crit" aria-pressed="false">Critical path</button><button class="tbtn tog" id="tags" aria-pressed="true">Link tags</button>
  </div>
- <div class="content">
- <div id="tal" class="tal" aria-label="Tallies; click one to highlight those items"></div>
- <section id="rels" class="rels" aria-label="Release tracking"></section>
- <p class="note" id="note" hidden>This is a sample plan to show how everything works. Create your own with New plan, or import a CSV or Excel export.</p>
+ <p class="fltsum" id="fltsum" hidden></p>
  <div id="views">
   <div id="board" class="board"><div id="grid" class="grid"></div></div>
   <div id="gridv" class="gridv" tabindex="0" hidden aria-label="Grid view"></div>
   <div id="ganttv" class="ganttv" hidden></div>
+  <div id="relv" class="relv" hidden aria-label="Releases"></div>
  </div>
 <details class="lgd" id="lgd"><summary>Legend and how it works</summary>
 <div class="legend" aria-label="Legend">

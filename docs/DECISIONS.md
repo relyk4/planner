@@ -21,3 +21,6 @@ bottom.
 | 13 | **Status filter state is per viewer** (localStorage per plan), not stored in the plan. | When the team shares a plan, one person's filter must not change anyone else's view. |
 | 14 | **The status filter closes up empty steps by default.** A thicker divider marks where steps were skipped. Step numbers keep their real values. | Hiding done work shouldn't leave a wall of empty columns. The real step number stays truthful. |
 | 15 | **The item open in the editor stays visible even if the filter would hide it.** | Marking a task Done while Done is hidden shouldn't make it vanish mid-edit. |
+| 16 | **The plan toolbar is one row directly above the active view, not sticky.** It scrolls sideways instead of wrapping. The four add buttons are one *Add ▾* menu. | Keeps the controls next to the view they act on and frees vertical space. Everything fits on one line at 1280px wide. |
+| 17 | **Releases have their own tab and a page per release**, also listed in the sidebar under the plans. The release ledger no longer sits above the map. | The ledger pushed the map down on every plan; releases are looked at on their own, then shown on the map on demand ("Show on map"). |
+| 18 | **The filter's "Showing X of Y tasks" summary sits on a slim line under the toolbar**, only while a filter is on. | Inside the toolbar it pushed the row past 1280px. |

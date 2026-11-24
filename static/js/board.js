@@ -49,12 +49,6 @@ function renderStats(){
  if(document.activeElement!==ttl)ttl.value=S.title;
  renderFlt();
 }
-function renderRels(){
- const un=C.order.filter(t=>!C.relOf[t.id]).length;
- const ro2=S.relOpen!==false;
- $('#rels').innerHTML=`<div class="rh"><button class="relt" data-act="rel-tog" aria-expanded="${ro2}">${ro2?'▾':'▸'} Releases <span class="none">${C.rel.length}</span></button>${ro2?'':`<span class="relmini">${C.rel.map(x=>`<span class="rmc${x.od||x.rk?' bad':''}">${esc(x.r.name)} <b>${x.done}/${x.ts.length}</b>${x.od?' overdue':x.rk?' at risk':''}</span>`).join('')}</span>`}<button class="btn" data-act="add-rel">Add release</button></div>`+(!ro2?'':C.rel.length?`<div class="rl">${C.rel.map(x=>{const pct=x.ts.length?Math.round(x.done/x.ts.length*100):0;return `<button class="rr${selRel===x.r.id?' on':''}" data-rel="${x.r.id}"><span class="rn"><b>${esc(x.r.name)||'Untitled release'}</b><span>${esc(x.r.target)||'No target set'}${x.due!==null?` · due ${fd(x.due)}`:''}</span>${x.od?`<i class="lt">Overdue ${x.od}d</i>`:x.rk?`<i class="lt rk" title="Work due after the release date">At risk</i>`:''}</span><span class="pg" title="${pct}% of tasks done"><i style="width:${pct}%"></i></span><span class="rf"><b>${x.done}</b> of ${x.ts.length} done</span><span class="rf">${x.land?`Lands after step <b>${x.land}</b>`:'No tasks yet'}</span><span class="rf${x.blk?' red':''}"><b>${x.blk}</b> blocked</span><span class="rf"><b>${x.up.length}</b> needed from outside${x.xt.length?`, <b>${x.xt.length}</b> external`:''}</span><span class="st ${x.r.status}">${RST[x.r.status]}</span></button>`}).join('')}</div><p class="none" style="margin-top:6px">${un} ${un===1?'task is':'tasks are'} not in any release. Click a release to see its work and outside dependencies on the board.</p>`:'<p class="none">No releases yet. Add one, then assign features or tasks to it from their editor.</p>');
-}
-
 const PAL=['#2f6fdb','#0c8599','#7048e8','#c2255c','#f59f00','#2b8a3e','#5c940d','#9c36b5','#1098ad','#495057'],okc=v=>/^#[0-9a-fA-F]{6}$/.test(String(v??''))?String(v):'';
 const fcol=n=>{const f=n.type==='feat'?n:n.type==='task'?map[n.parent]:null;return f&&okc(f.color)};
 const fcs=n=>{const c=fcol(n);return c?`<i class="fcs ${n.type}" style="background:${c}"></i>`:''};
@@ -273,7 +267,7 @@ function renderDrawer(){
   h=`<div class="dh"><span>Release</span><button class="x" data-act="close" aria-label="Close editor">×</button></div>
   <label class="f">Name<input id="f-name" data-rf="name" value="${esc(r.name)}"></label>
   <div class="two"><label class="f">Target<input id="f-target" data-rf="target" value="${esc(r.target)}" placeholder="e.g. end of PI or a date"></label><label class="f">Status<select id="f-rstatus" data-rf="status">${Object.entries(RST).map(([v,l])=>`<option value="${v}"${r.status===v?' selected':''}>${l}</option>`).join('')}</select></label></div>
-  <label class="f">Due date<input id="f-rdue" data-rf="due" type="date" value="${esc(r.due)}"></label>${rx.od?`<p class="dsay"><b class="ltc">Overdue by ${days(rx.od)}</b>.</p>`:''}${rx.rk?`<p class="dsay"><b class="ltc">At risk:</b> ${[rx.after.length?`${rx.after.map(t=>esc(C.code[t.id])).join(', ')} ${rx.after.length===1?'is':'are'} due after the release date`:'',rx.xlate.length?`it waits on ${rx.xlate.map(d=>esc(C.code[d])).join(', ')}, expected after the release date`:''].filter(Boolean).join('; ')}.</p>`:''}
+  <label class="f">Due date<input id="f-rdue" data-rf="due" type="date" value="${esc(r.due)}"></label>${relSay(rx)}
   <div class="info${rx.blk?' blocked':''}"><b>${rx.done} of ${rx.ts.length} tasks done (${pct}%)</b>${rx.land?`. Last task lands after step ${rx.land}.`:''}${rx.blk?`<br>${rx.blk} blocked or held up by a blocker.`:''}${rx.up.length?`<br>${rx.up.length} unfinished ${rx.up.length===1?'task':'tasks'} outside this release must finish first. They are outlined on the board.`:''}</div>
   <h3>Features <span>${rx.feats.length}</span></h3><div class="chips">${rx.feats.map(fchip).join('')||'<p class="none">Assign a feature from its editor.</p>'}</div>
   <h3>Tasks <span>${rx.ts.length}</span></h3><div class="chips">${rx.ts.map(t=>fchip(t.id).replace('<span class="chip">',`<span class="chip">${icon(t.id)}`)).join('')||'<p class="none">No tasks yet.</p>'}</div>
@@ -334,8 +328,8 @@ function renderDrawer(){
  dr.innerHTML=h;dr.classList.add('open');dr.scrollTop=sc;
  if(act){const el=document.getElementById(act);if(el&&dr.contains(el))el.focus()}
 }
-function render(){if(sel||selRel)calOpen=false;if((sel||selRel||calOpen)&&histOpen){histOpen=false;renderHist()}S.view=view;recalc();renderStats();renderRels();renderView();renderDrawer();save()}
-function soft(){clearTimeout(tm);tm=setTimeout(()=>{recalc();renderStats();renderRels();renderView();save()},180)}
+function render(){if(sel||selRel)calOpen=false;if((sel||selRel||calOpen)&&histOpen){histOpen=false;renderHist()}S.view=view;recalc();renderStats();renderRailRels();renderView();renderDrawer();save()}
+function soft(){clearTimeout(tm);tm=setTimeout(()=>{recalc();renderStats();renderRailRels();renderView();save()},180)}
 
 function moveRow(it){const s=C.step[it.id],mn=C.minOf(it.id),pin=it.earliest&&it.earliest>mn;
  return `<div class="acts" style="border:0;margin-top:8px;padding:0;align-items:center"><button class="btn" data-act="mvl"${s<=mn?' disabled':''}>Earlier step</button><button class="btn" data-act="mvr">Later step</button>${pin?'<button class="btn" data-act="unpin">Unpin</button>':''}<span class="none">${pin?`Pinned. Its links allow step ${mn}.`:s<=mn&&mn>1?`Earliest its links allow: step ${mn}.`:'Or drag its bar on the board.'}</span></div>`}
@@ -350,11 +344,12 @@ function moveTo(id,tgt){
 function addItem(type,parent){
  const it=mk(nid(),type,parent||null,{obj:'New objective',feat:'New feature',task:'New task',ms:'New milestone',ext:'New external dependency'}[type]);
  if(type==='ext')it.status='pending';
+ if(view==='rel')view='map';
  mut(()=>{S.items.push(it);if(parent)map[parent].collapsed=false;if(type==='ms')S.msCollapsed=false;if(type==='ext')S.extCollapsed=false;sel=it.id;selRel=null;q=''});
  const n=$('#f-name');if(n){n.focus();n.select()}
  reveal(it.id);
 }
-function addRel(){const r={id:nid(),name:'R'+(S.releases.length+1),target:'',status:'planned',notes:''};mut(()=>{S.releases.push(r);selRel=r.id;sel=null});const n=$('#f-name');if(n){n.focus();n.select()}}
+function addRel(){const r={id:nid(),name:'R'+(S.releases.length+1),target:'',status:'planned',notes:''};view='rel';relPage=r.id;mut(()=>{S.releases.push(r);selRel=r.id;sel=null});const n=$('#f-name');if(n){n.focus();n.select()}}
 function del(id){
  const gone=new Set([id]);let ch=true;
  while(ch){ch=false;for(const i of S.items)if(i.parent&&gone.has(i.parent)&&!gone.has(i.id)){gone.add(i.id);ch=true}}
@@ -462,7 +457,7 @@ window.addEventListener('pointermove',dragMove,{passive:false});
 window.addEventListener('pointerup',()=>dragEnd(false));
 window.addEventListener('pointercancel',()=>dragEnd(true));
 views.addEventListener('click',e=>{
- if(!e.target.isConnected||e.target.closest('#gridv'))return;
+ if(!e.target.isConnected||e.target.closest('#gridv,#relv'))return;
  if(noClick){noClick=false;return}
  const tb=e.target.closest('[data-tl]');if(tb){const a=tb.dataset.tl;if(a==='toggle'){S.tl.open=!S.tl.open;tlReset=true}else if(a==='only')S.tl.only=!S.tl.only;else{S.tl.zoom=a.slice(2);tlReset=true}render();return}
  const cb=e.target.closest('[data-cal]');if(cb){openCal(null);return}
@@ -479,11 +474,16 @@ views.addEventListener('keydown',e=>{
  if(el.dataset.tog){const k=el.dataset.tog==='__ext'?'extCollapsed':'msCollapsed';S[k]=!S[k];render();return}
  sel=el.dataset.id;selRel=null;q='';render();const n=$('#f-name');if(n)n.focus();
 });
-$('#rels').addEventListener('click',e=>{
- const b=e.target.closest('button');if(!b)return;
- if(b.dataset.act==='add-rel'){addRel();return}
- if(b.dataset.act==='rel-tog'){S.relOpen=S.relOpen===false;render();return}
- if(b.dataset.rel){selRel=selRel===b.dataset.rel?null:b.dataset.rel;sel=null;render()}
+$('#relv').addEventListener('click',e=>{
+ if(!e.target.isConnected)return;
+ const b=e.target.closest('button'),a=b&&b.dataset.act;
+ if(b&&b.dataset.go){go(b.dataset.go);return}
+ if(b&&b.dataset.rel){openRel(b.dataset.rel);return}
+ if(a==='add-rel'){addRel();return}
+ if(a==='rel-back'){openRel(null);return}
+ if(a==='rel-edit'){selRel=relPage;sel=null;render();const n=$('#f-name');if(n)n.focus();return}
+ if(a==='rel-map'){view='map';selRel=relPage;sel=null;tlReset=true;render();return}
+ if(sel||selRel||calOpen){sel=null;selRel=null;calOpen=false;render()}
 });
 $('#tal').addEventListener('click',e=>{if(e.target.closest('[data-cal]')){openCal(null);return}const b=e.target.closest('[data-focus]');if(!b)return;focus=focus===b.dataset.focus?null:b.dataset.focus;sel=null;selRel=null;render()});
 dr.addEventListener('focusin',e=>{const d=e.target.dataset;if(d.f||d.rf||d.lk)pend=JSON.stringify(S)});
@@ -534,16 +534,12 @@ dr.addEventListener('click',e=>{
 });
 ttl.addEventListener('input',()=>{S.title=ttl.value;save()});
 ttl.addEventListener('change',()=>{if(!ttl.value.trim()){S.title='Untitled plan';ttl.value=S.title;save()}});
-$('#add-obj').onclick=()=>addItem('obj');
-$('#add-ms').onclick=()=>addItem('ms');
-$('#add-ext').onclick=()=>addItem('ext');
 $('#undo').onclick=undo;
 $('#exp').onclick=()=>{S.items.forEach(i=>i.collapsed=false);S.msCollapsed=false;S.extCollapsed=false;render()};
 $('#col').onclick=()=>{S.items.forEach(i=>{if(i.type==='feat')i.collapsed=true;if(i.type==='obj')i.collapsed=false});render()};
 $('#crit').onclick=()=>{critOn=!critOn;render()};
 $('#tags').onclick=()=>{tagsOn=!tagsOn;render()};
 const exportText=()=>JSON.stringify({title:S.title,tl:S.tl,msCollapsed:S.msCollapsed,extCollapsed:S.extCollapsed,cal:S.cal,releases:S.releases,items:S.items},null,1);
-$('#add-rel2').onclick=()=>addRel();
 const _unused_json=()=>ov('Export plan','Copy this and keep it somewhere safe. Paste it into Import to restore the plan or hand it to someone else.',JSON.stringify({title:S.title,tl:S.tl,msCollapsed:S.msCollapsed,extCollapsed:S.extCollapsed,cal:S.cal,releases:S.releases,items:S.items},null,1),'json');
 const _unused_csv=()=>ov('Export CSV','One row per milestone, objective, feature, task and release. Links read like "1.2.2 FS", "1.1.3 SS+1" or "1.2.2 FS blocked". Paste into Excel, or save as .csv for a Jira import.',csv(),'csv');
 
@@ -554,16 +550,17 @@ $('#ovgo').onclick=async()=>{let s=null;try{s=norm(JSON.parse($('#ovx').value))}
 document.addEventListener('keydown',e=>{
  if(e.key==='Escape'&&drag){dragEnd(true);return}
  if(e.key==='Escape'&&td){tdEnd(true);return}
- if(e.key==='Escape'){for(const d of ['#impd','#vdl'])if(!$(d).hidden){$(d).hidden=true;return}if(!$('#more').hidden){closeMenu();return}if(!$('#flt').hidden){fltMenu(false);$('#flt-btn').focus();return}if(histOpen&&!sel&&!selRel&&!calOpen){histOpen=false;renderHist();return}if(!$('#ov').hidden)$('#ov').hidden=true;else if(sel||selRel||calOpen){sel=null;selRel=null;calOpen=false;render()}}
+ if(e.key==='Escape'){for(const d of ['#impd','#vdl'])if(!$(d).hidden){$(d).hidden=true;return}if(!$('#more').hidden){closeMenu();return}if(!$('#add').hidden){addMenu(false);$('#add-btn').focus();return}if(!$('#flt').hidden){fltMenu(false);$('#flt-btn').focus();return}if(histOpen&&!sel&&!selRel&&!calOpen){histOpen=false;renderHist();return}if(!$('#ov').hidden)$('#ov').hidden=true;else if(sel||selRel||calOpen){sel=null;selRel=null;calOpen=false;render()}}
  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'&&!e.shiftKey&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName||'')){e.preventDefault();undo()}
 });
 
 // ======================================================================= views
 function renderView(){
- board.hidden=view!=='map';$('#gridv').hidden=view!=='grid';$('#ganttv').hidden=view!=='gantt';
+ board.hidden=view!=='map';$('#gridv').hidden=view!=='grid';$('#ganttv').hidden=view!=='gantt';$('#relv').hidden=view!=='rel';
  document.querySelectorAll('.tabs [data-view]').forEach(b=>b.setAttribute('aria-selected',b.dataset.view===view));
+ const rv=view==='rel';for(const s of ['#flt-btn','#exp','#col','#crit','#tags'])$(s).disabled=rv;if(rv)fltMenu(false);$('#fltsum').hidden=rv||!fltOn();
  lastVW=views.clientWidth;
- if(view==='map')renderBoard();else if(view==='grid')renderGrid();else renderGantt();
+ if(view==='map')renderBoard();else if(view==='grid')renderGrid();else if(view==='gantt')renderGantt();else renderRelv();
 }
 function renderGantt(){
  const el=$('#ganttv'),W=el.clientWidth||1000,LW=W<700?190:320;
@@ -571,4 +568,36 @@ function renderGantt(){
  const o=el.querySelector('.tlb'),sl=o?o.scrollLeft:null,st=o?o.scrollTop:null;
  const TL=renderTimeline(rowsVisible(),W,LW,hgt);el.innerHTML=TL.html;
  const n=el.querySelector('.tlb');if(n){if(sl!==null&&!tlReset){n.scrollLeft=sl;n.scrollTop=st}else n.scrollLeft=Math.max(0,TL.tx-LW-(W-LW)/2);tlReset=false}
+}
+
+// ----------------------------------------------------------------------- releases
+function openRel(id){view='rel';relPage=id||null;sel=null;selRel=null;calOpen=false;gsel=null;$('#app').classList.remove('railopen');render()}
+function relSay(x){
+ const why=[x.after.length?`${x.after.map(t=>esc(C.code[t.id])).join(', ')} ${x.after.length===1?'is':'are'} due after the release date`:'',x.xlate.length?`it waits on ${x.xlate.map(d=>esc(C.code[d])).join(', ')}, expected after the release date`:''].filter(Boolean).join('; ');
+ return (x.od?`<p class="dsay"><b class="ltc">Overdue by ${days(x.od)}</b>.</p>`:'')+(x.rk?`<p class="dsay"><b class="ltc">At risk:</b> ${why}.</p>`:'');
+}
+function relFlag(x){return x.od?`<i class="lt">Overdue ${x.od}d</i>`:x.rk?'<i class="lt rk" title="Work due after the release date">At risk</i>':''}
+function relListHtml(){
+ const un=C.order.filter(t=>!C.relOf[t.id]).length;
+ return `<div class="rh"><h2>Releases <span class="none">${C.rel.length}</span></h2><button class="btn" data-act="add-rel">Add release</button></div>`+(C.rel.length?`<div class="rl">${C.rel.map(x=>{const pct=x.ts.length?Math.round(x.done/x.ts.length*100):0;return `<button class="rr" data-rel="${esc(x.r.id)}"><span class="rn"><b>${esc(x.r.name)||'Untitled release'}</b><span>${esc(x.r.target)||'No target set'}${x.due!==null?` · due ${fd(x.due)}`:''}</span>${relFlag(x)}</span><span class="pg" title="${pct}% of tasks done"><i style="width:${pct}%"></i></span><span class="rf"><b>${x.done}</b> of ${x.ts.length} done</span><span class="rf">${x.land?`Lands after step <b>${x.land}</b>`:'No tasks yet'}</span><span class="rf${x.blk?' red':''}"><b>${x.blk}</b> blocked</span><span class="rf"><b>${x.up.length}</b> needed from outside${x.xt.length?`, <b>${x.xt.length}</b> external`:''}</span><span class="st ${x.r.status}">${RST[x.r.status]}</span></button>`}).join('')}</div><p class="none">${un} ${un===1?'task is':'tasks are'} not in any release. Click a release to open its page.</p>`:'<p class="none">No releases yet. Add one, then assign features or tasks to it from their editor.</p>');
+}
+function relPageHtml(x){
+ const r=x.r,pct=x.ts.length?Math.round(x.done/x.ts.length*100):0,k=(v,l,c)=>`<div class="t${c?' '+c:''}"><b>${v}</b><span>${l}</span></div>`;
+ const chips=(ids,none)=>`<div class="chips">${ids.map(d=>fchip(d).replace('<span class="chip">',`<span class="chip">${map[d].type==='ms'||map[d].type==='ext'?'':icon(d)}`)).join('')||`<p class="none">${none}</p>`}</div>`;
+ const rows=x.ts.map(t=>`<tr><td class="gcd">${esc(C.code[t.id])}</td><td><button class="lnk" data-go="${esc(t.id)}" title="${esc(t.name)}">${esc(t.name)}</button></td><td>${esc(t.owner)}</td><td>${cellHtml(t,'status')}</td><td>${C.step[t.id]}</td><td>${t.due?fd(dn(t.due)):''}</td><td>${flagsHtml(t)}</td></tr>`).join('');
+ return `<div class="relp"><button class="tbtn" data-act="rel-back">← All releases</button>
+ <div class="relp-h"><h2>${esc(r.name)||'Untitled release'}</h2><span class="st ${r.status}">${RST[r.status]}</span>${relFlag(x)}<span class="grow"></span><button class="btn" data-act="rel-map"${x.ts.length?'':' disabled'}>Show on map</button><button class="btn pri" data-act="rel-edit">Edit release</button></div>
+ <p class="none">${esc(r.target)||'No target set'}${x.due!==null?` · due ${fd(x.due)}`:''}</p>
+ <div class="tal relp-k">${k(`${x.done}/${x.ts.length}`,'tasks done')}${k(pct+'%','complete')}${x.land?k('Step '+x.land,'last task lands'):''}${k(x.blk,'blocked or held up',x.blk?'f-blocked':'')}${k(x.up.length,'needed from outside')}${x.xt.length?k(x.xt.length,'external, not delivered'):''}</div>
+ <div class="pg" title="${pct}% of tasks done"><i style="width:${pct}%"></i></div>${relSay(x)}
+ <h3>Tasks <span>${x.ts.length}</span></h3>${rows?`<div class="relp-tw"><table class="relp-t"><thead><tr><th>Code</th><th>Task</th><th>Owner</th><th>Status</th><th>Step</th><th>Due</th><th>Flags</th></tr></thead><tbody>${rows}</tbody></table></div>`:'<p class="none">No tasks yet. Assign a feature or task to this release from its editor.</p>'}
+ <div class="relp-g"><section><h3>Features <span>${x.feats.length}</span></h3>${chips(x.feats,'Assign a feature from its editor.')}</section>
+ <section><h3>Needed from outside <span>${x.up.length}</span></h3>${chips(x.up,'This release depends only on its own work.')}${x.xt.length?`<h3>Waiting on external teams <span>${x.xt.length}</span></h3>${chips(x.xt,'')}`:''}</section>
+ <section><h3>Notes</h3>${r.notes.trim()?`<p class="relp-nt">${esc(r.notes)}</p>`:'<p class="none">No notes. Add scope or release criteria with Edit release.</p>'}</section></div></div>`;
+}
+function renderRelv(){const x=relPage&&C.rel.find(x=>x.r.id===relPage);$('#relv').innerHTML=x?relPageHtml(x):relListHtml()}
+function renderRailRels(){
+ const on=id=>view==='rel'&&relPage===id?' on" aria-current="page':'';
+ $('#rail-rel-n').textContent=C.rel.length;
+ $('#rail-rel-l').innerHTML=`<button class="rail-rel-i${on(null)}" data-rp=""><span></span><span class="rail-rel-t">All releases</span><span></span></button>`+C.rel.map(x=>`<button class="rail-rel-i${on(x.r.id)}" data-rp="${esc(x.r.id)}" title="${esc(x.r.name)}${x.od?', overdue':x.rk?', at risk':''}"><span class="rail-rel-d ${x.r.status}${x.od||x.rk?' bad':''}"></span><span class="rail-rel-t">${esc(x.r.name)||'Untitled release'}</span><span class="rail-rel-c">${x.done}/${x.ts.length}</span></button>`).join('');
 }

@@ -54,18 +54,18 @@ time can only use names from its own file or an earlier one.
 | File (banner) | What's there |
 |---|---|
 | `js/core.js` | constants (`TYPES`, `LBL`, `KIND`, `XS`, `ZO`), date helpers (`dn`, `fd`, `iso`), `mk()`, `sample()`, `blank()`, `norm()`, `mut`/`undo`, `compute()`, `relStats()`, `calc()`, `recalc()`, filter (`FST`, `flt`, `fltSet`, `stepsShown`), `rowsVisible()`, `focusSet()` |
-| `js/board.js` | link routing (`poly`, `route`, `tagAt`), `renderStats`, `renderRels`, `renderTimeline`, `renderBoard`, drawer (`renderDrawer`, `depBlock`, `depCard`), `render`, `soft`, actions (`moveTo`, `addItem`, `del`, `move`), board drag (`dragMove`/`dragEnd`), timeline drag (`tdMove`/`tdEnd`), map/drawer/toolbar handlers; `// ===== views`: `renderView`, `renderGantt` |
+| `js/board.js` | link routing (`poly`, `route`, `tagAt`), `renderStats`, `renderTimeline`, `renderBoard`, drawer (`renderDrawer`, `depBlock`, `depCard`), `render`, `soft`, actions (`moveTo`, `addItem`, `addRel`, `del`, `move`), board drag (`dragMove`/`dragEnd`), timeline drag (`tdMove`/`tdEnd`), map/drawer/toolbar handlers; `// ===== views`: `renderView`, `renderGantt`; `// ----- releases`: `openRel`, release list and release page (`relListHtml`, `relPageHtml`, `renderRelv`), the sidebar release list (`renderRailRels`), `relSay` (overdue/at-risk text shared with the drawer) |
 | `js/store.js` (`// ===== storage`) | `LS` (safe localStorage), `Store` (server or local mode), `save`/`flush` autosave, conflict dialog, `openPlan`, `renderPlans`, `newPlan`, `boot` |
 | `js/grid.js` (`// ----- grid`) | `GCOLS`, `GEDIT`, `cellHtml`, `gridRows`, `renderGrid`, keyboard moves, `gridEdit`, `setCell`, `parseDeps` |
 | `js/history.js` (`// ===== history`) | change log and versions panel (`loadHist`, `renderHist`) |
 | `js/import.js` (`// ===== import`) | CSV parser, `.xlsx` reader (zip + `DecompressionStream`), column guessing, `buildImport` |
-| `js/wiring.js` (`// ===== wiring`) | menus, filter menu (`renderFlt`, `fltLoad`, `fltSave`), dialogs, rail and tabs; ends with `boot()`, so it loads last |
+| `js/wiring.js` (`// ===== wiring`) | menus (More, the toolbar's Add menu with arrow-key support, `placeMenu` for toolbar menus), filter menu (`renderFlt`, `fltLoad`, `fltSave`), dialogs, rail (including the release list) and tabs; ends with `boot()`, so it loads last |
 
 ### Data model (plan JSON, `S`)
 
 ```js
 {
-  title, view: 'map'|'grid'|'gantt', relOpen, sample, msCollapsed, extCollapsed,
+  title, view: 'map'|'grid'|'gantt'|'rel', relOpen, sample, msCollapsed, extCollapsed,
   cal: { asof: 'YYYY-MM-DD' | '' },          // status date; blank = today
   tl:  { open, zoom: 'days'|'weeks'|'months'|'quarters', only },
   releases: [{ id, name, target, status: 'planned'|'active'|'released', notes, due }],
@@ -82,6 +82,9 @@ time can only use names from its own file or an earlier one.
   }]
 }
 ```
+
+`relOpen` is no longer used (it collapsed the old release ledger above the map)
+but stays in `norm()` so saved plans round-trip unchanged.
 
 Task `status` is `todo|doing|done|blocked`. Milestone `status` is
 `todo|done` (`done` means "mark reached"). External `status` is
@@ -147,8 +150,26 @@ Releases get `od`/`rk` from their tasks and externals.
   - "Depends on" accepts text like `1.2.3 SS+1, M2`.
 - **Gantt** (`renderGantt` → `renderTimeline(...,full)`): dates only. Bars
   can be dragged or resized to change `startBy`/`due`.
-- All three take their rows from `rowsVisible()`, which applies collapse
-  state and the status filter.
+- **Releases** (`renderRelv`): the list of releases, or one release's page
+  when `relPage` is set (progress, tasks, features, outside and external
+  dependencies, notes). "Edit release" opens the release in the drawer
+  (`selRel`); "Show on map" switches to the map with `selRel` set so the
+  release's work is highlighted. The sidebar lists the same releases under
+  the plans (`renderRailRels`).
+- Map, Grid and Gantt take their rows from `rowsVisible()`, which applies
+  collapse state and the status filter.
+
+### Toolbar
+
+- One row directly above the active view (not sticky): view tabs, Filter,
+  **Add ▾** (objective, milestone, external, release), Undo, Expand all,
+  Collapse features, Critical path, Link tags.
+- It never wraps. When it doesn't fit it scrolls sideways, so its menus are
+  `position: fixed` and placed by `placeMenu()` to avoid being clipped.
+- The "Showing X of Y tasks" filter summary sits on its own line under the
+  toolbar, only while a filter is on.
+- In the Releases tab the tools that only affect Map, Grid and Gantt (Filter,
+  Expand all, Collapse features, Critical path, Link tags) are disabled.
 
 ### Storage (`Store`)
 
@@ -158,4 +179,6 @@ Releases get `od`/`rk` from their tasks and externals.
 - Autosave is debounced in `save()` and done in `flush()`. On a 409 the
   conflict dialog offers "load theirs" or "keep mine".
 - Per-viewer preferences use `LS` keys (`planner.user`, `planner.last`,
-  `planner.flt.<planId>`) and never go into plan data.
+  `planner.flt.<planId>`, and `planner.plansrail` / `planner.relrail` for the
+  sidebar's Plans and Releases sections being collapsed) and never go into
+  plan data.
