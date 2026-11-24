@@ -95,7 +95,7 @@ function norm(s){
  const items=s.items.filter(i=>i&&i.id&&['obj','feat','task','ms','ext'].includes(i.type)).map(i=>({id:String(i.id),type:i.type,parent:i.parent&&i.type!=='ms'&&i.type!=='ext'?String(i.parent):null,name:String(i.name??''),owner:String(i.owner??''),status:(i.type==='ext'?XSV:['todo','doing','done','blocked']).includes(i.status)?i.status:i.type==='ext'?'pending':'todo',deps:normLinks(i.deps),blocker:String(i.blocker??''),earliest:+i.earliest>0?Math.floor(+i.earliest):null,gate:(i.type==='ms'||i.type==='ext')&&+i.gate>0?Math.floor(+i.gate):null,collapsed:!!i.collapsed,notes:String(i.notes??''),rel:String(i.rel??''),target:String(i.target??''),due:okd(i.due),startBy:okd(i.startBy),startedOn:okd(i.startedOn),doneOn:okd(i.doneOn),team:String(i.team??''),ref:String(i.ref??''),color:/^#[0-9a-fA-F]{6}$/.test(String(i.color??''))?String(i.color):'',key:String(i.key??'')}));
  const releases=Array.isArray(s.releases)?s.releases.filter(r=>r&&r.id).map(r=>({id:String(r.id),name:String(r.name??''),target:String(r.target??''),status:RST[r.status]?r.status:'planned',notes:String(r.notes??''),due:okd(r.due)})):[];
  const cal={asof:okd((s.cal||{}).asof)},t=s.tl||{},tl={open:!!t.open,zoom:ZO[t.zoom]?t.zoom:'weeks',only:t.only!==false};
- return {title:String(s.title||'Untitled plan'),view:['map','grid','gantt','rel'].includes(s.view)?s.view:'map',relOpen:s.relOpen!==false,sample:!!s.sample,msCollapsed:!!s.msCollapsed,extCollapsed:!!s.extCollapsed,cal,tl,releases,items};
+ return {title:String(s.title||'Untitled plan'),view:['map','grid','gantt','rel'].includes(s.view)?s.view:'map',relOpen:s.relOpen!==false,sample:!!s.sample,msCollapsed:!!s.msCollapsed,extCollapsed:!!s.extCollapsed,itemIds:s.itemIds==='key'?'key':'outline',cal,tl,releases,items};
 }
 
 let S=blank();
@@ -112,6 +112,9 @@ function compute(){
  const root=kids.root||[],code={},order=[],feats=[],mss=root.filter(m=>m.type==='ms'),exts=root.filter(x=>x.type==='ext');
  mss.forEach((m,i)=>code[m.id]='M'+(i+1));exts.forEach((x,i)=>code[x.id]='X'+(i+1));
  root.filter(o=>o.type==='obj').forEach((o,i)=>{code[o.id]=''+(i+1);(kids[o.id]||[]).filter(f=>f.type==='feat').forEach((f,j)=>{code[f.id]=code[o.id]+'.'+(j+1);feats.push(f);(kids[f.id]||[]).filter(t=>t.type==='task').forEach((t,k)=>{code[t.id]=code[f.id]+'.'+(k+1);order.push(t)})})});
+ // Display IDs: C.code stays the outline number; C.lbl is what the page shows. With the plan's
+ // "Item IDs" set to ticket keys, a feature or task with a key shows the key instead.
+ const lbl={...code};if(S.itemIds==='key')for(const n of [...feats,...order]){const k=String(n.key??'').trim();if(k)lbl[n.id]=k}
  const tset=new Set(order.map(t=>t.id)),mset=new Set(mss.map(m=>m.id)),xset=new Set(exts.map(x=>x.id));
  const isT=d=>tset.has(d),isM=d=>mset.has(d),isX=d=>xset.has(d),isP=d=>mset.has(d)||xset.has(d),isN=d=>tset.has(d)||isP(d);
  const own=n=>n.deps.filter(l=>isN(l.id)&&l.id!==n.id&&!(n.type==='feat'&&map[l.id].parent===n.id));
@@ -143,23 +146,25 @@ function compute(){
  let cur=order.find(t=>pos[t.id]===N&&t.status!=='done')||order.find(t=>pos[t.id]===N)||[...mss,...exts].find(m=>pos[m.id]===N);
  while(cur&&!crit.has(cur.id)){crit.add(cur.id);const c=cur,l=links(c).find(l=>bound(c,l)===pos[c.id]),nx=l&&map[l.id];if(nx)critE.add(nx.id+'>'+c.id);cur=nx}
  const minOf=id=>{const n=map[id];let m=n.type==='task'?1:0;for(const l of links(n))m=Math.max(m,bound(n,l));return m};
- const whyMin=id=>{const n=map[id];let best=null,bv=n.type==='task'?1:0;for(const l of links(n)){const b=bound(n,l);if(b>bv){bv=b;best=l}}return best?`it waits on ${code[best.id]} (${best.type}${best.lag?(best.lag>0?'+':'−')+Math.abs(best.lag):''})`:''};
- return {code,order,feats,mss,exts,step:pos,succ,succL,eff,warn,chain,N,crit,critE,isT,isM,isX,isP,isN,done,started,sat,links,own,relOf,minOf,whyMin};
+ const whyMin=id=>{const n=map[id];let best=null,bv=n.type==='task'?1:0;for(const l of links(n)){const b=bound(n,l);if(b>bv){bv=b;best=l}}return best?`it waits on ${lbl[best.id]} (${best.type}${best.lag?(best.lag>0?'+':'−')+Math.abs(best.lag):''})`:''};
+ return {code,lbl,order,feats,mss,exts,step:pos,succ,succL,eff,warn,chain,N,crit,critE,isT,isM,isX,isP,isN,done,started,sat,links,own,relOf,minOf,whyMin};
 }
 const ids=n=>C.links(n).map(l=>l.id);
 const upOf=start=>{const s=new Set(),stk=[...start];while(stk.length){const id=stk.pop();if(!map[id])continue;for(const d of ids(map[id]))if(!s.has(d)){s.add(d);stk.push(d)}}return s};
 const downOf=start=>{const s=new Set(),stk=[...start];while(stk.length){const id=stk.pop();for(const d of C.succ[id]||[])if(!s.has(d)){s.add(d);stk.push(d)}}return s};
 const tasksUnder=it=>it.type==='task'?[it]:it.type==='ms'||it.type==='ext'?[]:(kids[it.id]||[]).flatMap(tasksUnder);
+// ' idk' when an item shows its ticket key in place of its outline number. The key never shrinks; only very long ones are capped.
+const idk=id=>C.lbl[id]!==C.code[id]?' idk':'';
 const held=id=>C.chain[id]&&!C.done(id);
 const lateHeld=id=>!C.done(id)&&(C.lateUp?.[id]||[]).length>0;
-const lateTxt=id=>lateHeld(id)?`<br><span class="ltc">Held up by overdue:</span> ${C.lateUp[id].map(d=>`<button class="lnk" style="display:inline;padding:0;color:var(--late);font-weight:700" data-go="${d}">${esc(C.code[d])} ${esc(map[d].name)}</button>`).join(', ')}`:'';
+const lateTxt=id=>lateHeld(id)?`<br><span class="ltc">Held up by overdue:</span> ${C.lateUp[id].map(d=>`<button class="lnk" style="display:inline;padding:0;color:var(--late);font-weight:700" data-go="${d}">${esc(C.lbl[d])} ${esc(map[d].name)}</button>`).join(', ')}`:'';
 const linkState=l=>l.st==='blocked'?'Blocked':C.sat(l)?'Satisfied':'Open';
 function relStats(){return S.releases.map(r=>{
  const ts=C.order.filter(t=>C.relOf[t.id]===r.id),set=new Set(ts.map(t=>t.id));
  const up=[...upOf([...set])].filter(d=>C.isT(d)&&!set.has(d)&&!C.done(d));
  return {r,ts,ids:set,up,xt:[...upOf([...set])].filter(d=>C.isX(d)&&!C.done(d)),done:ts.filter(t=>t.status==='done').length,blk:ts.filter(t=>C.eff[t.id]==='blocked'||held(t.id)).length,land:ts.length?Math.max(...ts.map(t=>C.step[t.id])):0,feats:[...new Set(ts.map(t=>t.parent))]};
 })}
-const rkTxt=f=>(f.rkBy||[]).map(o=>`${esc(C.code[o.id])} is ${C.isX(o.id)?'expected':'due'} ${fd(o.pd)}, ${days(o.d)} after this ${o.kind==='start'?'should start':'is due'}`).join('; ');
+const rkTxt=f=>(f.rkBy||[]).map(o=>`${esc(C.lbl[o.id])} is ${C.isX(o.id)?'expected':'due'} ${fd(o.pd)}, ${days(o.d)} after this ${o.kind==='start'?'should start':'is due'}`).join('; ');
 function calc(){
  const T=dn(S.cal.asof)??dn(todayIso()),F={};
  const endOf=id=>{const n=map[id];if(!n||n.type==='feat'||n.type==='obj')return null;if(n.type==='task')return n.status==='done'?dn(n.doneOn):dn(n.due);if(n.type==='ext')return n.status==='delivered'?dn(n.doneOn):dn(n.due);return dn(n.due)};

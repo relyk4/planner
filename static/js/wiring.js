@@ -46,6 +46,7 @@ $('#more').addEventListener('click',async e=>{
  const b=e.target.closest('[data-m]');if(!b)return;closeMenu();const m=b.dataset.m;
  if(m==='dup'){await flush();try{const p=await Store.create(null,null,cur.id);plans.unshift(p);await openPlan(p.id);toast('Copied. You are now editing the copy.')}catch(err){toast(err.message)}}
  else if(m==='arch'){await flush();try{await Store.patch(cur.id,{archived:true});plans=plans.filter(p=>p.id!==cur.id);cur=null;if(plans.length)await openPlan(plans[0].id);else await newPlan(blank(),'Untitled plan');toast('Plan archived. Find it under Show archived in the sidebar.')}catch(err){toast(err.message)}}
+ else if(m==='settings'){openCal(null);$('#c-ids')?.focus()}
  else if(m==='csvimp')openImport();
  else if(m==='impjson')ov('Import plan file','Paste a plan file downloaded from this planner (JSON). It opens as a new plan.','','imp');
  else if(m==='json')download(fileSafe(S.title)+'.json',exportText());

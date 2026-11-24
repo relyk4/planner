@@ -66,6 +66,7 @@ time can only use names from its own file or an earlier one.
 ```js
 {
   title, view: 'map'|'grid'|'gantt'|'rel', relOpen, sample, msCollapsed, extCollapsed,
+  itemIds: 'outline'|'key',                  // Plan settings > Item IDs; default 'outline'
   cal: { asof: 'YYYY-MM-DD' | '' },          // status date; blank = today
   tl:  { open, zoom: 'days'|'weeks'|'months'|'quarters', only },
   releases: [{ id, name, target, status: 'planned'|'active'|'released', notes, due }],
@@ -96,6 +97,14 @@ that cleans and defaults all of this, and it must accept every older shape.
 
 - **Codes**: objectives `1`, features `1.2`, tasks `1.2.3`, milestones `M1`,
   externals `X1`. These come from order in `S.items`.
+  - `C.code` is always the outline number. The Grid's `findRef()` accepts it
+    as well as ticket keys, so typed links work in either mode.
+  - `C.lbl` is what the page shows: the same as `C.code`, except that with
+    `itemIds: 'key'` a feature or task with a ticket key shows the key.
+    Every display site (map, Gantt, Grid, editor, Releases, tooltips, toasts,
+    CSV) uses `C.lbl`. Keys are shown in full; the name next to them truncates
+    instead. `idk(id)` adds the `idk` class to a row's code span when it shows
+    a key, which caps only very long keys (12em) so the name keeps some room.
 - **Links**: `C.links(task)` is the task's own deps plus its feature's deps.
   A feature-level link makes every task in it wait.
 - **Steps** (`C.step`): positions are measured in step boundaries. A task

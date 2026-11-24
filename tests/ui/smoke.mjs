@@ -115,6 +115,25 @@ try {
   ok($('#ganttv').innerHTML.length > 1000, 'gantt view renders');
   $('[data-view=map]').click(); await sleep(50);
 
+  // Item IDs: ticket keys in place of outline numbers for features and tasks
+  {const bar = c => $$('#grid .b').find(b => b.querySelector('.cd').textContent === c), row = c => $$('#grid .lr').find(r => r.querySelector('.cd')?.textContent === c);
+    row('1.1.2').click(); await sleep(30);
+    const k = $('#f-key'); k.focus(); k.value = 'UDM-1031'; k.dispatchEvent(new w.Event('input', {bubbles: true})); await sleep(300);
+    $('#dr [data-act=close]').click(); await sleep(30);
+    $('#more [data-m=settings]').click(); await sleep(30);
+    const s = $('#c-ids'); s.value = 'key'; s.dispatchEvent(new w.Event('change', {bubbles: true})); await sleep(50);
+    ok(bar('UDM-1031') && !bar('1.1.2') && !row('UDM-1031').querySelector('.ky') && row('1') && row('M1'), 'Ticket keys shows a task\'s key in place of its outline number; objectives and milestones keep theirs');
+    $('#dr [data-act=close]').click(); $('[data-view=grid]').click(); await sleep(50);
+    const td = () => $$('#gridv td[data-k=deps]').find(t => t.parentNode.querySelector('.gcd')?.textContent === '1.1.3');
+    ok(td().textContent === 'UDM-1031 FF', 'grid dependencies show the key');
+    td().dispatchEvent(new w.MouseEvent('dblclick', {bubbles: true})); await sleep(20);
+    const inp = td().querySelector('input'); inp.value = 'udm-1031 ss'; inp.dispatchEvent(new w.KeyboardEvent('keydown', {key: 'Enter', bubbles: true})); await sleep(50);
+    ok(td().textContent === 'UDM-1031 SS', 'typing a key and link type in the grid links to it');
+    $('[data-view=map]').click(); $('#more [data-m=settings]').click(); await sleep(30);
+    const s2 = $('#c-ids'); s2.value = 'outline'; s2.dispatchEvent(new w.Event('change', {bubbles: true})); await sleep(50);
+    ok(bar('1.1.2') && row('1.1.2').querySelector('.ky')?.textContent === 'UDM-1031', 'Outline numbers brings the numbers back');
+    $('#dr [data-act=close]').click(); for (let i = 0; i < 4; i++) $('#undo').click(); await sleep(50)}
+
   // releases: own tab, a page per release, and links in the left rail
   $('[data-view=rel]').click(); await sleep(50);
   ok(!$('#relv').hidden && $$('#relv .rr').length === 3, 'Releases tab lists the releases');

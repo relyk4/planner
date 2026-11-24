@@ -9,7 +9,9 @@ const GCOLS=[
  {k:'rel',l:'Release',w:150},{k:'deps',l:'Depends on',w:230},{k:'step',l:'Step',w:64},{k:'flags',l:'Flags',w:190},{k:'notes',l:'Notes',w:280}];
 const GEDIT={obj:['name','key','owner','notes'],feat:['name','key','owner','rel','deps','notes'],task:['name','key','owner','status','startBy','due','startedOn','doneOn','rel','deps','notes'],ms:['name','owner','status','due','deps','notes'],ext:['name','key','owner','status','due','doneOn','deps','notes']};
 const canEdit=(it,k)=>!!(it&&GEDIT[it.type]&&GEDIT[it.type].includes(k));
-const depsText=it=>C.own(it).map(l=>`${C.code[l.id]} ${l.type}${lagTxt(l).replace('−','-')}${l.st==='blocked'?' (blocked)':''}`).join(', ');
+// The shown ID, unless typing it back would not find this item (duplicate key, or a key that reads as an outline number).
+const refTxt=id=>findRef(C.lbl[id])===map[id]?C.lbl[id]:C.code[id];
+const depsText=it=>C.own(it).map(l=>`${refTxt(l.id)} ${l.type}${lagTxt(l).replace('−','-')}${l.st==='blocked'?' (blocked)':''}`).join(', ');
 function statusLabel(it){if(it.type==='task')return {todo:'Not started',doing:'In progress',done:'Done',blocked:'Blocked'}[it.status];if(it.type==='ms')return C.done(it.id)?'Reached':'Open';if(it.type==='ext')return XSL[it.status];return ''}
 function flagsHtml(it){
  if(!['task','ms','ext'].includes(it.type))return '';
@@ -61,7 +63,7 @@ function renderGrid(){
    const ed=canEdit(it,c.k),on=gsel&&gsel.id===it.id&&gsel.k===c.k;
    if(ci===0){const car=it.type==='obj'||it.type==='feat'?`<span class="gcar" data-tog="${it.id}">${it.collapsed?'▸':'▾'}</span>`:'<span class="gcar"></span>';
     const ic=it.type==='task'?`<i class="dot ${C.eff[it.id]}" style="margin:0 6px 0 0;width:10px;height:10px"></i>`:it.type==='ms'?`<i class="dia ${C.eff[it.id]}" style="margin:0 7px 0 2px;width:9px;height:9px"></i>`:it.type==='ext'?`<i class="xq ${C.eff[it.id]}" style="margin:0 6px 0 0;width:10px;height:10px"></i>`:'';
-    return `<td class="nmc ed${on?' sel':''}" data-id="${it.id}" data-k="name" style="padding-left:${8+lvl*20}px">${fcs(it)}${car}${ic}<span class="gcd">${esc(C.code[it.id]||'')}</span>${esc(it.name)||'<span class="none">Untitled</span>'}</td>`}
+    return `<td class="nmc ed${on?' sel':''}" data-id="${it.id}" data-k="name" style="padding-left:${8+lvl*20}px">${fcs(it)}${car}${ic}<span class="gcd${idk(it.id)}">${esc(C.lbl[it.id]||'')}</span>${esc(it.name)||'<span class="none">Untitled</span>'}</td>`}
    return `<td class="${ed?'ed':'ro'}${on?' sel':''}" data-id="${it.id}" data-k="${c.k}">${cellHtml(it,c.k)}</td>`}).join('');
   return `<tr class="${it.type}"><td class="rn" data-open="${it.id}" title="Open in editor">${n}</td>${cells}</tr>`;
  }).join('');
@@ -82,19 +84,22 @@ function applyStatus(it,v){const td2=todayIso();it.status=v;if(v==='done')it.blo
 function findRef(tok){
  const t=tok.toLowerCase();
  for(const [id,c] of Object.entries(C.code))if(String(c).toLowerCase()===t&&map[id]&&map[id].type!=='obj')return map[id];
- return S.items.find(i=>i.type!=='obj'&&((i.key&&i.key.toLowerCase()===t)||(i.type==='ext'&&i.ref&&i.ref.toLowerCase()===t)))||null;
+ return S.items.find(i=>i.type!=='obj'&&((i.key&&i.key.trim().toLowerCase()===t)||(i.type==='ext'&&i.ref&&i.ref.toLowerCase()===t)))||null;
 }
 function parseDeps(it,text){
  const out=[],errs=[],base=it.type==='feat'?tasksUnder(it).map(t=>t.id):[it.id],bad=new Set([...base,...downOf(base)]);
+ // "REF [type][±lag] [(blocked)]". Try the longest reference first, so a key like UDM-1031
+ // isn't read as UDM with a lag of -1031.
+ const tail=/^(?:\s*\b(FS|SS|FF|SF)\b)?\s*(?:([+\-−])\s*(\d+)\s*[a-z]*)?\s*(\(?\s*blocked\s*\)?)?$/i;
  for(const raw of String(text||'').split(/[,;\n]+/)){
   const s=raw.trim();if(!s)continue;
-  const m=s.match(/^(.+?)(?:\s*\b(FS|SS|FF|SF)\b)?\s*(?:([+\-−])\s*(\d+)\s*[a-z]*)?\s*(\(?\s*blocked\s*\)?)?$/i);
-  if(!m){errs.push(s);continue}
-  const ref=findRef(m[1].trim());if(!ref){errs.push(s);continue}
+  let ref=null,m=null;
+  for(let i=s.length;i>0&&!ref;i--){m=s.slice(i).match(tail);if(m)ref=findRef(s.slice(0,i).trim())}
+  if(!ref){errs.push(s);continue}
   if(bad.has(ref.id)){errs.push(s+' (would loop)');continue}
   if(out.some(l=>l.id===ref.id))continue;
-  const old=it.deps.find(l=>l.id===ref.id),lag=m[4]?(m[3]==='+'?1:-1)*+m[4]:0;
-  out.push(link(ref.id,(m[2]||old?.type||'FS').toUpperCase(),clampLag(lag),m[5]?'blocked':'auto',old?.note||''));
+  const old=it.deps.find(l=>l.id===ref.id),lag=m[3]?(m[2]==='+'?1:-1)*+m[3]:0;
+  out.push(link(ref.id,(m[1]||old?.type||'FS').toUpperCase(),clampLag(lag),m[4]?'blocked':'auto',old?.note||''));
  }
  return {out,errs};
 }
