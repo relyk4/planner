@@ -138,9 +138,9 @@ function renderBoard(){
  const grpIn=it=>!F||tasksUnder(it).some(t=>F.has(t.id));
  const cy=i=>i*RH+RH/2;
  let L='',B='',BG='',E='',G='',T='';
- const msMark=(m,i)=>{const g=C.step[m.id],ef=C.eff[m.id],cls=[ef,lateHeld(m.id)?'lchain':'',held(m.id)?'chain':'',C.df[m.id]?.od?'late':C.df[m.id]?.rk?'risk':'',critOn&&C.crit.has(m.id)?'crit':'',sel===m.id?'on':'',F&&!F.has(m.id)?'dim':''].join(' ');return `<div class="mk ${cls}" data-id="${m.id}" title="${esc(C.code[m.id])} ${esc(m.name)}: ${LBL[ef]}, gate after step ${g}" style="left:${bx(g)-7.5}px;top:${cy(i)-7.5}px"></div>`};
+ const msMark=(m,i)=>{const g=C.step[m.id],ef=C.eff[m.id],cls=[ef,lateHeld(m.id)?'lchain':'',held(m.id)?'chain':'',C.df[m.id]?.od?'late':C.df[m.id]?.rk?'risk':'',critOn&&C.crit.has(m.id)?'crit':'',sel===m.id?'on':'',F&&!F.has(m.id)?'dim':''].join(' ');return `<div class="mk ${cls}" data-id="${m.id}" title="${esc(C.code[m.id])} ${esc(m.name)}: ${LBL[ef]}, gate after step ${g}${m.gate?' (pinned)':''}. Drag to move" style="left:${bx(g)-7.5}px;top:${cy(i)-7.5}px"></div>`};
  const dueTag=(n,i,x)=>{const f=C.df[n.id]||{},dl=n.type==='ext'&&n.status==='delivered'?(n.doneOn?'Delivered '+fd(dn(n.doneOn)):''):n.due?(n.type==='ext'?'Expected ':'Due ')+fd(dn(n.due)):'';return dl?`<span class="xd${f.od?' late':''}" style="left:${x}px;top:${cy(i)-9}px">${dl}</span>`:''};
- const xMark=(x,i,bar)=>{const g=C.step[x.id],ef=C.eff[x.id],f=C.df[x.id]||{},dm=F&&!F.has(x.id)?' dim':'',cls=[ef,lateHeld(x.id)?'lchain':'',f.od?'late':'',critOn&&C.crit.has(x.id)?'crit':'',sel===x.id?'on':''].join(' ');const tip=`${esc(C.code[x.id])} ${esc(x.name)}${x.team?' ('+esc(x.team)+')':''}: ${LBL[ef]}${x.due?', expected '+fd(dn(x.due)):''}`;return (bar&&g>0?`<div class="xb ${ef}${dm}" data-id="${x.id}" title="${tip}" style="left:0;width:${Math.max(0,bx(g)-12)}px;top:${cy(i)-4}px"></div>`:'')+`<div class="xk ${cls}${dm}" data-id="${x.id}" title="${tip}" style="left:${bx(g)-9}px;top:${cy(i)-9}px"></div>`};
+ const xMark=(x,i,bar)=>{const g=C.step[x.id],ef=C.eff[x.id],f=C.df[x.id]||{},dm=F&&!F.has(x.id)?' dim':'',cls=[ef,lateHeld(x.id)?'lchain':'',f.od?'late':'',critOn&&C.crit.has(x.id)?'crit':'',sel===x.id?'on':''].join(' ');const tip=`${esc(C.code[x.id])} ${esc(x.name)}${x.team?' ('+esc(x.team)+')':''}: ${LBL[ef]}${x.due?', expected '+fd(dn(x.due)):''}`;return (bar&&g>0?`<div class="xb ${ef}${dm}" data-id="${x.id}" title="${tip}" style="left:0;width:${Math.max(0,bx(g)-12)}px;top:${cy(i)-4}px"></div>`:'')+`<div class="xk ${cls}${dm}" data-id="${x.id}" title="${tip}${x.gate?`, pinned to ${gateTxt(g)}`:''}. Drag to move" style="left:${bx(g)-9}px;top:${cy(i)-9}px"></div>`};
  rows.forEach((it,i)=>{
   const y=i*RH;
   if(it.type==='exth'){BG+=`<div class="rbg exth" style="top:${y}px;height:${RH}px"></div>`;const xd=C.exts.filter(x=>C.done(x.id)).length;L+=`<div class="lr exth" data-tog="__ext" role="button" tabindex="0" aria-expanded="${!S.extCollapsed}" style="height:${RH}px;padding-left:4px"><span class="car" aria-hidden="true">${S.extCollapsed?'▸':'▾'}</span><span class="nm">External dependencies</span><span class="ow">${xd} of ${C.exts.length} delivered</span></div>`;if(S.extCollapsed)C.exts.filter(x=>!FV||FV.has(x.id)).forEach(x=>B+=xMark(x,i,false));return}
@@ -296,10 +296,12 @@ function renderDrawer(){
   }else if(it.type==='ms'){
    const ls=C.links(it),dd=ls.filter(C.sat).length,ef=C.eff[it.id];
    h+=`<div class="info${held(it.id)?' blocked':''}"><b>Gate after step ${C.step[it.id]}</b>. ${ef==='reached'?(it.status==='done'?'Marked as reached':'Reached: every link is satisfied'):ls.length?`Open: ${dd} of ${ls.length} links satisfied`:'Open: add what it requires, or mark it reached'}.${ef==='reached'?'':heldTxt(heldBy(it.id))+lateTxt(it.id)}${C.crit.has(it.id)?'<br>On the critical path.':''}</div>
+   ${gateRow(it)}
    <div class="two"><label class="f">Target<input id="f-target" data-f="target" value="${esc(it.target)}" placeholder="e.g. sprint 3 or a date"></label><label class="f">Reached<select id="f-status" data-f="status"><option value="todo"${it.status!=='done'?' selected':''}>When links are met</option><option value="done"${it.status==='done'?' selected':''}>Mark as reached</option></select></label></div>${msDates(it)}`+depBlock(it,'Requires');
   }else if(it.type==='ext'){
    const ef=C.eff[it.id],f=C.df[it.id]||{},g=C.step[it.id],out=C.succ[it.id]||[];
    h+=`<div class="info${ef==='blocked'?' blocked':''}"><b>${LBL[ef]}</b>${it.due?`. Expected ${fd(dn(it.due))}`:''}.${ef!=='delivered'?`<br>${out.length} ${out.length===1?'item waits':'items wait'} on this until it is delivered.`:''}${f.od?`<br><b class="ltc">Overdue by ${days(f.od)}</b>.`:''}${f.rk&&!f.their?`<br><b class="ltc">At risk:</b> ${rkTxt(f)}.`:''}${ef==='delivered'?'':heldTxt(heldBy(it.id))+lateTxt(it.id)}${C.crit.has(it.id)?'<br>On the critical path.':''}</div>
+   ${gateRow(it)}
    <label class="f">Team<input id="f-team" data-f="team" value="${esc(it.team)}" placeholder="e.g. Platform team"></label>
    <div class="two"><label class="f">Status<select id="f-status" data-f="status">${XS.map(([v,l])=>`<option value="${v}"${it.status===v?' selected':''}>${l}</option>`).join('')}</select></label><label class="f">Expected date<input id="f-due" data-f="due" type="date" value="${esc(it.due)}"></label></div>
    <div class="two"><label class="f">Their ticket or link<input id="f-ref" data-f="ref" value="${esc(it.ref)}" placeholder="e.g. PLAT-412"></label><label class="f">Delivered on<input id="f-doneOn" data-f="doneOn" type="date" value="${esc(it.doneOn)}"></label></div>`+depBlock(it,'Needs from us first');
@@ -333,6 +335,9 @@ function soft(){clearTimeout(tm);tm=setTimeout(()=>{recalc();renderStats();rende
 
 function moveRow(it){const s=C.step[it.id],mn=C.minOf(it.id),pin=it.earliest&&it.earliest>mn;
  return `<div class="acts" style="border:0;margin-top:8px;padding:0;align-items:center"><button class="btn" data-act="mvl"${s<=mn?' disabled':''}>Earlier step</button><button class="btn" data-act="mvr">Later step</button>${pin?'<button class="btn" data-act="unpin">Unpin</button>':''}<span class="none">${pin?`Pinned. Its links allow step ${mn}.`:s<=mn&&mn>1?`Earliest its links allow: step ${mn}.`:'Or drag its bar on the board.'}</span></div>`}
+const gateTxt=g=>g>0?'the gate after step '+g:'the gate before step 1',allowTxt=mn=>mn>0?'Its links allow '+gateTxt(mn):'Without the pin it would sit at the start';
+function gateRow(it){const g=C.step[it.id],mn=C.minOf(it.id),p=it.gate;
+ return `<div class="acts" style="border:0;margin-top:8px;padding:0;align-items:center"><button class="btn" data-act="mvl"${g<=mn?' disabled':''}>Earlier gate</button><button class="btn" data-act="mvr">Later gate</button>${p?'<button class="btn" data-act="unpin">Reset to auto</button>':''}<span class="none">${p?(p>=mn?`Pinned to ${gateTxt(p)}. ${allowTxt(mn)}.`:`Pinned to ${gateTxt(p)}, but its links push it to ${gateTxt(mn)}.`):`At ${gateTxt(g)}, the earliest its links allow. Drag its marker on the map to pin it.`}</span></div>`}
 function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>{t.hidden=true},4200)}
 function moveTo(id,tgt){
  const t=map[id];if(!t||t.type!=='task')return;const mn=C.minOf(id);
@@ -340,6 +345,12 @@ function moveTo(id,tgt){
  if(tgt===C.step[id]&&(t.earliest||0)===(tgt>mn?tgt:0)){render();return}
  mut(()=>{t.earliest=tgt>mn?tgt:null});
  toast(tgt>mn?`${C.code[id]} pinned to step ${tgt}. Its links allow step ${mn}.`:`${C.code[id]} moved to step ${tgt}, the earliest its links allow.`);
+}
+function moveGate(id,tgt){
+ const n=map[id];if(!n||!C.isP(id))return;const mn=C.minOf(id),g=Math.max(tgt,mn),pin=g>mn?g:null;
+ if(tgt===C.step[id]&&(n.gate||null)===pin){render();return}
+ if((n.gate||null)!==pin)mut(()=>{n.gate=pin});else render();
+ toast(tgt<mn?`${C.code[id]} snapped to ${gateTxt(mn)}, the earliest its links allow: ${C.whyMin(id)}.`:pin?`${C.code[id]} pinned to ${gateTxt(g)}. ${allowTxt(mn)}.`:`${C.code[id]} moved to ${gateTxt(g)}, the earliest its links allow.`);
 }
 function addItem(type,parent){
  const it=mk(nid(),type,parent||null,{obj:'New objective',feat:'New feature',task:'New task',ms:'New milestone',ext:'New external dependency'}[type]);
@@ -393,8 +404,8 @@ function ov(title,blurb,text,mode){
 }
 
 views.addEventListener('pointerdown',e=>{
- const b=e.target.closest('.b');if(!b||e.button!==0)return;const t=map[b.dataset.id];if(!t)return;
- drag={id:t.id,el:b,x0:e.clientX,sx:board.scrollLeft,on:false,from:C.step[t.id],min:C.minOf(t.id),pid:e.pointerId,tgt:C.step[t.id]};
+ const b=e.target.closest('.b,.mk,.xk');if(!b||e.button!==0)return;const t=map[b.dataset.id];if(!t)return;
+ drag={id:t.id,el:b,gt:t.type!=='task',l0:parseFloat(b.style.left)||0,x0:e.clientX,sx:board.scrollLeft,on:false,from:C.step[t.id],min:C.minOf(t.id),pid:e.pointerId,tgt:C.step[t.id]};
 });
 function dragMove(e){
  if(!drag)return;
@@ -403,16 +414,18 @@ function dragMove(e){
   drag.gh=document.createElement('div');drag.gh.className='ghost';drag.gh.innerHTML='<span></span>';grid.querySelector('.chart').appendChild(drag.gh)}
  e.preventDefault();
  const r=board.getBoundingClientRect();if(e.clientX>r.right-48)board.scrollLeft+=16;else if(e.clientX<r.left+geo.LW+48)board.scrollLeft-=16;
- const dx=e.clientX-drag.x0+(board.scrollLeft-drag.sx),vs=geo.vs,fc=Math.max(0,vs.indexOf(drag.from)),c=Math.max(0,Math.min(vs.length,fc+Math.round(dx/geo.CW))),tgt=c<vs.length?vs[c]:Math.min(geo.N+1,(vs[vs.length-1]||0)+1);
- drag.el.style.transform=`translateX(${dx}px)`;drag.tgt=tgt;
- const bad=tgt<drag.min;drag.gh.className='ghost'+(bad?' bad':'');drag.gh.style.cssText=`left:${c*geo.CW+3}px;width:${geo.CW-6}px;height:${geo.H}px`;
- drag.gh.firstChild.textContent=bad?`Too early. Step ${drag.min} at the soonest`:tgt===drag.from?`Step ${tgt} (no change)`:`Move to step ${tgt}`;
+ const dx=e.clientX-drag.x0+(board.scrollLeft-drag.sx),vs=geo.vs,last=vs[vs.length-1]||0,CW=geo.CW;let c,tgt;
+ if(drag.gt){const k0=vs.filter(s=>s<=drag.from).length;c=Math.max(0,Math.min(vs.length+1,k0+Math.round(dx/CW)));tgt=c===k0?drag.from:c===0?(vs[0]||1)-1:c<=vs.length?vs[c-1]:last+1}
+ else{const fc=Math.max(0,vs.indexOf(drag.from));c=Math.max(0,Math.min(vs.length,fc+Math.round(dx/CW)));tgt=c<vs.length?vs[c]:Math.min(geo.N+1,last+1)}
+ if(drag.gt)drag.el.style.left=(drag.l0+dx)+'px';else drag.el.style.transform=`translateX(${dx}px)`;drag.tgt=tgt;
+ const bad=tgt<drag.min;drag.gh.className='ghost'+(drag.gt?' gl':'')+(bad?' bad':'');drag.gh.style.cssText=drag.gt?`left:${c*CW-1}px;height:${geo.H}px`:`left:${c*CW+3}px;width:${CW-6}px;height:${geo.H}px`;
+ drag.gh.firstChild.textContent=drag.gt?(bad?`Too early. Snaps to ${gateTxt(drag.min)}`:tgt===drag.from?'No change':`Move to ${gateTxt(tgt)}`):bad?`Too early. Step ${drag.min} at the soonest`:tgt===drag.from?`Step ${tgt} (no change)`:`Move to step ${tgt}`;
 }
 function dragEnd(cancel){
  if(!drag)return;const d=drag;drag=null;if(!d.on)return;
  noClick=true;setTimeout(()=>{noClick=false},0);grid.classList.remove('dragging');
  if(cancel){render();return}
- moveTo(d.id,d.tgt);
+ (d.gt?moveGate:moveTo)(d.id,d.tgt);
 }
 views.addEventListener('pointerdown',e=>{
  if(e.button!==0||!tlGeo)return;
@@ -523,9 +536,7 @@ dr.addEventListener('click',e=>{
  if(b.dataset.rmdep){const d=b.dataset.rmdep;mut(()=>{map[sel].deps=map[sel].deps.filter(x=>x.id!==d)});return}
  const a=b.dataset.act;
  if(a==='close'){sel=null;selRel=null;calOpen=false;render()}
- else if(a==='mvl')moveTo(sel,C.step[sel]-1);
- else if(a==='mvr')moveTo(sel,C.step[sel]+1);
- else if(a==='unpin')moveTo(sel,C.minOf(sel));
+ else if(a==='mvl'||a==='mvr'||a==='unpin')(C.isP(sel)?moveGate:moveTo)(sel,a==='unpin'?C.minOf(sel):C.step[sel]+(a==='mvl'?-1:1));
  else if(a==='add-task')addItem('task',sel);
  else if(a==='add-feat')addItem('feat',sel);
  else if(a==='up'||a==='down')move(sel,a==='up'?-1:1);

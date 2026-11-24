@@ -74,7 +74,7 @@ ITEM_FIELDS = [
     ("owner", "Owner"), ("team", "Team"), ("status", "Status"),
     ("startBy", "Start by"), ("due", "Due"), ("startedOn", "Started"),
     ("doneOn", "Done"), ("blocker", "External blocker"), ("rel", "Release"),
-    ("earliest", "Pinned step"), ("target", "Target"), ("ref", "Their ticket"),
+    ("earliest", "Pinned step"), ("gate", "Pinned gate"), ("target", "Target"), ("ref", "Their ticket"),
     ("color", "Color"), ("notes", "Notes"),
 ]
 REL_FIELDS = [("name", "Name"), ("target", "Target"), ("status", "Status"),

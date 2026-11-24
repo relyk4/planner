@@ -31,7 +31,7 @@ const uStart=(n,u)=>{const d=dObj(n),y=d.getUTCFullYear(),m=d.getUTCMonth(),U=(Y
 const uNext=(n,u)=>{const d=dObj(n),y=d.getUTCFullYear(),m=d.getUTCMonth(),U=(Y,M)=>Math.round(Date.UTC(Y,M,1)/864e5);return u==='day'?n+1:u==='week'?n+7:u==='month'?U(y,m+1):u==='quarter'?U(y,m+3):U(y+1,0)};
 const uLabel=(n,u,top)=>{const d=dObj(n),m=d.getUTCMonth(),y=d.getUTCFullYear();return u==='day'?String(d.getUTCDate()):u==='week'?MON[m]+' '+d.getUTCDate():u==='month'?(top?'':MON[m]):u==='quarter'?'Q'+(Math.floor(m/3)+1):String(y)};
 const link=(id,type='FS',lag=0,st='auto',note='')=>({id,type,lag,st,note});
-const mk=(id,type,parent,name,o={})=>({id,type,parent,name,owner:o.owner||'',status:o.status||'todo',deps:o.deps||[],blocker:o.blocker||'',earliest:o.earliest||null,collapsed:false,notes:o.notes||'',rel:o.rel||'',target:o.target||'',due:o.due||'',startBy:o.startBy||'',startedOn:o.startedOn||'',doneOn:o.doneOn||'',team:o.team||'',ref:o.ref||'',color:o.color||'',key:o.key||''});
+const mk=(id,type,parent,name,o={})=>({id,type,parent,name,owner:o.owner||'',status:o.status||'todo',deps:o.deps||[],blocker:o.blocker||'',earliest:o.earliest||null,gate:o.gate||null,collapsed:false,notes:o.notes||'',rel:o.rel||'',target:o.target||'',due:o.due||'',startBy:o.startBy||'',startedOn:o.startedOn||'',doneOn:o.doneOn||'',team:o.team||'',ref:o.ref||'',color:o.color||'',key:o.key||''});
 const DEFS=`<defs>${['FS','SS','FF','SF','bk','ok','ovd'].map(c=>`<marker id="m${c}" viewBox="0 0 8 8" refX="8" refY="4" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto"><path class="ah ${c}" d="M0,0L8,4L0,8z"/></marker>`).join('')}</defs>`;
 
 function sample(){
@@ -42,7 +42,7 @@ function sample(){
  // external team dependencies
  a('X1','ext','Firewall rule change for source systems',{owner:'Pat Moreno',team:'Network team',status:'delivered',due:rd(-10),doneOn:rd(-12),ref:'NET-2291'});
  a('X2','ext','Identity service v2.3 release',{owner:'J. Rivera',team:'Platform team',status:'committed',due:rd(12),ref:'PLAT-412',notes:'Row-level access needs the new role claims that ship in v2.3. The whole Access control feature waits on it.'});
- a('X3','ext','Approved source extracts',{owner:'Data office lead',team:'Data office',status:'atrisk',due:rd(20),ref:'DO-88',notes:'Data office warned the approval board may slip a sprint.'});
+ a('X3','ext','Approved source extracts',{owner:'Data office lead',team:'Data office',status:'atrisk',due:rd(20),ref:'DO-88',gate:2,notes:'Data office warned the approval board may slip a sprint. Pinned after step 2 to line up with the board meeting.'});
  a('X4','ext','Shared logging cluster upgrade',{owner:'Ops on-call',team:'Ops team',status:'blocked',due:rd(-2),ref:'OPS-1177',notes:'Upgrade halted on a vendor licence issue. Dashboards cannot ship without it.'});
  // objective 1
  a('1','obj','Stand up data ingest',{owner:'Alex'});
@@ -92,7 +92,7 @@ function blank(){const o=nid(),f=nid(),t=nid();return {title:'Untitled plan',msC
 function normLinks(ds){const seen=new Set();return (Array.isArray(ds)?ds:[]).map(l=>typeof l==='string'?{id:l}:l).filter(l=>l&&l.id&&!seen.has(String(l.id))&&seen.add(String(l.id))).map(l=>link(String(l.id),TYPES[l.type]?l.type:'FS',clampLag(l.lag||0),l.st==='blocked'?'blocked':'auto',String(l.note??'')))}
 function norm(s){
  if(!s||!Array.isArray(s.items))return null;
- const items=s.items.filter(i=>i&&i.id&&['obj','feat','task','ms','ext'].includes(i.type)).map(i=>({id:String(i.id),type:i.type,parent:i.parent&&i.type!=='ms'&&i.type!=='ext'?String(i.parent):null,name:String(i.name??''),owner:String(i.owner??''),status:(i.type==='ext'?XSV:['todo','doing','done','blocked']).includes(i.status)?i.status:i.type==='ext'?'pending':'todo',deps:normLinks(i.deps),blocker:String(i.blocker??''),earliest:+i.earliest>0?Math.floor(+i.earliest):null,collapsed:!!i.collapsed,notes:String(i.notes??''),rel:String(i.rel??''),target:String(i.target??''),due:okd(i.due),startBy:okd(i.startBy),startedOn:okd(i.startedOn),doneOn:okd(i.doneOn),team:String(i.team??''),ref:String(i.ref??''),color:/^#[0-9a-fA-F]{6}$/.test(String(i.color??''))?String(i.color):'',key:String(i.key??'')}));
+ const items=s.items.filter(i=>i&&i.id&&['obj','feat','task','ms','ext'].includes(i.type)).map(i=>({id:String(i.id),type:i.type,parent:i.parent&&i.type!=='ms'&&i.type!=='ext'?String(i.parent):null,name:String(i.name??''),owner:String(i.owner??''),status:(i.type==='ext'?XSV:['todo','doing','done','blocked']).includes(i.status)?i.status:i.type==='ext'?'pending':'todo',deps:normLinks(i.deps),blocker:String(i.blocker??''),earliest:+i.earliest>0?Math.floor(+i.earliest):null,gate:(i.type==='ms'||i.type==='ext')&&+i.gate>0?Math.floor(+i.gate):null,collapsed:!!i.collapsed,notes:String(i.notes??''),rel:String(i.rel??''),target:String(i.target??''),due:okd(i.due),startBy:okd(i.startBy),startedOn:okd(i.startedOn),doneOn:okd(i.doneOn),team:String(i.team??''),ref:String(i.ref??''),color:/^#[0-9a-fA-F]{6}$/.test(String(i.color??''))?String(i.color):'',key:String(i.key??'')}));
  const releases=Array.isArray(s.releases)?s.releases.filter(r=>r&&r.id).map(r=>({id:String(r.id),name:String(r.name??''),target:String(r.target??''),status:RST[r.status]?r.status:'planned',notes:String(r.notes??''),due:okd(r.due)})):[];
  const cal={asof:okd((s.cal||{}).asof)},t=s.tl||{},tl={open:!!t.open,zoom:ZO[t.zoom]?t.zoom:'weeks',only:t.only!==false};
  return {title:String(s.title||'Untitled plan'),view:['map','grid','gantt','rel'].includes(s.view)?s.view:'map',relOpen:s.relOpen!==false,sample:!!s.sample,msCollapsed:!!s.msCollapsed,extCollapsed:!!s.extCollapsed,cal,tl,releases,items};
@@ -121,7 +121,7 @@ function compute(){
  const pos={},vis=new Set();
  const at=(id,side)=>{const p=fin(id);return map[id].type==='task'&&side==='S'?p-1:p};
  const bound=(n,l)=>{const pa=at(l.id,l.type[0])+l.lag;return n.type==='task'&&l.type[1]==='S'?pa+1:pa};
- const fin=id=>{if(id in pos)return pos[id];if(vis.has(id))return 0;vis.add(id);const n=map[id];let m=n.type==='task'?Math.max(1,n.earliest||1):0;for(const l of links(n))m=Math.max(m,bound(n,l));vis.delete(id);return pos[id]=m};
+ const fin=id=>{if(id in pos)return pos[id];if(vis.has(id))return 0;vis.add(id);const n=map[id];let m=n.type==='task'?Math.max(1,n.earliest||1):n.gate||0;for(const l of links(n))m=Math.max(m,bound(n,l));vis.delete(id);return pos[id]=m};
  const nodes=[...mss,...exts,...order];nodes.forEach(n=>fin(n.id));
  const dm={};
  const started=id=>map[id].type==='task'?['doing','done'].includes(map[id].status):done(id);
@@ -142,8 +142,8 @@ function compute(){
  const crit=new Set(),critE=new Set();
  let cur=order.find(t=>pos[t.id]===N&&t.status!=='done')||order.find(t=>pos[t.id]===N)||[...mss,...exts].find(m=>pos[m.id]===N);
  while(cur&&!crit.has(cur.id)){crit.add(cur.id);const c=cur,l=links(c).find(l=>bound(c,l)===pos[c.id]),nx=l&&map[l.id];if(nx)critE.add(nx.id+'>'+c.id);cur=nx}
- const minOf=id=>{const n=map[id];let m=1;for(const l of links(n))m=Math.max(m,bound(n,l));return m};
- const whyMin=id=>{const n=map[id];let best=null,bv=1;for(const l of links(n)){const b=bound(n,l);if(b>bv){bv=b;best=l}}return best?`it waits on ${code[best.id]} (${best.type}${best.lag?(best.lag>0?'+':'−')+Math.abs(best.lag):''})`:''};
+ const minOf=id=>{const n=map[id];let m=n.type==='task'?1:0;for(const l of links(n))m=Math.max(m,bound(n,l));return m};
+ const whyMin=id=>{const n=map[id];let best=null,bv=n.type==='task'?1:0;for(const l of links(n)){const b=bound(n,l);if(b>bv){bv=b;best=l}}return best?`it waits on ${code[best.id]} (${best.type}${best.lag?(best.lag>0?'+':'−')+Math.abs(best.lag):''})`:''};
  return {code,order,feats,mss,exts,step:pos,succ,succL,eff,warn,chain,N,crit,critE,isT,isM,isX,isP,isN,done,started,sat,links,own,relOf,minOf,whyMin};
 }
 const ids=n=>C.links(n).map(l=>l.id);
