@@ -194,6 +194,15 @@ button.t{cursor:pointer}button.t:hover{border-color:var(--conc)}
 .mk.drag,.xk.drag{z-index:8;cursor:grabbing;transition:none}
 .ghost.gl{width:0;border-width:0 0 0 2px;background:none}
 .ghost.gl span{right:auto;left:8px;white-space:nowrap}
+.lkh{position:absolute;z-index:6;width:calc(12px*var(--z,1));height:calc(12px*var(--z,1));transform:translate(-50%,-50%);border-radius:50%;border:2px solid var(--accent);background:var(--bg);box-shadow:0 0 0 2px var(--bg);cursor:crosshair;touch-action:none}
+.lkh:hover,.lkh.on{background:var(--accent)}
+.grid.dragging .lkh{display:none}
+.grid.linking,.grid.linking *{cursor:crosshair}
+.lkd{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:6}
+.lkd .e{stroke-width:2.4;stroke-dasharray:6 4}
+.lkd.idle,.lke.idle,.lkt.idle{--c:var(--mute)}.lkd.bad,.lke.bad,.lkt.bad{--c:var(--red)}
+.lke{position:absolute;z-index:6;width:calc(5px*var(--z,1));transform:translate(-50%,-50%);border-radius:3px;background:var(--c);pointer-events:none}
+.lkt{position:absolute;z-index:7;transform:translate(-50%,-100%);font-size:calc(13px*var(--z,1));font-weight:700;line-height:calc(18px*var(--z,1));padding:0 calc(6px*var(--z,1));border:1.5px solid var(--c);border-radius:3px;color:var(--c);background:var(--bg);white-space:nowrap;pointer-events:none}
 .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:40;max-width:min(560px,92vw);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:4px;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
 .toast[hidden]{display:none}
 .xd{position:absolute;z-index:2;font-size:calc(13px*var(--z,1));color:var(--mute);white-space:nowrap;line-height:calc(18px*var(--z,1));pointer-events:none;padding:0 3px;background:color-mix(in srgb,var(--pane) 80%,transparent)}.xd.late{color:var(--late);font-weight:700}

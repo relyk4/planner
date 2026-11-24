@@ -81,6 +81,33 @@ try {
   $('#undo').click(); await sleep(50);
   $('#dr [data-act=close]').click(); await sleep(30);
 
+  // draw links: drag from an edge handle onto another item; the two edges give the type
+  const barOf = c => $$('#grid .b').find(b => b.querySelector('.cd').textContent === c);
+  const PE = w.PointerEvent || w.MouseEvent, fire = (el, type, x, y) => el.dispatchEvent(new PE(type, {bubbles: true, cancelable: true, button: 0, clientX: x, clientY: y}));
+  // jsdom has no layout, so the chart sits at 0,0 and chart coordinates are client coordinates.
+  const edgeAt = (b, side) => [parseFloat(b.style.left) + (side === 'S' ? 4 : parseFloat(b.style.width) - 4), parseFloat(b.style.top) + parseFloat(b.style.height) / 2];
+  const startLink = (from, side) => {fire(barOf(from), 'pointerover'); const h = $(`#grid .lkh[data-side=${side}]`); fire(h, 'pointerdown', parseFloat(h.style.left), parseFloat(h.style.top)); return h};
+  const drawLink = (from, fs, to, ts) => {const h = startLink(from, fs), [x, y] = edgeAt(barOf(to), ts); fire(h, 'pointermove', x, y); const lab = $('#grid .lkt')?.textContent || ''; fire(h, 'pointerup', x, y); return lab};
+  fire(barOf('2.1.1'), 'pointerover');
+  ok($$('#grid .lkh').length === 2, 'hovering a bar shows a link handle on each edge');
+  const pred = barOf('2.1.1').dataset.id;
+  for (const [fs, ts] of [['F', 'S'], ['S', 'S'], ['F', 'F'], ['S', 'F']]) {
+    const lab = drawLink('2.1.1', fs, '3.1.1', ts); await sleep(30);
+    ok(lab.startsWith(fs + ts) && $('#lt-' + pred)?.value === fs + ts, `dragging ${fs === 'S' ? 'start' : 'end'} to ${ts === 'S' ? 'start' : 'end'} draws a ${fs + ts} link and opens it in the editor`);
+    $('#undo').click(); await sleep(30);
+    ok(!$('#dep-' + pred), `undo removes the drawn ${fs + ts} link`);
+  }
+  $('#dr [data-act=close]').click(); await sleep(30);
+  ok(drawLink('1.1.2', 'F', '1.1.1', 'S') === 'Would make a loop' && $('#toast').textContent.includes('loop') && !$('#dr').classList.contains('open'), 'a link that would loop is refused');
+  ok(drawLink('1.1.1', 'F', '1.1.2', 'S') === 'Already linked' && !$('#dr').classList.contains('open'), 'a duplicate link is refused');
+  {const h = startLink('2.1.1', 'F'), [x, y] = edgeAt(barOf('3.1.1'), 'S'); fire(h, 'pointermove', x, y);
+    d.dispatchEvent(new w.KeyboardEvent('keydown', {key: 'Escape', bubbles: true})); fire(h, 'pointerup', x, y); await sleep(30);
+    ok(!$('#grid .lkd') && !$('#dr').classList.contains('open'), 'Esc cancels drawing a link')}
+  {const b = barOf('2.1.4'), l0 = b.style.left, x = parseFloat(b.style.left) + parseFloat(b.style.width) / 2, y = parseFloat(b.style.top) + 5, cw = parseFloat($('#grid .ch').style.width);
+    fire(b, 'pointerdown', x, y); fire(b, 'pointermove', x + cw, y); fire(b, 'pointerup', x + cw, y); await sleep(30);
+    ok(barOf('2.1.4').style.left !== l0 && $('#toast').textContent.includes('pinned to step'), 'dragging the middle of a bar still moves it');
+    $('#undo').click(); await sleep(30)}
+
   // grid and gantt
   $('[data-view=grid]').click(); await sleep(50);
   ok($$('#gridv tbody tr').length > 20, 'grid view renders rows');

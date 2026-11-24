@@ -43,30 +43,6 @@ time, and an edited export updates only what changed.
 
 ---
 
-## 7. Draw dependencies on the map by dragging between items
-
-**Do:**
-- Hovering near the left or right edge of a bar, milestone or external
-  shows a small circle handle.
-- Dragging from it draws a live arrow. Dropping on another item creates the
-  link.
-- The edges decide the type, predecessor edge first:
-  - end → start = **FS**
-  - start → start = **SS**
-  - end → end = **FF**
-  - start → end = **SF**
-- While dragging, the drop target highlights the edge it will use and shows
-  the type.
-- Loops and duplicates are refused with a message. Esc cancels.
-- Dragging from the middle of a bar still moves it between steps.
-- The new link opens in the editor so type and lag can be adjusted.
-- Undo works.
-
-**Done when:** all four types can be drawn by mouse, and nothing about existing
-drag-to-move behavior changes.
-
----
-
 ## Ideas not yet scheduled
 
 - Owner and team filters, plus a "My work" view (building on the status
@@ -111,3 +87,9 @@ drag-to-move behavior changes.
   around the cursor. The map is redrawn at each zoom, so it stays sharp and
   drag still lands on the right step. The zoom level is remembered per
   viewer. The embedded timeline keeps its own Days/Weeks/Months scale.
+- **Draw dependencies on the map by dragging** (Nov 2026). Hovering a
+  task bar, milestone or external shows a circle on its start and end edge.
+  Drag one onto another item to link them; the two edges give the type (end
+  → start FS, start → start SS, end → end FF, start → end SF), shown on the
+  drop edge while dragging. Loops and duplicates are refused; Esc cancels.
+  The new link opens in the editor to set its type and lag.
