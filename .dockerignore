@@ -1,0 +1,15 @@
+data/
+*.db
+*.db-wal
+*.db-shm
+__pycache__/
+.git/
+*.zip
+docs/
+tests/
+.github/
+AGENTS.md
+CLAUDE.md
+backups/
+.data-*/
+node_modules/

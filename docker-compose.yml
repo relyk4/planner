@@ -1,0 +1,14 @@
+services:
+  planner:
+    build: .
+    image: planner:1.0.0
+    container_name: planner
+    # 127.0.0.1 keeps it to this machine. For a team server, change to "8080:8080".
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - planner-data:/data
+    restart: unless-stopped
+
+volumes:
+  planner-data:

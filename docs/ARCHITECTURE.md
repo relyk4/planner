@@ -1,0 +1,154 @@
+# Architecture
+
+## Repository layout
+
+```
+server.py              Python 3.8+ stdlib HTTP server + SQLite storage + JSON API
+static/index.html      The whole app: markup, CSS, one <script>
+data/                  Live data (planner.db). Gitignored. Never touch.
+tests/test_server.py   API tests (unittest, stdlib)
+tests/ui/              jsdom smoke test (dev-only, npm)
+docs/                  This file, DECISIONS.md, BACKLOG.md
+Dockerfile, docker-compose.yml, start.sh, start.bat
+```
+
+## Server (`server.py`)
+
+- `ThreadingHTTPServer`, but every API request runs under one global `LOCK`
+  with its own SQLite connection (WAL mode). Simple and safe for a handful of
+  users.
+- Tables:
+  - `plans(id, name, created, updated, updated_by, rev, archived, data)`:
+    `data` is the plan JSON, stored whole.
+  - `versions(id, plan_id, rev, ts, user, note, nchanges, data)`: full
+    snapshots.
+  - `changes(id, plan_id, rev, ts, user, item_id, item_type, item_name, field, old, new)`:
+    one row per changed field.
+- **Saving** (`PUT /api/plans/{id}` with `{data, base_rev}`):
+  - If `base_rev` is stale, the server answers 409 and the client shows the
+    conflict dialog.
+  - Otherwise `diff(old, new)` compares items (`ITEM_FIELDS`), links (added,
+    changed or removed), releases (`REL_FIELDS`) and the title. Each difference
+    becomes a `changes` row.
+  - Versions coalesce: autosaves from the same user within
+    `--coalesce` seconds (default 120), with no note, update the latest
+    version instead of adding one.
+- **Attribution**: the `X-User` header (URL-encoded) from the name box in the
+  sidebar.
+- **Static files** come from `static/`, with a path-traversal guard. Unknown
+  paths without an extension fall back to `index.html`.
+- The full route list is in README.md under "API".
+
+## Client (`static/index.html`)
+
+### Sections (search for these banner comments)
+
+| Banner | What's there |
+|---|---|
+| top of `<script>` | constants (`TYPES`, `LBL`, `KIND`, `XS`, `ZO`), date helpers (`dn`, `fd`, `iso`), `mk()`, `sample()`, `blank()`, `norm()` |
+| (no banner) | `mut`/`undo`, `compute()`, `relStats()`, `calc()`, `recalc()`, filter (`FST`, `flt`, `fltSet`, `stepsShown`), `rowsVisible()`, `focusSet()`, link routing (`poly`, `route`, `tagAt`), `renderStats`, `renderRels`, `renderTimeline`, `renderBoard`, drawer (`renderDrawer`, `depBlock`, `depCard`), `render`, `soft`, actions (`moveTo`, `addItem`, `del`, `move`), board drag (`dragMove`/`dragEnd`), timeline drag (`tdMove`/`tdEnd`) |
+| `// ===== storage` | `LS` (safe localStorage), `Store` (server or local mode), `save`/`flush` autosave, conflict dialog, `openPlan`, `renderPlans`, `newPlan`, `boot` |
+| `// ===== views` | `renderView`, `renderGantt` |
+| `// ----- grid` | `GCOLS`, `GEDIT`, `cellHtml`, `gridRows`, `renderGrid`, keyboard moves, `gridEdit`, `setCell`, `parseDeps` |
+| `// ===== history` | change log and versions panel (`loadHist`, `renderHist`) |
+| `// ===== import` | CSV parser, `.xlsx` reader (zip + `DecompressionStream`), column guessing, `buildImport` |
+| `// ===== wiring` | menus, filter menu (`renderFlt`, `fltLoad`, `fltSave`), dialogs, keyboard shortcuts |
+
+### Data model (plan JSON, `S`)
+
+```js
+{
+  title, view: 'map'|'grid'|'gantt', relOpen, sample, msCollapsed, extCollapsed,
+  cal: { asof: 'YYYY-MM-DD' | '' },          // status date; blank = today
+  tl:  { open, zoom: 'days'|'weeks'|'months'|'quarters', only },
+  releases: [{ id, name, target, status: 'planned'|'active'|'released', notes, due }],
+  items: [{
+    id, type: 'obj'|'feat'|'task'|'ms'|'ext', parent,   // ms/ext have parent null
+    name, key, owner, status, notes, collapsed,
+    deps: [{ id, type: 'FS'|'SS'|'FF'|'SF', lag, st: 'auto'|'blocked', note }],
+    blocker,            // free text; non-empty makes a task Blocked
+    earliest,           // task pinned to a step (null = auto)
+    rel,                // release id; '' = inherit from feature; '-' = none
+    target, due, startBy, startedOn, doneOn,   // ISO dates or ''
+    team, ref,          // external items: team name, their ticket
+    color               // features: '#rrggbb'
+  }]
+}
+```
+
+Task `status` is `todo|doing|done|blocked`. Milestone `status` is
+`todo|done` (`done` means "mark reached"). External `status` is
+`pending|committed|atrisk|delivered|blocked`. `norm()` is the single place
+that cleans and defaults all of this, and it must accept every older shape.
+
+### How the layout and states are computed (`compute()`)
+
+- **Codes**: objectives `1`, features `1.2`, tasks `1.2.3`, milestones `M1`,
+  externals `X1`. These come from order in `S.items`.
+- **Links**: `C.links(task)` is the task's own deps plus its feature's deps.
+  A feature-level link makes every task in it wait.
+- **Steps** (`C.step`): positions are measured in step boundaries. A task
+  occupies `(step-1, step]`.
+  - A link's bound is `at(pred, type[0]) + lag`, where `at` is the
+    predecessor's start (`step-1`) or finish (`step`).
+  - For a task whose link type ends in `S`, the bound is +1.
+  - A task's step is the max of its bounds, at least 1 and at least
+    `earliest`.
+  - Milestones and externals sit on a boundary (a "gate").
+  - `C.N` is the deepest step.
+- **Satisfied**: a link whose predecessor side is `S` needs the predecessor
+  started; `F` needs it done.
+- **Effective state** (`C.eff`), in priority order:
+  - Tasks: `done`, then `blocked` (status, blocker text or a blocked link),
+    then `doing`, then `waiting` (an unsatisfied `?S` link), then `ready`.
+  - Milestones: `reached` or `open`.
+  - Externals: their status.
+- **Warnings** (`C.warn`): a task's status contradicts a link (started
+  before an `?S` link was satisfied, or done before an `?F` link was).
+- **Chains**: `C.chain` marks items held up by a blocker anywhere upstream
+  (red outline). `C.lateUp` marks items held up by overdue work (orange
+  outline).
+- **Critical path**: walked back from the deepest unfinished task through
+  the binding link.
+
+### Date flags (`calc()` → `C.df[id]`)
+
+| Flag | Meaning |
+|---|---|
+| `ls` | Late start: not started and past `startBy` |
+| `od` | Overdue: not done and past `due` |
+| `rk` | At risk: an unsatisfied predecessor ends after this item's `startBy`/`due` (or an external is marked at risk) |
+| `sl` / `fl` | Started late / finished late (info only) |
+
+"Today" is `C.T`: the status date if set, otherwise the real date.
+Releases get `od`/`rk` from their tasks and externals.
+
+### Views
+
+- **Map** (`renderBoard`):
+  - The left label column, the step header and the collapsible timeline sit
+    over an absolutely positioned chart.
+  - Links are SVG paths with tags.
+  - Geometry lives in `geo` (`LW`, `CW`, `N`, `vs`). `bx(g)` turns a step
+    boundary into an x position. When the filter closes up empty steps, `vs`
+    is the list of visible steps.
+  - Dragging a bar sideways pins the task to a step (`moveTo`).
+- **Grid** (`renderGrid`):
+  - Columns come from `GCOLS`; which cells each type can edit comes from
+    `GEDIT`.
+  - Keyboard navigation works as in a spreadsheet.
+  - "Depends on" accepts text like `1.2.3 SS+1, M2`.
+- **Gantt** (`renderGantt` → `renderTimeline(...,full)`): dates only. Bars
+  can be dragged or resized to change `startBy`/`due`.
+- All three take their rows from `rowsVisible()`, which applies collapse
+  state and the status filter.
+
+### Storage (`Store`)
+
+- **`server` mode** (when `api/health` answers): saves go to the API.
+- **`local` mode** (`file://` or no server): saves go to localStorage. There
+  is no history in this mode.
+- Autosave is debounced in `save()` and done in `flush()`. On a 409 the
+  conflict dialog offers "load theirs" or "keep mine".
+- Per-viewer preferences use `LS` keys (`planner.user`, `planner.last`,
+  `planner.flt.<planId>`) and never go into plan data.

@@ -1,0 +1,8 @@
+{
+  "name": "planner-ui-tests",
+  "private": true,
+  "description": "Dev-only UI smoke test. Not needed to run Planner.",
+  "type": "module",
+  "scripts": { "test": "node smoke.mjs" },
+  "devDependencies": { "jsdom": "^24.0.0" }
+}

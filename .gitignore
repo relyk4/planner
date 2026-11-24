@@ -1,0 +1,27 @@
+# Live plan data: never commit
+data/*
+!data/.keep
+.data-*/
+*.db
+*.db-wal
+*.db-shm
+backups/
+
+# Dev tooling
+node_modules/
+tests/ui/package-lock.json
+__pycache__/
+*.pyc
+
+# OS and editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Build output
+*.zip
+*.tar
+
+# Issue drafts for gh (not part of the repo)
+_issues/
