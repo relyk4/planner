@@ -71,7 +71,7 @@ time can only use names from its own file or an earlier one.
   tl:  { open, zoom: 'days'|'weeks'|'months'|'quarters', only },
   releases: [{ id, name, target, status: 'planned'|'active'|'released', notes, due }],
   items: [{
-    id, type: 'obj'|'feat'|'task'|'ms'|'ext', parent,   // ms/ext have parent null
+    id, type: 'obj'|'feat'|'task'|'ms'|'ext', parent,   // ms/ext: null (top section) or an obj/feat id ("Show under", display only)
     name, key, owner, status, notes, collapsed,
     deps: [{ id, type: 'FS'|'SS'|'FF'|'SF', lag, st: 'auto'|'blocked', note }],
     blocker,            // free text; non-empty makes a task Blocked
@@ -187,6 +187,19 @@ Releases get `od`/`rk` from their tasks and externals.
   the plans (`renderRailRels`).
 - Map, Grid and Gantt take their rows from `rowsVisible()`, which applies
   collapse state and the status filter.
+  - The *Milestones* and *External dependencies* sections hold only the
+    milestones and externals with no `parent`, and disappear when empty.
+    One with a `parent` ("Show under" in its editor) is listed right after
+    that objective's or feature's own rows, at feature depth under an
+    objective and task depth under a feature (`lvlOf()`).
+  - Placement is display only. `compute()` numbers `M#`/`X#` from
+    `S.items` order wherever they're shown, and code that walks the outline
+    keeps filtering `kids[...]` by type, so a placed milestone is never
+    counted as a feature or task. `norm()` drops a `parent` that isn't an
+    objective or feature back to `null`.
+  - A collapsed objective or feature shows the markers of everything placed
+    under it (`placedIn()`) on its own row, like a collapsed top section.
+    Deleting it moves those items back to their top section (`del()`).
 
 ### Toolbar
 

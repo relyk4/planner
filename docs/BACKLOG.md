@@ -93,3 +93,10 @@ time, and an edited export updates only what changed.
   → start FS, start → start SS, end → end FF, start → end SF), shown on the
   drop edge while dragging. Loops and duplicates are refused; Esc cancels.
   The new link opens in the editor to set its type and lag.
+- **Milestones and externals can be shown under an objective or feature**
+  (Nov 2026). *Show under* in their editor puts the row under an objective
+  (feature level) or a feature (task level) in the map, grid and Gantt. It
+  only moves the row: links, steps, dates and tallies don't change. A
+  collapsed objective or feature shows their markers on its row; deleting it
+  moves them back to the top section. Dragging rows in and out of groups
+  waits on #19.

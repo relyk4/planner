@@ -36,7 +36,7 @@ const DEFS=`<defs>${['FS','SS','FF','SF','bk','ok','ovd'].map(c=>`<marker id="m$
 
 function sample(){
  const items=[],ids={},R0=nid(),R1=nid(),R2=nid(),T0=dn(todayIso()),rd=n=>iso(T0+n);
- const a=(code,type,name,o={})=>{const id=nid();ids[code]=id;const p=type==='ms'||type==='ext'?null:code.includes('.')?ids[code.split('.').slice(0,-1).join('.')]:null;const it=mk(id,type,p,name,{...o,deps:(o.deps||[]).map(d=>Array.isArray(d)?link(ids[d[0]],d[1],d[2]||0,d[3]||'auto',d[4]||''):link(ids[d]))});if(o.earliest)it.earliest=o.earliest;items.push(it)};
+ const a=(code,type,name,o={})=>{const id=nid();ids[code]=id;const p=type==='ms'||type==='ext'?(o.under?ids[o.under]:null):code.includes('.')?ids[code.split('.').slice(0,-1).join('.')]:null;const it=mk(id,type,p,name,{...o,deps:(o.deps||[]).map(d=>Array.isArray(d)?link(ids[d[0]],d[1],d[2]||0,d[3]||'auto',d[4]||''):link(ids[d]))});if(o.earliest)it.earliest=o.earliest;items.push(it)};
  // milestones (gates)
  a('M1','ms','Dev environment ready',{owner:'Alex',status:'done',target:'Before PI planning',due:rd(-20),notes:'Marked reached by hand: it depended on work outside this plan.'});
  // external team dependencies
@@ -53,7 +53,7 @@ function sample(){
  a('M2','ms','Foundations released',{owner:'Alex',due:rd(-10),deps:['1.1.1','1.1.2','1.1.3'],target:'Sprint 1',notes:'Reached automatically once every input was done.'});
  a('1.2','feat','Source connectors',{color:'#0c8599',owner:'Jo',rel:R1});
  a('1.2.1','task','Request schema registry access',{owner:'Jo',status:'done',startBy:rd(-9),due:rd(-7),startedOn:rd(-8),doneOn:rd(-7)});
- a('X5','ext','Schema registry access granted',{owner:'Platform service desk',team:'Platform team',status:'pending',due:rd(14),ref:'PLAT-430',deps:['1.2.1'],notes:'They needed our access request (1.2.1) before they could start.'});
+ a('X5','ext','Schema registry access granted',{owner:'Platform service desk',team:'Platform team',status:'pending',due:rd(14),ref:'PLAT-430',deps:['1.2.1'],under:'1.2',notes:'They needed our access request (1.2.1) before they could start. Shown under 1.2 Source connectors, the only feature that needs it.'});
  a('1.2.2','task','Connector for system A',{owner:'Jo',status:'doing',startBy:rd(-6),due:rd(6),startedOn:rd(-4),deps:['1.1.2','X1']});
  a('1.2.3','task','Connector for system B',{owner:'Priya',startBy:rd(10),due:rd(22),rel:R2,deps:['1.1.2',['1.2.2','SS',1,'auto','Start a step after system A starts so the pattern is proven.'],'X5'],notes:'Deferred to R2 at PI planning (this task overrides its feature release).'});
  a('1.3','feat','Validation layer',{color:'#7048e8',owner:'Priya',rel:R1});
@@ -78,7 +78,7 @@ function sample(){
  a('3','obj','Operational readiness',{owner:'Alex'});
  a('3.1','feat','Monitoring',{color:'#2b8a3e',owner:'Sam',rel:R1});
  a('3.1.1','task','Monitoring requirements',{owner:'Sam',status:'doing',startBy:rd(-7),due:rd(-3),startedOn:rd(-6)});
- a('M5','ms','Monitoring requirements signed off',{owner:'Sam',due:rd(-2),deps:['3.1.1'],target:'Sprint 2'});
+ a('M5','ms','Monitoring requirements signed off',{owner:'Sam',due:rd(-2),deps:['3.1.1'],target:'Sprint 2',under:'3.1'});
  a('3.1.2','task','Pipeline health dashboards',{owner:'Sam',startBy:rd(2),due:rd(20),deps:['M5','X4']});
  a('3.1.3','task','On-call runbook',{owner:'Alex',status:'doing',startBy:rd(-1),due:rd(36),startedOn:rd(-1),deps:[['3.1.2','FF']],notes:'Drafting now; cannot close until the dashboards are done.'});
  a('3.2','feat','Accreditation package',{color:'#495057',owner:'Alex',rel:R2});
@@ -92,7 +92,10 @@ function blank(){const o=nid(),f=nid(),t=nid();return {title:'Untitled plan',msC
 function normLinks(ds){const seen=new Set();return (Array.isArray(ds)?ds:[]).map(l=>typeof l==='string'?{id:l}:l).filter(l=>l&&l.id&&!seen.has(String(l.id))&&seen.add(String(l.id))).map(l=>link(String(l.id),TYPES[l.type]?l.type:'FS',clampLag(l.lag||0),l.st==='blocked'?'blocked':'auto',String(l.note??'')))}
 function norm(s){
  if(!s||!Array.isArray(s.items))return null;
- const items=s.items.filter(i=>i&&i.id&&['obj','feat','task','ms','ext'].includes(i.type)).map(i=>({id:String(i.id),type:i.type,parent:i.parent&&i.type!=='ms'&&i.type!=='ext'?String(i.parent):null,name:String(i.name??''),owner:String(i.owner??''),status:(i.type==='ext'?XSV:['todo','doing','done','blocked']).includes(i.status)?i.status:i.type==='ext'?'pending':'todo',deps:normLinks(i.deps),blocker:String(i.blocker??''),earliest:+i.earliest>0?Math.floor(+i.earliest):null,gate:(i.type==='ms'||i.type==='ext')&&+i.gate>0?Math.floor(+i.gate):null,collapsed:!!i.collapsed,notes:String(i.notes??''),rel:String(i.rel??''),target:String(i.target??''),due:okd(i.due),startBy:okd(i.startBy),startedOn:okd(i.startedOn),doneOn:okd(i.doneOn),team:String(i.team??''),ref:String(i.ref??''),color:/^#[0-9a-fA-F]{6}$/.test(String(i.color??''))?String(i.color):'',key:String(i.key??'')}));
+ const items=s.items.filter(i=>i&&i.id&&['obj','feat','task','ms','ext'].includes(i.type)).map(i=>({id:String(i.id),type:i.type,parent:i.parent?String(i.parent):null,name:String(i.name??''),owner:String(i.owner??''),status:(i.type==='ext'?XSV:['todo','doing','done','blocked']).includes(i.status)?i.status:i.type==='ext'?'pending':'todo',deps:normLinks(i.deps),blocker:String(i.blocker??''),earliest:+i.earliest>0?Math.floor(+i.earliest):null,gate:(i.type==='ms'||i.type==='ext')&&+i.gate>0?Math.floor(+i.gate):null,collapsed:!!i.collapsed,notes:String(i.notes??''),rel:String(i.rel??''),target:String(i.target??''),due:okd(i.due),startBy:okd(i.startBy),startedOn:okd(i.startedOn),doneOn:okd(i.doneOn),team:String(i.team??''),ref:String(i.ref??''),color:/^#[0-9a-fA-F]{6}$/.test(String(i.color??''))?String(i.color):'',key:String(i.key??'')}));
+ // A milestone or external may be shown under an objective or feature ("Show under"). Any other parent puts it back in its top section.
+ const ty=Object.fromEntries(items.map(i=>[i.id,i.type]));
+ for(const i of items)if((i.type==='ms'||i.type==='ext')&&i.parent&&ty[i.parent]!=='obj'&&ty[i.parent]!=='feat')i.parent=null;
  const releases=Array.isArray(s.releases)?s.releases.filter(r=>r&&r.id).map(r=>({id:String(r.id),name:String(r.name??''),target:String(r.target??''),status:RST[r.status]?r.status:'planned',notes:String(r.notes??''),due:okd(r.due)})):[];
  const cal={asof:okd((s.cal||{}).asof)},t=s.tl||{},tl={open:!!t.open,zoom:ZO[t.zoom]?t.zoom:'weeks',only:t.only!==false};
  return {title:String(s.title||'Untitled plan'),view:['map','grid','gantt','rel'].includes(s.view)?s.view:'map',relOpen:s.relOpen!==false,sample:!!s.sample,msCollapsed:!!s.msCollapsed,extCollapsed:!!s.extCollapsed,itemIds:s.itemIds==='key'?'key':'outline',cal,tl,releases,items};
@@ -109,7 +112,8 @@ function undo(){if(!hist.length)return;S=JSON.parse(hist.pop());render()}
 function compute(){
  map={};kids={};
  for(const it of S.items){map[it.id]=it;(kids[it.parent||'root']??=[]).push(it)}
- const root=kids.root||[],code={},order=[],feats=[],mss=root.filter(m=>m.type==='ms'),exts=root.filter(x=>x.type==='ext');
+ // Milestones and externals are numbered M1, X1… in plan order wherever they are shown, so placing one under an objective or feature keeps its code.
+ const root=kids.root||[],code={},order=[],feats=[],mss=S.items.filter(m=>m.type==='ms'),exts=S.items.filter(x=>x.type==='ext');
  mss.forEach((m,i)=>code[m.id]='M'+(i+1));exts.forEach((x,i)=>code[x.id]='X'+(i+1));
  root.filter(o=>o.type==='obj').forEach((o,i)=>{code[o.id]=''+(i+1);(kids[o.id]||[]).filter(f=>f.type==='feat').forEach((f,j)=>{code[f.id]=code[o.id]+'.'+(j+1);feats.push(f);(kids[f.id]||[]).filter(t=>t.type==='task').forEach((t,k)=>{code[t.id]=code[f.id]+'.'+(k+1);order.push(t)})})});
  // Display IDs: C.code stays the outline number; C.lbl is what the page shows. With the plan's
@@ -117,7 +121,7 @@ function compute(){
  const lbl={...code};if(S.itemIds==='key')for(const n of [...feats,...order]){const k=String(n.key??'').trim();if(k)lbl[n.id]=k}
  const tset=new Set(order.map(t=>t.id)),mset=new Set(mss.map(m=>m.id)),xset=new Set(exts.map(x=>x.id));
  const isT=d=>tset.has(d),isM=d=>mset.has(d),isX=d=>xset.has(d),isP=d=>mset.has(d)||xset.has(d),isN=d=>tset.has(d)||isP(d);
- const own=n=>n.deps.filter(l=>isN(l.id)&&l.id!==n.id&&!(n.type==='feat'&&map[l.id].parent===n.id));
+ const own=n=>n.deps.filter(l=>isN(l.id)&&l.id!==n.id&&!(n.type==='feat'&&map[l.id].type==='task'&&map[l.id].parent===n.id));
  const links=n=>{const o=own(n);if(n.type!=='task')return o;const f=map[n.parent];if(!f||!f.deps.length)return o;const have=new Set(o.map(l=>l.id));return o.concat(own(f).filter(l=>!have.has(l.id)&&l.id!==n.id))};
  const rids=new Set(S.releases.map(r=>r.id)),relOf={};
  order.forEach(t=>{const r=t.rel==='-'?'':(t.rel||map[t.parent]?.rel||'');relOf[t.id]=rids.has(r)?r:''});
@@ -153,6 +157,11 @@ const ids=n=>C.links(n).map(l=>l.id);
 const upOf=start=>{const s=new Set(),stk=[...start];while(stk.length){const id=stk.pop();if(!map[id])continue;for(const d of ids(map[id]))if(!s.has(d)){s.add(d);stk.push(d)}}return s};
 const downOf=start=>{const s=new Set(),stk=[...start];while(stk.length){const id=stk.pop();for(const d of C.succ[id]||[])if(!s.has(d)){s.add(d);stk.push(d)}}return s};
 const tasksUnder=it=>it.type==='task'?[it]:it.type==='ms'||it.type==='ext'?[]:(kids[it.id]||[]).flatMap(tasksUnder);
+// Outline depth of a row: objectives and the top sections 0, features 1, tasks 2. A milestone or external
+// shown under an objective sits at feature depth; under a feature, at task depth.
+const lvlOf=n=>n.type==='obj'?0:n.type==='feat'?1:n.type==='task'?2:!n.parent?0:map[n.parent]?.type==='feat'?2:1;
+// Milestones and externals shown under an objective or feature; for an objective, also those under its features.
+const placedIn=it=>(kids[it.id]||[]).flatMap(k=>k.type==='ms'||k.type==='ext'?[k]:it.type==='obj'&&k.type==='feat'?placedIn(k):[]);
 // ' idk' when an item shows its ticket key in place of its outline number. The key never shrinks; only very long ones are capped.
 const idk=id=>C.lbl[id]!==C.code[id]?' idk':'';
 const held=id=>C.chain[id]&&!C.done(id);
@@ -196,8 +205,10 @@ function fltSet(){
  const s=new Set(),h=new Set(flt.hide),hd=h.has('done');
  for(const t of C.order)if(!h.has(C.eff[t.id])||t.id===sel)s.add(t.id);
  for(const n of [...C.mss,...C.exts])if(!(hd&&C.done(n.id))||n.id===sel)s.add(n.id);
- for(const f of S.items)if(f.type==='feat'){const ts=tasksUnder(f);if(!ts.length||f.id===sel||ts.some(t=>s.has(t.id)))s.add(f.id)}
- for(const o of S.items)if(o.type==='obj'){const fs=(kids[o.id]||[]).filter(f=>f.type==='feat');if(!fs.length||o.id===sel||fs.some(f=>s.has(f.id)))s.add(o.id)}
+ // A group stays visible while any task or placed milestone/external under it is.
+ const anyIn=it=>placedIn(it).some(n=>s.has(n.id));
+ for(const f of S.items)if(f.type==='feat'){const ts=tasksUnder(f);if(!ts.length||f.id===sel||ts.some(t=>s.has(t.id))||anyIn(f))s.add(f.id)}
+ for(const o of S.items)if(o.type==='obj'){const fs=(kids[o.id]||[]).filter(f=>f.type==='feat');if(!fs.length||o.id===sel||fs.some(f=>s.has(f.id))||anyIn(o))s.add(o.id)}
  return s;
 }
 function stepsShown(){
@@ -207,10 +218,12 @@ function stepsShown(){
  return s.size?[...s].sort((a,b)=>a-b):all;
 }
 function rowsVisible(){
- const r=[],F=C.fs,ok=n=>!F||F.has(n.id),ms=C.mss.filter(ok),xs=C.exts.filter(ok);
+ // The top sections hold only milestones and externals with no parent; placed ones follow their objective's or feature's own rows.
+ const r=[],F=C.fs,ok=n=>!F||F.has(n.id),top=n=>!n.parent&&ok(n),ms=C.mss.filter(top),xs=C.exts.filter(top);
+ const pl=p=>{for(const n of kids[p.id]||[])if((n.type==='ms'||n.type==='ext')&&ok(n))r.push(n)};
  if(ms.length){r.push({id:'__ms',type:'msh'});if(!S.msCollapsed)r.push(...ms)}
  if(xs.length){r.push({id:'__ext',type:'exth'});if(!S.extCollapsed)r.push(...xs)}
- for(const o of kids.root||[]){if(o.type!=='obj'||!ok(o))continue;r.push(o);if(o.collapsed)continue;for(const f of kids[o.id]||[]){if(f.type!=='feat'||!ok(f))continue;r.push(f);if(f.collapsed)continue;for(const t of kids[f.id]||[])if(t.type==='task'&&ok(t))r.push(t)}}
+ for(const o of kids.root||[]){if(o.type!=='obj'||!ok(o))continue;r.push(o);if(o.collapsed)continue;for(const f of kids[o.id]||[]){if(f.type!=='feat'||!ok(f))continue;r.push(f);if(f.collapsed)continue;for(const t of kids[f.id]||[])if(t.type==='task'&&ok(t))r.push(t);pl(f)}pl(o)}
  return r;
 }
 function focusSet(){

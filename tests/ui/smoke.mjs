@@ -167,6 +167,41 @@ try {
   ok($('#relv .relp') === null && $$('#relv .rr').length === 3, 'undoing it returns to the release list');
   $('[data-view=map]').click(); await sleep(50);
 
+  // milestones and externals shown under an objective or feature
+  {const codes = sel => $$(sel).map(r => r.querySelector('.cd, .gcd')?.textContent), at = (l, c) => l.indexOf(c);
+    const setSel = (id, v) => {const s = $(id); s.focus(); s.value = v; s.dispatchEvent(new w.Event('change', {bubbles: true}))};
+    const row = c => $$('#grid .lr').find(r => r.querySelector('.cd')?.textContent === c), tallies = () => $('#tal').textContent;
+    let m = codes('#grid .lr');
+    ok(at(m, 'X5') > at(m, '1.2.3') && at(m, 'X5') < at(m, '1.3') && row('X5').style.paddingLeft === row('1.2.1').style.paddingLeft, 'the sample shows X5 under feature 1.2, indented like a task');
+    const t0 = tallies(), left0 = barOf('2.2.1').style.left, n0 = $$('#grid path.e').length;
+    row('X2').click(); await sleep(30);
+    setSel('#f-parent', row('2.2').dataset.id); await sleep(50);
+    m = codes('#grid .lr');
+    ok(at(m, 'X2') > at(m, '2.2.3') && at(m, 'X2') < at(m, '3') && row('X2').style.paddingLeft === row('2.2.1').style.paddingLeft, 'Show under moves an external to the end of a feature');
+    ok(tallies() === t0 && barOf('2.2.1').style.left === left0 && $$('#grid path.e').length === n0, 'placement leaves steps, tallies and links unchanged');
+    $('[data-view=grid]').click(); await sleep(30);
+    m = codes('#gridv tbody tr');
+    ok(at(m, 'X2') > at(m, '2.2.3') && at(m, 'X2') < at(m, '3'), 'the grid shows it under the same feature');
+    $('[data-view=gantt]').click(); await sleep(30);
+    m = codes('#ganttv .tll');
+    ok(at(m, 'X2') > at(m, '2.2.3') && at(m, 'X2') < at(m, '3.1'), 'the Gantt shows it under the same feature');
+    $('[data-view=map]').click(); await sleep(30);
+    row('2.2').querySelector('[data-tog]').click(); await sleep(30);
+    {const ri = $$('#grid .lr').indexOf(row('2.2')), rh = parseFloat(row('2.2').style.height);
+      ok(!row('X2') && $$('#grid .xk').some(e => e.title.startsWith('X2') && Math.abs(parseFloat(e.style.top) - (ri * rh + rh / 2 - 9)) < 1), 'collapsing the feature puts its marker on the feature row')}
+    $('#undo').click(); await sleep(50);
+    m = codes('#grid .lr');
+    ok(at(m, 'X2') < at(m, '1'), 'undo puts it back in the top section in one step');
+    $('#dr [data-act=close]').click(); await sleep(30);
+    row('1.2').click(); await sleep(30);
+    const db = $('#dr [data-act=del]'); db.click(); db.click(); await sleep(50);
+    m = codes('#grid .lr');
+    const sc = () => $$('#grid .lr.feat .nm').some(n => n.textContent === 'Source connectors');
+    ok(!sc() && at(m, 'X5') > -1 && at(m, 'X5') < at(m, '1') && $('#toast').textContent.includes('X5'), 'deleting a feature moves its external back to the top section');
+    $('#undo').click(); await sleep(50);
+    m = codes('#grid .lr');
+    ok(sc() && at(m, 'X5') > at(m, '1.2.3') && at(m, 'X5') < at(m, '1.3'), 'undo restores the feature with X5 under it')}
+
   // undo
   const name0 = $('#grid .lr.task .nm').textContent;
   $('#grid .lr.task').click(); await sleep(30);
