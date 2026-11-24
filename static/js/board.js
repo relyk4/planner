@@ -139,9 +139,11 @@ function renderBoard(){
  const grpIn=it=>!F||tasksUnder(it).some(t=>F.has(t.id));
  const cy=i=>i*RH+RH/2;
  let L='',B='',BG='',E='',G='',T='';
- const msMark=(m,i)=>{const g=C.step[m.id],ef=C.eff[m.id],cls=[ef,lateHeld(m.id)?'lchain':'',held(m.id)?'chain':'',C.df[m.id]?.od?'late':C.df[m.id]?.rk?'risk':'',critOn&&C.crit.has(m.id)?'crit':'',sel===m.id?'on':'',F&&!F.has(m.id)?'dim':''].join(' ');return `<div class="mk ${cls}" data-id="${m.id}" title="${esc(C.code[m.id])} ${esc(m.name)}: ${LBL[ef]}, gate after step ${g}${m.gate?' (pinned)':''}. Drag to move" style="left:${bx(g)-7.5*zf}px;top:${cy(i)-7.5*zf}px"></div>`};
+ // Edge points per task, milestone and external, for the link handles (lkShow) and drop targets (lkHit).
+ const pt={},ptM=(id,i)=>{const x=bx(C.step[id]);pt[id]={l:x-16*zf,r:x+16*zf,y:cy(i),h:20*zf,row:i}};
+ const msMark=(m,i)=>{ptM(m.id,i);const g=C.step[m.id],ef=C.eff[m.id],cls=[ef,lateHeld(m.id)?'lchain':'',held(m.id)?'chain':'',C.df[m.id]?.od?'late':C.df[m.id]?.rk?'risk':'',critOn&&C.crit.has(m.id)?'crit':'',sel===m.id?'on':'',F&&!F.has(m.id)?'dim':''].join(' ');return `<div class="mk ${cls}" data-id="${m.id}" title="${esc(C.code[m.id])} ${esc(m.name)}: ${LBL[ef]}, gate after step ${g}${m.gate?' (pinned)':''}. Drag to move" style="left:${bx(g)-7.5*zf}px;top:${cy(i)-7.5*zf}px"></div>`};
  const dueTag=(n,i,x)=>{const f=C.df[n.id]||{},dl=n.type==='ext'&&n.status==='delivered'?(n.doneOn?'Delivered '+fd(dn(n.doneOn)):''):n.due?(n.type==='ext'?'Expected ':'Due ')+fd(dn(n.due)):'';return dl?`<span class="xd${f.od?' late':''}" style="left:${x}px;top:${cy(i)-9*zf}px">${dl}</span>`:''};
- const xMark=(x,i,bar)=>{const g=C.step[x.id],ef=C.eff[x.id],f=C.df[x.id]||{},dm=F&&!F.has(x.id)?' dim':'',cls=[ef,lateHeld(x.id)?'lchain':'',f.od?'late':'',critOn&&C.crit.has(x.id)?'crit':'',sel===x.id?'on':''].join(' ');const tip=`${esc(C.code[x.id])} ${esc(x.name)}${x.team?' ('+esc(x.team)+')':''}: ${LBL[ef]}${x.due?', expected '+fd(dn(x.due)):''}`;return (bar&&g>0?`<div class="xb ${ef}${dm}" data-id="${x.id}" title="${tip}" style="left:0;width:${Math.max(0,bx(g)-12*zf)}px;top:${cy(i)-4*zf}px"></div>`:'')+`<div class="xk ${cls}${dm}" data-id="${x.id}" title="${tip}${x.gate?`, pinned to ${gateTxt(g)}`:''}. Drag to move" style="left:${bx(g)-9*zf}px;top:${cy(i)-9*zf}px"></div>`};
+ const xMark=(x,i,bar)=>{ptM(x.id,i);const g=C.step[x.id],ef=C.eff[x.id],f=C.df[x.id]||{},dm=F&&!F.has(x.id)?' dim':'',cls=[ef,lateHeld(x.id)?'lchain':'',f.od?'late':'',critOn&&C.crit.has(x.id)?'crit':'',sel===x.id?'on':''].join(' ');const tip=`${esc(C.code[x.id])} ${esc(x.name)}${x.team?' ('+esc(x.team)+')':''}: ${LBL[ef]}${x.due?', expected '+fd(dn(x.due)):''}`;return (bar&&g>0?`<div class="xb ${ef}${dm}" data-id="${x.id}" title="${tip}" style="left:0;width:${Math.max(0,bx(g)-12*zf)}px;top:${cy(i)-4*zf}px"></div>`:'')+`<div class="xk ${cls}${dm}" data-id="${x.id}" title="${tip}${x.gate?`, pinned to ${gateTxt(g)}`:''}. Drag to move" style="left:${bx(g)-9*zf}px;top:${cy(i)-9*zf}px"></div>`};
  rows.forEach((it,i)=>{
   const y=i*RH;
   if(it.type==='exth'){BG+=`<div class="rbg exth" style="top:${y}px;height:${RH}px"></div>`;const xd=C.exts.filter(x=>C.done(x.id)).length;L+=`<div class="lr exth" data-tog="__ext" role="button" tabindex="0" aria-expanded="${!S.extCollapsed}" style="height:${RH}px;padding-left:4px"><span class="car" aria-hidden="true">${S.extCollapsed?'▸':'▾'}</span><span class="nm">External dependencies</span><span class="ow">${xd} of ${C.exts.length} delivered</span></div>`;if(S.extCollapsed)C.exts.filter(x=>!FV||FV.has(x.id)).forEach(x=>B+=xMark(x,i,false));return}
@@ -159,7 +161,7 @@ function renderBoard(){
   const icon=it.type==='task'?`<span class="dot ${ef}${lateHeld(it.id)?' lchain':''}${chn}" title="${LBL[ef]}${lateHeld(it.id)?', held up by overdue work':''}"></span>`:it.type==='ms'?`<span class="dia ${ef}${chn}" title="${LBL[ef]}"></span>`:it.type==='ext'?`<span class="xq ${ef}" title="${LBL[ef]}"></span>`:`<button class="car" data-tog="${it.id}" aria-expanded="${!it.collapsed}" aria-label="${it.collapsed?'Expand':'Collapse'} ${cd}">${it.collapsed?'▸':'▾'}</button>`;
   L+=`<div class="lr ${it.type}${on}${dim}" data-id="${it.id}" role="button" tabindex="0" style="height:${RH}px;padding-left:${(4+lvl*(W<600?10:18))*zf}px">${fcs(it)}${icon}<span class="cd">${cd}</span>${it.key?`<span class="ky">${esc(it.key)}</span>`:''}<span class="nm">${esc(it.name)||'Untitled'}</span>${relN&&(it.type==='feat'||it.rel)?`<i class="rp" title="Release: ${esc(relN)}">${esc(relN)}</i>`:''}${it.type==='ext'&&!C.df[it.id]?.od&&C.df[it.id]?.their?'':latePill(it.id)}${it.type==='task'&&it.due&&it.status!=='done'&&!latePill(it.id)?`<span class="du" title="Due">${fd(dn(it.due))}</span>`:''}${it.type==='ext'?`${it.team?`<i class="rp" title="External team">${esc(it.team)}</i>`:''}<span class="ow">${LBL[ef]}</span>`:it.type==='ms'?(it.target?`<span class="ow">${esc(it.target)}</span>`:''):it.owner?`<span class="ow">${esc(it.owner)}</span>`:''}</div>`;
   if(it.type==='task'){
-   const s=C.step[it.id],h=Math.round(RH-14*zf);occ[i]=[bx(s-1)+P,bx(s)-P];const ext=rx&&F&&F.has(it.id)&&!rx.ids.has(it.id)?'ext':'';
+   const s=C.step[it.id],h=Math.round(RH-14*zf);occ[i]=[bx(s-1)+P,bx(s)-P];pt[it.id]={l:bx(s-1)+P,r:bx(s)-P,y:cy(i),h,row:i};const ext=rx&&F&&F.has(it.id)&&!rx.ids.has(it.id)?'ext':'';
    const df=C.df[it.id]||{},cls=[ef,lateHeld(it.id)?'lchain':'',chn,C.warn[it.id]?'warn':'',df.ls?'lstart':'',df.od?'over':df.rk?'risk':'',critOn&&C.crit.has(it.id)?'crit':'',ext,on,dim].join(' ');
    B+=`<div class="b ${cls}" data-id="${it.id}" title="${cd} ${esc(it.name)}: ${LBL[ef]}${relN?', '+esc(relN):''}${C.warn[it.id]?'. Status breaks a link':''}${dateTip(it.id)}" style="${fcol(it)?`--fc:inset 0 4px 0 ${fcol(it)};`:''}left:${bx(s-1)+P}px;top:${y+7*zf}px;width:${CW-2*P}px;height:${h}px;line-height:${h-3}px"><span class="cd">${cd}</span>${esc(it.name)}</div>`;
   }else if(it.type==='ext'){
@@ -192,7 +194,7 @@ function renderBoard(){
   if(tagsOn){const tx=l.st==='blocked'?tag(l):l.type+lagTxt(l),w=(tx.length*8+10)*zf,[x0,y]=tagAt(pts,w,RH,kinds,free),x=Math.max(w/2+3-X0,x0);T+=`<span class="tp lk ${cls}" data-lk="${n.id}" data-from="${l.id}" title="${esc(tip)}" style="left:${x}px;top:${y}px">${esc(tx)}</span>`}
  }
  const cols=vs.map((k,ci)=>{const gp=ci>0&&vs[ci-1]!==k-1;if(gp)BG+=`<div class="gapl" style="left:${ci*CW-1}px;height:${H}px"></div>`;return `<div class="ch${gp?' gap':''}" style="width:${CW}px"${gp?` title="${k-vs[ci-1]-1===1?'Step '+(k-1)+' is':'Steps '+(vs[ci-1]+1)+' to '+(k-1)+' are'} hidden by the filter"`:''}><b>Step ${k}</b><span>${per[k]} ${per[k]===1?'task':'tasks'}${lateS[k]?` · <span class="ltc">${lateS[k]} late</span>`:''}</span>${flags[k]?`<em title="Last task of ${esc(flags[k].join(', '))} lands here">${esc(flags[k].join(', '))}</em>`:''}</div>`}).join('');
- geo={LW,X0,CW,H,N,HH,vs};
+ geo={LW,X0,CW,H,N,HH,vs,RH,pt};
  grid.style.width=LW+X0+NC*CW+([...C.mss,...C.exts].some(n=>C.step[n.id]>=vs[vs.length-1])?120:28)*zf+'px';grid.style.setProperty('--z',zf);
  const otl=grid.querySelector('.tlb'),tsl=otl?otl.scrollLeft:null,tst=otl?otl.scrollTop:null;
  grid.innerHTML=`<div class="hdr" style="height:${HH}px"><div class="corner" style="width:${LW}px">Work breakdown</div><div style="flex:none;width:${X0}px"></div>${cols}</div>${TL.html}<div class="labels" style="width:${LW}px;min-height:${H}px">${L||(FV?'<p class="none" style="padding:10px 12px">Nothing matches the filter. <button class="lnk2" data-fp="all">Show all</button></p>':'<p class="none" style="padding:10px 12px">Add an objective to start.</p>')}</div><div class="chart" style="left:${LW+X0}px;top:${HH+TL.h}px;width:${NC*CW+1}px;height:${H}px;background-size:${CW}px 100%">${BG}<svg class="edges" width="${NC*CW}" height="${H}" aria-hidden="true">${DEFS}${G}${E}</svg>${B}${T}</div>`;
@@ -428,6 +430,72 @@ function dragEnd(cancel){
  if(cancel){render();return}
  (d.gt?moveGate:moveTo)(d.id,d.tgt);
 }
+// Drawing links. Hovering a task bar, milestone or external shows a handle on its start (left) and
+// end (right) edge. Dragging a handle onto another item adds a link to the item it is dropped on:
+// the dragged edge is the predecessor's, the drop edge the successor's (end → start = FS, and so on).
+let ld=null,lkHov=null;
+function lkShow(id){
+ const p=geo.pt&&geo.pt[id],ch=grid.querySelector('.chart');if(!p||!ch){lkHide();return}
+ if(lkHov&&lkHov.id===id&&lkHov.els[0].isConnected)return;
+ lkHide();
+ lkHov={id,els:['S','F'].map(s=>{const h=document.createElement('i');h.className='lkh';h.dataset.side=s;h.title=`Drag from the ${s==='S'?'start':'end'} of ${C.code[id]} onto another item to link them`;h.style.left=(s==='S'?p.l:p.r)+'px';h.style.top=p.y+'px';ch.appendChild(h);return h})};
+}
+function lkHide(){if(lkHov){lkHov.els.forEach(h=>h.remove());lkHov=null}}
+const lkWhy=(a,b)=>map[b].deps.some(l=>l.id===a)?{tag:'Already linked',msg:`${C.code[b]} already depends on ${C.code[a]}. Change that link in ${C.code[b]}'s editor`}:downOf([b]).has(a)?{tag:'Would make a loop',msg:`${C.code[a]} already waits on ${C.code[b]}, so the link would make a loop`}:null;
+function lkHit(x,y){
+ const row=Math.floor(y/geo.RH);let id=null,bd=1e9;
+ for(const k in geo.pt){const p=geo.pt[k];if(p.row!==row||k===ld.id||x<p.l-8||x>p.r+8)continue;const d=Math.abs(x-(p.l+p.r)/2);if(d<bd){bd=d;id=k}}
+ if(!id)return null;const p=geo.pt[id],side=x<(p.l+p.r)/2?'S':'F';
+ return {id,side,type:ld.side+side,x:side==='S'?p.l:p.r,y:p.y,h:p.h,why:lkWhy(ld.id,id)};
+}
+views.addEventListener('pointerdown',e=>{
+ const h=e.target.closest('.lkh');if(!h||e.button!==0||!lkHov)return;const p=geo.pt[lkHov.id],s=h.dataset.side;if(!p)return;
+ e.preventDefault();lkHov.els.forEach(x=>{if(x!==h)x.remove()});
+ ld={id:lkHov.id,side:s,el:h,x0:e.clientX,y0:e.clientY,sx:s==='S'?p.l:p.r,sy:p.y,on:false,hit:null};lkHov=null;
+ try{h.setPointerCapture(e.pointerId)}catch(_){}
+});
+function lkMove(e){
+ if(!ld)return;
+ const ch=grid.querySelector('.chart');if(!ch||!ld.el.isConnected){lkEnd(true);return}
+ if(!ld.on){if(Math.abs(e.clientX-ld.x0)+Math.abs(e.clientY-ld.y0)<5)return;ld.on=true;
+  grid.classList.add('linking');ld.el.classList.add('on');
+  ch.insertAdjacentHTML('beforeend','<svg class="lkd idle" aria-hidden="true"><defs><marker id="mlkd" viewBox="0 0 8 8" refX="8" refY="4" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto"><path class="ah" d="M0,0L8,4L0,8z"/></marker></defs><path class="e" marker-end="url(#mlkd)"/></svg><i class="lke" hidden></i><span class="lkt" hidden></span>');
+  ld.svg=ch.querySelector('.lkd');ld.edge=ch.querySelector('.lke');ld.lab=ch.querySelector('.lkt')}
+ e.preventDefault();
+ const b=board.getBoundingClientRect();
+ if(e.clientX>b.right-48)board.scrollLeft+=16;else if(e.clientX<b.left+geo.LW+48)board.scrollLeft-=16;
+ if(e.clientY>b.bottom-40)board.scrollTop+=16;else if(e.clientY<b.top+geo.HH+40)board.scrollTop-=16;
+ const r=ch.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top,hit=lkHit(x,y);ld.hit=hit;
+ const ex=hit?hit.x:x,ey=hit?hit.y:y,ds=ld.side==='S'?-1:1,de=hit?(hit.side==='S'?-1:1):0,k=Math.max(28*mapZ,Math.abs(ex-ld.sx)/3),cls=hit?(hit.why?'bad':hit.type):'idle';
+ ld.svg.setAttribute('class','lkd '+cls);
+ ld.svg.lastChild.setAttribute('d',`M${ld.sx},${ld.sy}C${ld.sx+ds*k},${ld.sy} ${ex+de*k},${ey} ${ex},${ey}`);
+ ld.edge.hidden=ld.lab.hidden=!hit;
+ if(hit){ld.edge.className='lke '+cls;ld.edge.style.cssText=`left:${hit.x}px;top:${hit.y}px;height:${hit.h+8*mapZ}px`;
+  ld.lab.className='lkt '+cls;ld.lab.style.cssText=`left:${hit.x}px;top:${hit.y-hit.h/2-6*mapZ}px`;
+  ld.lab.textContent=hit.why?hit.why.tag:`${hit.type} · ${TYPES[hit.type]}`}
+}
+function lkEnd(cancel){
+ if(!ld)return;const l=ld;ld=null;grid.classList.remove('linking');
+ for(const el of [l.el,l.svg,l.edge,l.lab])if(el)el.remove();
+ if(!l.on)return;
+ noClick=true;setTimeout(()=>{noClick=false},0);
+ if(cancel||!map[l.id])return;
+ const h=l.hit,a=C.code[l.id];
+ if(!h||!map[h.id]){toast(`To link ${a}, drop the arrow on a task, milestone or external item.`);return}
+ const b=C.code[h.id];
+ if(h.why){toast(`Can't link ${a} to ${b}: ${h.why.msg}.`);return}
+ mut(()=>{map[h.id].deps.push(link(l.id,h.type));sel=h.id;selRel=null;q=''});
+ const c=document.getElementById('dep-'+l.id);if(c){c.scrollIntoView({block:'center'});c.classList.add('flash');document.getElementById('lt-'+l.id)?.focus({preventScroll:true})}
+ toast(`${b} now depends on ${a}: ${h.type}, ${TYPES[h.type].toLowerCase()}. Change the type or lag in the editor.`);
+}
+window.addEventListener('pointermove',lkMove,{passive:false});
+window.addEventListener('pointerup',()=>lkEnd(false));
+window.addEventListener('pointercancel',()=>lkEnd(true));
+grid.addEventListener('pointerover',e=>{
+ if(ld||drag||td||e.target.closest('.lkh'))return;
+ const it=e.target.closest('.chart .b,.chart .mk,.chart .xk');if(it)lkShow(it.dataset.id);else lkHide();
+});
+grid.addEventListener('pointerleave',()=>{if(!ld)lkHide()});
 views.addEventListener('pointerdown',e=>{
  if(e.button!==0||!tlGeo)return;
  const h=e.target.closest('[data-tdrag]');
@@ -561,7 +629,7 @@ const zClamp=v=>Number.isFinite(v)?Math.min(ZMAX,Math.max(ZMIN,v)):1;
 // Zoom to z keeping the map point under (cx,cy) where it is; default is the middle of the map.
 // Requests are batched to one redraw per frame.
 function zoomTo(z,cx,cy){
- if(view!=='map'||drag||td)return;
+ if(view!=='map'||drag||td||ld)return;
  const r=board.getBoundingClientRect();
  zPend={z:zClamp(z),cx:cx??r.left+r.width/2,cy:cy??r.top+r.height/2};
  if(!zRaf)zRaf=requestAnimationFrame(zoomApply);
@@ -610,6 +678,7 @@ $('#ov').addEventListener('click',e=>{if(e.target.id==='ov')$('#ov').hidden=true
 $('#ovcopy').onclick=async()=>{try{await navigator.clipboard.writeText($('#ovx').value);$('#ovmsg').textContent='Copied.'}catch(err){$('#ovx').select();$('#ovmsg').textContent='Copy was blocked here. The text is selected: press Ctrl+C or Cmd+C.'}};
 $('#ovgo').onclick=async()=>{let s=null;try{s=norm(JSON.parse($('#ovx').value))}catch(err){}if(!s){$('#ovmsg').textContent='That does not look like a plan file from this planner.';return}$('#ov').hidden=true;delete s.sample;await newPlan(s,s.title)};
 document.addEventListener('keydown',e=>{
+ if(e.key==='Escape'&&ld){lkEnd(true);return}
  if(e.key==='Escape'&&drag){dragEnd(true);return}
  if(e.key==='Escape'&&td){tdEnd(true);return}
  if(e.key==='Escape'){for(const d of ['#impd','#vdl'])if(!$(d).hidden){$(d).hidden=true;return}if(!$('#more').hidden){closeMenu();return}if(!$('#add').hidden){addMenu(false);$('#add-btn').focus();return}if(!$('#flt').hidden){fltMenu(false);$('#flt-btn').focus();return}if(histOpen&&!sel&&!selRel&&!calOpen){histOpen=false;renderHist();return}if(!$('#ov').hidden)$('#ov').hidden=true;else if(sel||selRel||calOpen){sel=null;selRel=null;calOpen=false;render()}else if(fsOn)fullScreen(false)}

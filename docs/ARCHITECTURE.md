@@ -54,7 +54,7 @@ time can only use names from its own file or an earlier one.
 | File (banner) | What's there |
 |---|---|
 | `js/core.js` | constants (`TYPES`, `LBL`, `KIND`, `XS`, `ZO`), date helpers (`dn`, `fd`, `iso`), `mk()`, `sample()`, `blank()`, `norm()`, `mut`/`undo`, `compute()`, `relStats()`, `calc()`, `recalc()`, filter (`FST`, `flt`, `fltSet`, `stepsShown`), `rowsVisible()`, `focusSet()` |
-| `js/board.js` | link routing (`poly`, `route`, `tagAt`), `renderStats`, `renderTimeline`, `renderBoard`, drawer (`renderDrawer`, `depBlock`, `depCard`, `moveRow`, `gateRow`), `render`, `soft`, actions (`moveTo`, `moveGate`, `addItem`, `addRel`, `del`, `move`), board drag (`dragMove`/`dragEnd`), timeline drag (`tdMove`/`tdEnd`), map/drawer/toolbar handlers; `// ===== views`: `renderView`, `renderGantt`; `// ----- releases`: `openRel`, release list and release page (`relListHtml`, `relPageHtml`, `renderRelv`), the sidebar release list (`renderRailRels`), `relSay` (overdue/at-risk text shared with the drawer) |
+| `js/board.js` | link routing (`poly`, `route`, `tagAt`), `renderStats`, `renderTimeline`, `renderBoard`, drawer (`renderDrawer`, `depBlock`, `depCard`, `moveRow`, `gateRow`), `render`, `soft`, actions (`moveTo`, `moveGate`, `addItem`, `addRel`, `del`, `move`), board drag (`dragMove`/`dragEnd`), drawing links on the map (`lkShow`, `lkHit`, `lkMove`/`lkEnd`), timeline drag (`tdMove`/`tdEnd`), map/drawer/toolbar handlers; `// ===== views`: `renderView`, `renderGantt`; `// ----- releases`: `openRel`, release list and release page (`relListHtml`, `relPageHtml`, `renderRelv`), the sidebar release list (`renderRailRels`), `relSay` (overdue/at-risk text shared with the drawer) |
 | `js/store.js` (`// ===== storage`) | `LS` (safe localStorage), `Store` (server or local mode), `save`/`flush` autosave, conflict dialog, `openPlan`, `renderPlans`, `newPlan`, `boot` |
 | `js/grid.js` (`// ----- grid`) | `GCOLS`, `GEDIT`, `cellHtml`, `gridRows`, `renderGrid`, keyboard moves, `gridEdit`, `setCell`, `parseDeps` |
 | `js/history.js` (`// ===== history`) | change log and versions panel (`loadHist`, `renderHist`) |
@@ -149,6 +149,13 @@ Releases get `od`/`rk` from their tasks and externals.
   - Dragging a bar sideways pins the task to a step (`moveTo`). Dragging a
     milestone or external marker pins it to a gate (`moveGate`); dropping it
     earlier than its links allow snaps it to the earliest valid gate.
+  - Hovering a task bar, milestone or external shows a handle on its start
+    (left) and end (right) edge (`lkShow`). Dragging a handle onto another
+    item adds a link to the item dropped on (`lkMove`/`lkEnd`): the dragged
+    edge is the predecessor's, the drop edge the successor's, so end → start
+    is FS, start → start SS, end → end FF, start → end SF. Duplicates and
+    loops (`downOf`) are refused. `renderBoard` records each item's edge
+    points in `geo.pt` for the handles and the drop hit test (`lkHit`).
   - Zoom (`mapZ`, 0.5 to 2) is a redraw, not a CSS transform:
     `renderBoard` multiplies its geometry (`LW`, `CW`, row height, offsets)
     by `mapZ` and sets `--z` on `#grid`; map text and marker sizes in
