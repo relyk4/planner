@@ -96,6 +96,7 @@ async function refreshPlans(){
 function renderPlans(){
  const qv=$('#plan-q').value.trim().toLowerCase(),list=(showArch?archList:plans).filter(p=>!qv||String(p.name).toLowerCase().includes(qv));
  $('#plans').innerHTML=list.map(p=>`<div class="pl${cur&&p.id===cur.id?' on':''}" data-plan="${esc(p.id)}" role="button" tabindex="0" title="${esc(p.name)}"><span class="pdot"></span><span class="pn">${esc(p.name)||'Untitled plan'}</span><span class="pt">${esc(ago(p.updated))}</span>${showArch?`<button class="pa" data-unarch="${esc(p.id)}">Restore</button>`:''}</div>`).join('')||`<p class="pe">${showArch?'No archived plans.':qv?'No plans match.':'No plans yet.'}</p>`;
+ $('#plans-h').textContent=showArch?'Archived plans':'Plans';$('#plans-n').textContent=(showArch?archList:plans).length;
  $('#show-arch').textContent=showArch?'Back to plans':'Show archived';
  $('#show-arch').setAttribute('aria-pressed',showArch);
  const c=$('#conn');c.className='conn'+(Store.mode==='server'?'':' off');

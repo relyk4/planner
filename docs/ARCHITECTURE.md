@@ -179,5 +179,6 @@ Releases get `od`/`rk` from their tasks and externals.
 - Autosave is debounced in `save()` and done in `flush()`. On a 409 the
   conflict dialog offers "load theirs" or "keep mine".
 - Per-viewer preferences use `LS` keys (`planner.user`, `planner.last`,
-  `planner.flt.<planId>`, `planner.relrail` for the sidebar release list being
-  collapsed) and never go into plan data.
+  `planner.flt.<planId>`, and `planner.plansrail` / `planner.relrail` for the
+  sidebar's Plans and Releases sections being collapsed) and never go into
+  plan data.

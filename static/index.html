@@ -7,10 +7,11 @@
 <aside class="rail" id="rail" aria-label="Plans and releases">
  <div class="brand"><span class="logo" aria-hidden="true"></span><b>Planner</b></div>
  <div class="rail-acts"><button class="rbtn pri" id="new-plan">New plan</button><button class="rbtn" id="imp-file">Import</button></div>
- <input id="plan-q" class="rq" type="search" placeholder="Search plans" aria-label="Search plans" autocomplete="off">
- <div class="rhd">Plans</div>
- <nav id="plans" class="plans" aria-label="Plan list"></nav>
- <details class="rail-rel" id="rail-rel" open><summary>Releases <span class="rail-rel-c" id="rail-rel-n"></span></summary><nav class="rail-rel-l" id="rail-rel-l" aria-label="Releases in this plan"></nav></details>
+ <details class="rsec" id="rail-plans" data-ls="planner.plansrail" open><summary><span id="plans-h">Plans</span> <span id="plans-n"></span></summary>
+  <input id="plan-q" class="rq" type="search" placeholder="Search plans" aria-label="Search plans" autocomplete="off">
+  <nav id="plans" class="plans" aria-label="Plan list"></nav>
+ </details>
+ <details class="rsec" id="rail-rel" data-ls="planner.relrail" open><summary>Releases <span id="rail-rel-n"></span></summary><nav class="rail-rel-l" id="rail-rel-l" aria-label="Releases in this plan"></nav></details>
  <button class="rlink" id="show-arch" aria-pressed="false">Show archived</button>
  <div class="rfoot"><div id="conn" class="conn"></div><label class="me" for="me">Your name<input id="me" placeholder="Shown in history" autocomplete="name"></label></div>
 </aside>

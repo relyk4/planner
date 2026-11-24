@@ -60,7 +60,7 @@ $('#plans').addEventListener('click',async e=>{
 });
 $('#plans').addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.dataset&&e.target.dataset.plan){e.preventDefault();openPlan(e.target.dataset.plan)}});
 $('#plan-q').addEventListener('input',renderPlans);
-$('#show-arch').onclick=async()=>{showArch=!showArch;if(showArch){try{archList=await Store.list(true)}catch(e){archList=[]}}renderPlans()};
+$('#show-arch').onclick=async()=>{showArch=!showArch;$('#rail-plans').open=true;if(showArch){try{archList=await Store.list(true)}catch(e){archList=[]}}renderPlans()};
 $('#new-plan').onclick=async()=>{await newPlan(blank(),'Untitled plan');ttl.focus();ttl.select()};
 $('#imp-file').onclick=()=>{$('#app').classList.remove('railopen');openImport()};
 $('#me').addEventListener('change',()=>{LS.set('planner.user',$('#me').value.trim());toast('Name saved. Your next changes will show it in History.')});
@@ -68,8 +68,8 @@ $('#rail-tg').onclick=()=>$('#app').classList.toggle('railopen');
 $('#scrim').onclick=()=>$('#app').classList.remove('railopen');
 document.querySelector('.tabs').addEventListener('click',e=>{const b=e.target.closest('[data-view]');if(!b)return;view=b.dataset.view;if(view==='rel')relPage=null;tlReset=true;gsel=null;render();if(view==='grid')$('#gridv').focus({preventScroll:true})});
 $('#rail-rel-l').addEventListener('click',e=>{const b=e.target.closest('[data-rp]');if(b)openRel(b.dataset.rp)});
-if(LS.get('planner.relrail')==='0')$('#rail-rel').open=false;
-$('#rail-rel').addEventListener('toggle',()=>LS.set('planner.relrail',$('#rail-rel').open?'1':'0'));
+// Collapsed sidebar sections are a per-viewer preference.
+for(const d of document.querySelectorAll('.rsec[data-ls]')){if(LS.get(d.dataset.ls)==='0')d.open=false;d.addEventListener('toggle',()=>LS.set(d.dataset.ls,d.open?'1':'0'))}
 $('#hist-btn').onclick=()=>{histOpen=!histOpen;if(histOpen&&(sel||selRel||calOpen)){sel=null;selRel=null;calOpen=false;render()}renderHist()};
 $('#ver-btn').onclick=()=>{if(Store.mode!=='server'){toast('Named versions need the local server.');return}$('#vdn').value='';$('#vdl').hidden=false;$('#vdn').focus()};
 $('#vd-close').onclick=()=>{$('#vdl').hidden=true};
