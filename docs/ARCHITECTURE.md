@@ -228,6 +228,12 @@ Releases get `od`/`rk` from their tasks and externals.
 - Autosave is debounced in `save()` and done in `flush()`. On a 409 the
   conflict dialog offers "load theirs" or "keep mine".
 - Per-viewer preferences use `LS` keys (`planner.user`, `planner.last`,
-  `planner.flt.<planId>`, `planner.mapzoom` for the map zoom, and
+  `planner.flt.<planId>`, `planner.mapzoom` for the map zoom,
+  `planner.theme` (`system` | `light` | `dark`) for the Theme switch, and
   `planner.plansrail` / `planner.relrail` for the sidebar's Plans and
   Releases sections being collapsed) and never go into plan data.
+- Theme: `setTheme()` in `wiring.js` sets `data-theme` on `<html>` (removed
+  for System, so CSS `color-scheme: light dark` follows the OS live). A tiny
+  inline script at the top of `<head>` applies the saved choice before the
+  stylesheet loads, so there is no flash. Colours come from `light-dark()`
+  variables; the sidebar is dark in both themes (`.rail{color-scheme:dark}`).

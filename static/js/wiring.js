@@ -72,6 +72,15 @@ $('#rail-rel-l').addEventListener('click',e=>{const b=e.target.closest('[data-rp
 // Collapsed sidebar sections and the map zoom are per-viewer preferences.
 for(const d of document.querySelectorAll('.rsec[data-ls]')){if(LS.get(d.dataset.ls)==='0')d.open=false;d.addEventListener('toggle',()=>LS.set(d.dataset.ls,d.open?'1':'0'))}
 mapZ=zClamp(parseFloat(LS.get('planner.mapzoom')));
+// Theme is per viewer and never stored in the plan. System (no data-theme) follows the OS live
+// through CSS color-scheme; the inline script in index.html applies it before the first paint.
+function setTheme(t){
+ if(t!=='light'&&t!=='dark')t='system';const r=document.documentElement;
+ if(t==='system')delete r.dataset.theme;else r.dataset.theme=t;
+ for(const b of $('#thm').children)b.setAttribute('aria-pressed',String(b.dataset.thm===t));
+}
+$('#thm').addEventListener('click',e=>{const b=e.target.closest('[data-thm]');if(!b)return;setTheme(b.dataset.thm);LS.set('planner.theme',b.dataset.thm)});
+setTheme(LS.get('planner.theme'));
 $('#hist-btn').onclick=()=>{histOpen=!histOpen;if(histOpen&&(sel||selRel||calOpen)){sel=null;selRel=null;calOpen=false;render()}renderHist()};
 $('#ver-btn').onclick=()=>{if(Store.mode!=='server'){toast('Named versions need the local server.');return}$('#vdn').value='';$('#vdl').hidden=false;$('#vdn').focus()};
 $('#vd-close').onclick=()=>{$('#vdl').hidden=true};

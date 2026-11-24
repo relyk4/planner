@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<script>/* Apply the saved theme before the first paint so the page never flashes the other one. Block-scoped so no global leaks into the page scripts. */try{const t=localStorage.getItem('planner.theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>
 <title>Planner</title>
 <link rel="stylesheet" href="app.css">
 </head><body>
@@ -13,7 +14,8 @@
  </details>
  <details class="rsec" id="rail-rel" data-ls="planner.relrail" open><summary>Releases <span id="rail-rel-n"></span></summary><nav class="rail-rel-l" id="rail-rel-l" aria-label="Releases in this plan"></nav></details>
  <button class="rlink" id="show-arch" aria-pressed="false">Show archived</button>
- <div class="rfoot"><div id="conn" class="conn"></div><label class="me" for="me">Your name<input id="me" placeholder="Shown in history" autocomplete="name"></label></div>
+ <div class="rfoot"><div id="conn" class="conn"></div><label class="me" for="me">Your name<input id="me" placeholder="Shown in history" autocomplete="name"></label>
+  <div class="thm"><span id="thm-l">Theme</span><div class="thmg" id="thm" role="group" aria-labelledby="thm-l"><button data-thm="system" aria-pressed="true" title="Follow your computer's light or dark setting">System</button><button data-thm="light" aria-pressed="false">Light</button><button data-thm="dark" aria-pressed="false">Dark</button></div></div></div>
 </aside>
 <div class="scrim" id="scrim"></div>
 <main class="main">

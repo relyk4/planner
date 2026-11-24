@@ -29,6 +29,7 @@ try {
     w.Element.prototype.scrollIntoView = function () {};
     w.fetch = (u, o) => fetch(new URL(u, base), o);
     w.localStorage.setItem('planner.user', 'Smoke test');
+    w.localStorage.setItem('planner.theme', 'dark');
     w.addEventListener('error', e => errors.push(e.message));
     w.onunhandledrejection = e => errors.push(String(e.reason && e.reason.stack || e.reason));
     loaded = new Promise(r => w.addEventListener('load', r));
@@ -210,6 +211,14 @@ try {
   ok($('#grid .lr.task .nm').textContent === 'Renamed by smoke test', 'editing a name updates the map');
   $('#undo').click(); await sleep(50);
   ok($('#grid .lr.task .nm').textContent === name0, 'undo restores it');
+
+  // theme switch: per browser, outside the plan
+  const thm = () => [d.documentElement.dataset.theme || 'system', $('#thm [aria-pressed=true]').dataset.thm, w.localStorage.getItem('planner.theme')].join();
+  ok(thm() === 'dark,dark,dark', 'saved Dark theme is applied on load and shown as pressed');
+  $('[data-thm=light]').click(); await sleep(20);
+  ok(thm() === 'light,light,light', 'Light overrides and is remembered');
+  $('[data-thm=system]').click(); await sleep(20);
+  ok(thm() === 'system,system,system' && !d.documentElement.hasAttribute('data-theme'), 'System hands control back to the OS setting');
 
   ok(errors.length === 0, 'no script errors' + (errors.length ? ': ' + errors.join(' | ') : ''));
 } catch (e) {
