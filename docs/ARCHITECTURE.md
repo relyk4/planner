@@ -54,7 +54,7 @@ time can only use names from its own file or an earlier one.
 | File (banner) | What's there |
 |---|---|
 | `js/core.js` | constants (`TYPES`, `LBL`, `KIND`, `XS`, `ZO`), date helpers (`dn`, `fd`, `iso`), `mk()`, `sample()`, `blank()`, `norm()`, `mut`/`undo`, `compute()`, `relStats()`, `calc()`, `recalc()`, filter (`FST`, `flt`, `fltSet`, `stepsShown`), `rowsVisible()`, `focusSet()` |
-| `js/board.js` | link routing (`poly`, `route`, `tagAt`), `renderStats`, `renderTimeline`, `renderBoard`, drawer (`renderDrawer`, `depBlock`, `depCard`), `render`, `soft`, actions (`moveTo`, `addItem`, `addRel`, `del`, `move`), board drag (`dragMove`/`dragEnd`), timeline drag (`tdMove`/`tdEnd`), map/drawer/toolbar handlers; `// ===== views`: `renderView`, `renderGantt`; `// ----- releases`: `openRel`, release list and release page (`relListHtml`, `relPageHtml`, `renderRelv`), the sidebar release list (`renderRailRels`), `relSay` (overdue/at-risk text shared with the drawer) |
+| `js/board.js` | link routing (`poly`, `route`, `tagAt`), `renderStats`, `renderTimeline`, `renderBoard`, drawer (`renderDrawer`, `depBlock`, `depCard`, `moveRow`, `gateRow`), `render`, `soft`, actions (`moveTo`, `moveGate`, `addItem`, `addRel`, `del`, `move`), board drag (`dragMove`/`dragEnd`), timeline drag (`tdMove`/`tdEnd`), map/drawer/toolbar handlers; `// ===== views`: `renderView`, `renderGantt`; `// ----- releases`: `openRel`, release list and release page (`relListHtml`, `relPageHtml`, `renderRelv`), the sidebar release list (`renderRailRels`), `relSay` (overdue/at-risk text shared with the drawer) |
 | `js/store.js` (`// ===== storage`) | `LS` (safe localStorage), `Store` (server or local mode), `save`/`flush` autosave, conflict dialog, `openPlan`, `renderPlans`, `newPlan`, `boot` |
 | `js/grid.js` (`// ----- grid`) | `GCOLS`, `GEDIT`, `cellHtml`, `gridRows`, `renderGrid`, keyboard moves, `gridEdit`, `setCell`, `parseDeps` |
 | `js/history.js` (`// ===== history`) | change log and versions panel (`loadHist`, `renderHist`) |
@@ -75,6 +75,7 @@ time can only use names from its own file or an earlier one.
     deps: [{ id, type: 'FS'|'SS'|'FF'|'SF', lag, st: 'auto'|'blocked', note }],
     blocker,            // free text; non-empty makes a task Blocked
     earliest,           // task pinned to a step (null = auto)
+    gate,               // milestone/external pinned to a gate (null = auto)
     rel,                // release id; '' = inherit from feature; '-' = none
     target, due, startBy, startedOn, doneOn,   // ISO dates or ''
     team, ref,          // external items: team name, their ticket
@@ -104,7 +105,10 @@ that cleans and defaults all of this, and it must accept every older shape.
   - For a task whose link type ends in `S`, the bound is +1.
   - A task's step is the max of its bounds, at least 1 and at least
     `earliest`.
-  - Milestones and externals sit on a boundary (a "gate").
+  - Milestones and externals sit on a boundary (a "gate"): the max of their
+    bounds, at least 0 and at least `gate`.
+  - `C.minOf(id)` is where an item's links alone would put it, and
+    `C.whyMin(id)` names the link that sets that.
   - `C.N` is the deepest step.
 - **Satisfied**: a link whose predecessor side is `S` needs the predecessor
   started; `F` needs it done.
@@ -142,7 +146,9 @@ Releases get `od`/`rk` from their tasks and externals.
   - Geometry lives in `geo` (`LW`, `CW`, `N`, `vs`). `bx(g)` turns a step
     boundary into an x position. When the filter closes up empty steps, `vs`
     is the list of visible steps.
-  - Dragging a bar sideways pins the task to a step (`moveTo`).
+  - Dragging a bar sideways pins the task to a step (`moveTo`). Dragging a
+    milestone or external marker pins it to a gate (`moveGate`); dropping it
+    earlier than its links allow snaps it to the earliest valid gate.
 - **Grid** (`renderGrid`):
   - Columns come from `GCOLS`; which cells each type can edit comes from
     `GEDIT`.

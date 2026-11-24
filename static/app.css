@@ -190,6 +190,10 @@ button.t{cursor:pointer}button.t:hover{border-color:var(--conc)}
 .ghost.bad{border-color:var(--red);background:color-mix(in srgb,var(--red) 9%,transparent)}
 .ghost span{position:absolute;top:6px;left:6px;right:6px;font-size:13px;font-weight:700;color:var(--ok);background:var(--bg);padding:2px 6px;border-radius:3px;white-space:normal;line-height:1.3}
 .ghost.bad span{color:var(--red)}
+.grid .mk,.grid .xk{cursor:grab;touch-action:none}
+.mk.drag,.xk.drag{z-index:8;cursor:grabbing;transition:none}
+.ghost.gl{width:0;border-width:0 0 0 2px;background:none}
+.ghost.gl span{right:auto;left:8px;white-space:nowrap}
 .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:40;max-width:min(560px,92vw);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:4px;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
 .toast[hidden]{display:none}
 .xd{position:absolute;z-index:2;font-size:13px;color:var(--mute);white-space:nowrap;line-height:18px;pointer-events:none;padding:0 3px;background:color-mix(in srgb,var(--pane) 80%,transparent)}.xd.late{color:var(--late);font-weight:700}

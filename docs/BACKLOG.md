@@ -86,22 +86,6 @@ drag-to-move behavior changes.
 
 ---
 
-## 8. Drag milestones and external items to any step
-
-**Do:**
-- Milestones and external items can be dragged sideways on the map like
-  tasks. Dropping one sets a pinned gate position (a new optional field,
-  defaulted in `norm()`).
-- Moving one later pushes its successors.
-- Moving it earlier than its predecessors allow snaps to the earliest valid
-  gate and says why (use `C.whyMin`).
-- The editor shows the pin and has a "Reset to auto" option.
-
-**Done when:** pins survive reload, old plans without the field load unchanged,
-and undo works.
-
----
-
 ## Ideas not yet scheduled
 
 - Owner and team filters, plus a "My work" view (building on the status
@@ -133,3 +117,9 @@ and undo works.
   bars are a see-through green tint with a green outline and dark text (light
   mode) or light text (dark mode); the status dot next to a done task is solid
   green everywhere it appears, and the legend matches.
+- **Milestones and externals can be dragged to any gate** (Nov 2026). Drag
+  a milestone diamond or external square sideways on the map, or use
+  *Earlier gate* / *Later gate* in its editor. The drop pins it (`gate`);
+  what waits on it moves along. Dropping it earlier than its links allow
+  snaps it to the earliest valid gate and says which link holds it. *Reset to
+  auto* clears the pin.
