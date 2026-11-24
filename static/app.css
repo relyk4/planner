@@ -77,7 +77,7 @@ button.t{cursor:pointer}button.t:hover{border-color:var(--conc)}
 .lr:hover .nm{text-decoration:underline}
 .lr.on{box-shadow:inset 4px 0 0 var(--ink)}
 .lr .cd{flex:none;color:var(--mute);font-size:calc(13px*var(--z,1));font-variant-numeric:tabular-nums}
-.lr .cd.idk,.tll .cd.idk{flex:0 1 auto;min-width:4em;max-width:9em;overflow:hidden;text-overflow:ellipsis}.lr .cd.idk+.nm,.tll .cd.idk+.nm{min-width:2.5em}
+.lr .cd.idk,.tll .cd.idk{max-width:12em;overflow:hidden;text-overflow:ellipsis}.lr:has(.idk){overflow:hidden}
 .lr .nm{flex:1;overflow:hidden;text-overflow:ellipsis}
 .lr .ow{flex:none;max-width:8em;overflow:hidden;text-overflow:ellipsis;font-size:calc(13px*var(--z,1));color:var(--mute);font-weight:400}
 .rp{flex:none;display:inline-block;max-width:7em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:calc(13px*var(--z,1));font-weight:600;font-style:normal;line-height:calc(18px*var(--z,1));padding:0 calc(7px*var(--z,1));border:1px solid var(--ink);border-radius:9px;background:var(--bg);color:var(--ink)}
@@ -101,7 +101,6 @@ button.t{cursor:pointer}button.t:hover{border-color:var(--conc)}
 .b,.sp{position:absolute;z-index:2;border-radius:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;font-size:calc(13px*var(--z,1));padding:0 calc(8px*var(--z,1))}
 .b{border:1.5px solid var(--ink);background:var(--bg);--fc:0 0 transparent;--ls:0 0 transparent;--od:0 0 transparent;--cr:0 0 transparent;box-shadow:var(--fc),var(--ls),var(--od),var(--cr)}
 .b .cd{font-weight:800;margin-right:calc(5px*var(--z,1));font-variant-numeric:tabular-nums}
-.b .cd.idk{display:inline-block;max-width:70%;overflow:hidden;text-overflow:ellipsis;vertical-align:top}
 .b.doing{background:var(--conc)}
 .b.done{background:color-mix(in srgb,var(--ok) 40%,transparent);border-color:var(--ok)}
 .b.ready::before{content:'';display:inline-block;width:calc(8px*var(--z,1));height:calc(8px*var(--z,1));margin-right:calc(6px*var(--z,1));background:var(--yel);border:1px solid #151514;vertical-align:0}
@@ -401,7 +400,7 @@ button.t:hover{border-color:var(--accent)}.t[aria-pressed=true]{border-color:var
 .gt td input,.gt td select{width:100%;min-width:120px;height:32px;font-size:14px;border:1.5px solid var(--accent);border-radius:4px;padding:0 6px;background:var(--bg);color:var(--ink)}
 .gt .gcar{display:inline-block;width:18px;text-align:center;color:var(--mute);cursor:pointer}
 .gt .gcd{color:var(--mute);margin-right:8px;font-weight:400;font-variant-numeric:tabular-nums}
-.gt .gcd.idk{display:inline-block;max-width:10em;overflow:hidden;text-overflow:ellipsis;vertical-align:top}
+.gt .gcd.idk{display:inline-block;max-width:12em;overflow:hidden;text-overflow:ellipsis;vertical-align:top}
 .gt .gst{display:inline-flex;align-items:center}
 .gt tr.addr td{height:32px;color:var(--accent);font-weight:600;border-bottom-style:dashed}
 .gt tr.addr td.nmc{cursor:pointer}.gt tr.addr td.nmc:hover{text-decoration:underline}

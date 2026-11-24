@@ -153,7 +153,7 @@ const ids=n=>C.links(n).map(l=>l.id);
 const upOf=start=>{const s=new Set(),stk=[...start];while(stk.length){const id=stk.pop();if(!map[id])continue;for(const d of ids(map[id]))if(!s.has(d)){s.add(d);stk.push(d)}}return s};
 const downOf=start=>{const s=new Set(),stk=[...start];while(stk.length){const id=stk.pop();for(const d of C.succ[id]||[])if(!s.has(d)){s.add(d);stk.push(d)}}return s};
 const tasksUnder=it=>it.type==='task'?[it]:it.type==='ms'||it.type==='ext'?[]:(kids[it.id]||[]).flatMap(tasksUnder);
-// ' idk' when an item shows its ticket key in place of its outline number, so long keys can be truncated.
+// ' idk' when an item shows its ticket key in place of its outline number. The key never shrinks; only very long ones are capped.
 const idk=id=>C.lbl[id]!==C.code[id]?' idk':'';
 const held=id=>C.chain[id]&&!C.done(id);
 const lateHeld=id=>!C.done(id)&&(C.lateUp?.[id]||[]).length>0;

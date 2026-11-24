@@ -123,10 +123,19 @@ function renderTimeline(rows,W,LW,full){
  const body=list.length?`<div class="tlb" style="height:${bodyH}px"><div class="tli" style="width:${LW+span}px"><div class="tla"><div class="tlc" style="width:${LW}px">Calendar</div><div class="tlx" style="width:${span}px">${ax}</div></div>${lab}<div class="tlp" style="left:${LW}px;top:42px;width:${span}px;height:${H2}px">${gl}${bars}</div></div></div>`:`<p class="none" style="padding:12px 14px;margin:0">Add start-by, due, started or done dates to tasks, or due dates to milestones and external items, to see them here.</p>`;
  return {html:`<div class="tl" style="width:${W}px">${head}${body}</div>`,h:86+(list.length?bodyH+1:48),tx:LW+tx};
 }
+// Width at 100% zoom of the widest ticket key shown on a task bar (0 when none is). renderBoard()
+// widens the step columns so a bar fits that key in full, plus its padding, borders and status
+// square (68px). Keys past 156px (12em, the row label cap) don't widen columns further.
+function keyW(){
+ const ks=C.order.filter(t=>C.lbl[t.id]!==C.code[t.id]).map(t=>C.lbl[t.id]);if(!ks.length)return 0;
+ const m=document.createElement('span');m.style.cssText='position:absolute;visibility:hidden;font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap';
+ m.innerHTML=ks.map(k=>`<div>${esc(k)}</div>`).join('');document.body.appendChild(m);const w=m.getBoundingClientRect().width;m.remove();
+ return Math.min(156,Math.ceil(w));
+}
 function renderBoard(){
  const W=board.clientWidth||960,zf=mapZ;lastW=W;
  // Zoom scales the map's geometry here; --z (set on #grid below) scales its text and markers in app.css.
- const N=C.N,X0=18*zf,LW0=W<600?170:W<900?250:330,LW=Math.round(LW0*zf),FV=C.fs,vs=stepsShown(),NC=Math.max(1,vs.length),CW=Math.round(Math.max(W<600?126:146,Math.floor((W-LW0-18-28)/NC))*zf),RH=Math.round(42*zf),P=14*zf,D=10*zf;
+ const N=C.N,X0=18*zf,LW0=W<600?170:W<900?250:330,LW=Math.round(LW0*zf),FV=C.fs,vs=stepsShown(),NC=Math.max(1,vs.length),KW=keyW(),CW=Math.round(Math.max(W<600?126:146,Math.floor((W-LW0-18-28)/NC),KW?KW+68:0)*zf),RH=Math.round(42*zf),P=14*zf,D=10*zf;
  const bc=Array(N+2).fill(0);{const vset=new Set(vs);let k=0;for(let g=0;g<=N+1;g++){if(vset.has(g))k++;bc[g]=k}}
  const bx=g=>bc[Math.max(0,Math.min(N+1,g))]*CW;
  const flags={};C.rel.forEach(x=>{if(x.land)(flags[x.land]??=[]).push(x.r.name||'Release')});
@@ -163,7 +172,7 @@ function renderBoard(){
   if(it.type==='task'){
    const s=C.step[it.id],h=Math.round(RH-14*zf);occ[i]=[bx(s-1)+P,bx(s)-P];pt[it.id]={l:bx(s-1)+P,r:bx(s)-P,y:cy(i),h,row:i};const ext=rx&&F&&F.has(it.id)&&!rx.ids.has(it.id)?'ext':'';
    const df=C.df[it.id]||{},cls=[ef,lateHeld(it.id)?'lchain':'',chn,C.warn[it.id]?'warn':'',df.ls?'lstart':'',df.od?'over':df.rk?'risk':'',critOn&&C.crit.has(it.id)?'crit':'',ext,on,dim].join(' ');
-   B+=`<div class="b ${cls}" data-id="${it.id}" title="${cd} ${esc(it.name)}: ${LBL[ef]}${relN?', '+esc(relN):''}${C.warn[it.id]?'. Status breaks a link':''}${dateTip(it.id)}" style="${fcol(it)?`--fc:inset 0 4px 0 ${fcol(it)};`:''}left:${bx(s-1)+P}px;top:${y+7*zf}px;width:${CW-2*P}px;height:${h}px;line-height:${h-3}px"><span class="cd${idk(it.id)}">${cd}</span>${esc(it.name)}</div>`;
+   B+=`<div class="b ${cls}" data-id="${it.id}" title="${cd} ${esc(it.name)}: ${LBL[ef]}${relN?', '+esc(relN):''}${C.warn[it.id]?'. Status breaks a link':''}${dateTip(it.id)}" style="${fcol(it)?`--fc:inset 0 4px 0 ${fcol(it)};`:''}left:${bx(s-1)+P}px;top:${y+7*zf}px;width:${CW-2*P}px;height:${h}px;line-height:${h-3}px"><span class="cd">${cd}</span>${esc(it.name)}</div>`;
   }else if(it.type==='ext'){
    B+=xMark(it,i,true)+dueTag(it,i,bx(C.step[it.id])+16*zf);occ[i]=[0,bx(C.step[it.id])+150*zf];
   }else if(it.type==='ms'){

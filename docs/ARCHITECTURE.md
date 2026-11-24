@@ -102,8 +102,9 @@ that cleans and defaults all of this, and it must accept every older shape.
   - `C.lbl` is what the page shows: the same as `C.code`, except that with
     `itemIds: 'key'` a feature or task with a ticket key shows the key.
     Every display site (map, Gantt, Grid, editor, Releases, tooltips, toasts,
-    CSV) uses `C.lbl`. `idk(id)` adds the `idk` class to a code span showing a
-    key, so long keys truncate there and outline mode renders exactly as before.
+    CSV) uses `C.lbl`. Keys are shown in full; the name next to them truncates
+    instead. `idk(id)` adds the `idk` class to a row's code span when it shows
+    a key, which caps only very long keys (12em) so the name keeps some room.
 - **Links**: `C.links(task)` is the task's own deps plus its feature's deps.
   A feature-level link makes every task in it wait.
 - **Steps** (`C.step`): positions are measured in step boundaries. A task
