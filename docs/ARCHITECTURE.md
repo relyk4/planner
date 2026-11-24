@@ -4,7 +4,9 @@
 
 ```
 server.py              Python 3.8+ stdlib HTTP server + SQLite storage + JSON API
-static/index.html      The whole app: markup, CSS, one <script>
+static/index.html      Page markup; loads app.css and js/*.js (relative paths)
+static/app.css         All styles
+static/js/             The app script as classic scripts, loaded in order (below)
 data/                  Live data (planner.db). Gitignored. Never touch.
 tests/test_server.py   API tests (unittest, stdlib)
 tests/ui/              jsdom smoke test (dev-only, npm)
@@ -35,24 +37,29 @@ Dockerfile, docker-compose.yml, start.sh, start.bat
     version instead of adding one.
 - **Attribution**: the `X-User` header (URL-encoded) from the name box in the
   sidebar.
-- **Static files** come from `static/`, with a path-traversal guard. Unknown
-  paths without an extension fall back to `index.html`.
+- **Static files** come from `static/` (subfolders included), with a
+  path-traversal guard. `.js` and `.css` content types are pinned in `main()`.
+  Unknown paths without an extension fall back to `index.html`.
 - The full route list is in README.md under "API".
 
-## Client (`static/index.html`)
+## Client (`static/`)
 
-### Sections (search for these banner comments)
+`index.html` is markup only. `app.css` holds every style. The script is a set
+of classic `<script src>` files (no modules, no bundler) that share globals as
+if they were one script. They load in this order, and code that runs at load
+time can only use names from its own file or an earlier one.
 
-| Banner | What's there |
+### Files and sections
+
+| File (banner) | What's there |
 |---|---|
-| top of `<script>` | constants (`TYPES`, `LBL`, `KIND`, `XS`, `ZO`), date helpers (`dn`, `fd`, `iso`), `mk()`, `sample()`, `blank()`, `norm()` |
-| (no banner) | `mut`/`undo`, `compute()`, `relStats()`, `calc()`, `recalc()`, filter (`FST`, `flt`, `fltSet`, `stepsShown`), `rowsVisible()`, `focusSet()`, link routing (`poly`, `route`, `tagAt`), `renderStats`, `renderRels`, `renderTimeline`, `renderBoard`, drawer (`renderDrawer`, `depBlock`, `depCard`), `render`, `soft`, actions (`moveTo`, `addItem`, `del`, `move`), board drag (`dragMove`/`dragEnd`), timeline drag (`tdMove`/`tdEnd`) |
-| `// ===== storage` | `LS` (safe localStorage), `Store` (server or local mode), `save`/`flush` autosave, conflict dialog, `openPlan`, `renderPlans`, `newPlan`, `boot` |
-| `// ===== views` | `renderView`, `renderGantt` |
-| `// ----- grid` | `GCOLS`, `GEDIT`, `cellHtml`, `gridRows`, `renderGrid`, keyboard moves, `gridEdit`, `setCell`, `parseDeps` |
-| `// ===== history` | change log and versions panel (`loadHist`, `renderHist`) |
-| `// ===== import` | CSV parser, `.xlsx` reader (zip + `DecompressionStream`), column guessing, `buildImport` |
-| `// ===== wiring` | menus, filter menu (`renderFlt`, `fltLoad`, `fltSave`), dialogs, keyboard shortcuts |
+| `js/core.js` | constants (`TYPES`, `LBL`, `KIND`, `XS`, `ZO`), date helpers (`dn`, `fd`, `iso`), `mk()`, `sample()`, `blank()`, `norm()`, `mut`/`undo`, `compute()`, `relStats()`, `calc()`, `recalc()`, filter (`FST`, `flt`, `fltSet`, `stepsShown`), `rowsVisible()`, `focusSet()` |
+| `js/board.js` | link routing (`poly`, `route`, `tagAt`), `renderStats`, `renderRels`, `renderTimeline`, `renderBoard`, drawer (`renderDrawer`, `depBlock`, `depCard`), `render`, `soft`, actions (`moveTo`, `addItem`, `del`, `move`), board drag (`dragMove`/`dragEnd`), timeline drag (`tdMove`/`tdEnd`), map/drawer/toolbar handlers; `// ===== views`: `renderView`, `renderGantt` |
+| `js/store.js` (`// ===== storage`) | `LS` (safe localStorage), `Store` (server or local mode), `save`/`flush` autosave, conflict dialog, `openPlan`, `renderPlans`, `newPlan`, `boot` |
+| `js/grid.js` (`// ----- grid`) | `GCOLS`, `GEDIT`, `cellHtml`, `gridRows`, `renderGrid`, keyboard moves, `gridEdit`, `setCell`, `parseDeps` |
+| `js/history.js` (`// ===== history`) | change log and versions panel (`loadHist`, `renderHist`) |
+| `js/import.js` (`// ===== import`) | CSV parser, `.xlsx` reader (zip + `DecompressionStream`), column guessing, `buildImport` |
+| `js/wiring.js` (`// ===== wiring`) | menus, filter menu (`renderFlt`, `fltLoad`, `fltSave`), dialogs, rail and tabs; ends with `boot()`, so it loads last |
 
 ### Data model (plan JSON, `S`)
 
