@@ -7,7 +7,7 @@
    PICTURE the step grid itself: bars placed by typed dependencies, colour-coded elbow links with FS/SS/FF/SF tags, milestone gates, blocked links in red; a release ledger above it
    COLOUR white ground, black ink, concrete planes; link types ink, blue, amber, magenta; safety yellow for ready and the critical path; signal red only for blocked
    TYPE Hanken Grotesk throughout
-   LAYOUT title and tallies across the top, toolbar band, release ledger, legend, board full width; editor drawer slides over from the right, full screen on a phone */
+   LAYOUT title and tallies across the top, then the toolbar band directly above the active view (map, grid, Gantt or releases), legend; plan and release navigation in the left rail; editor drawer slides over from the right, full screen on a phone */
 :root{color-scheme:light dark;--bg:light-dark(#fff,#1a1a19);--ink:light-dark(#151514,#ecece8);--mute:light-dark(#5f5f59,#a8a8a0);--line:light-dark(#e6e6e2,#30302d);--pane:light-dark(#f2f2ef,#232321);--conc:light-dark(#d8d8d4,#3c3c38);--yel:#ffe600;--red:light-dark(#d0241b,#ff6a5c);--redbg:light-dark(#fde9e7,#3d211e);--FS:var(--ink);--SS:light-dark(#1f5fd6,#86adff);--FF:light-dark(#6b45c9,#b8a2ff);--ok:light-dark(#17853b,#5fd08a);--late:light-dark(#e05a00,#ff9a3d);--SF:light-dark(#a6287a,#f08bc9)}
 :root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
 *{box-sizing:border-box;min-width:0}
@@ -33,7 +33,6 @@ button.t{cursor:pointer}button.t:hover{border-color:var(--conc)}
 .btn[aria-pressed=true]{background:var(--yel);color:#151514;border-color:#151514}
 .btn[data-armed]{background:var(--red);color:#fff;border-color:var(--red)}
 .sep{flex:1}
-.rels{padding:16px max(3vw,16px) 4px}
 .rh{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
 .rh h2{margin:0;font-size:20px;letter-spacing:-.01em}
 .rl{border-top:2px solid var(--ink)}
@@ -276,7 +275,7 @@ button,input,select,textarea{font-family:inherit}
 .rhd{font-size:13px;font-weight:700;color:var(--railmute);padding:4px 4px 0}
 .plans{display:flex;flex-direction:column;gap:2px;flex:1;overflow:auto;min-height:80px}
 .pl{display:grid;grid-template-columns:10px minmax(0,1fr) auto;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;cursor:pointer;color:inherit}
-.pl:hover{background:var(--railhi)}.pl.on{background:#2c3a57;box-shadow:inset 3px 0 0 #6ea0ff}
+.pl:hover,.rail-rel-i:hover{background:var(--railhi)}.pl.on,.rail-rel-i.on{background:#2c3a57;box-shadow:inset 3px 0 0 #6ea0ff}
 .pdot{width:8px;height:8px;border-radius:2px;background:#6ea0ff;opacity:.7}
 .pl .pn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}.pl .pt{font-size:13px;color:var(--railmute);white-space:nowrap}
 .pl .pa{grid-column:2/-1;justify-self:start;margin-top:4px;background:none;border:1px solid var(--railline);color:inherit;border-radius:4px;padding:3px 10px;cursor:pointer;font-size:13px}
@@ -285,6 +284,13 @@ button,input,select,textarea{font-family:inherit}
 .rfoot{border-top:1px solid var(--railline);padding-top:10px;display:grid;gap:10px;font-size:13px;color:var(--railmute)}
 .me{display:block}.me input{display:block;width:100%;margin-top:4px;background:#202a3d;border:1px solid var(--railline);color:#fff;border-radius:6px;padding:7px 9px;font-size:14px}
 .conn{display:flex;gap:7px;align-items:center}.conn i{width:8px;height:8px;border-radius:50%;background:#37b24d;flex:none}.conn.off i{background:#f59f00}
+.rail-rel>summary{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--railmute);padding:4px;cursor:pointer;list-style:none}
+.rail-rel>summary::-webkit-details-marker{display:none}.rail-rel>summary::before{content:'▸';width:10px}.rail-rel[open]>summary::before{content:'▾'}
+.rail-rel>summary:hover{color:#fff}
+.rail-rel-l{display:flex;flex-direction:column;gap:2px;max-height:40vh;overflow:auto;margin-top:2px}
+.rail-rel-i{display:grid;grid-template-columns:10px minmax(0,1fr) auto;align-items:center;gap:8px;padding:7px 10px;border:0;border-radius:6px;background:none;color:inherit;text-align:left;cursor:pointer;font-size:14px}
+.rail-rel-t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rail-rel-c{font-size:13px;color:var(--railmute);font-variant-numeric:tabular-nums}
+.rail-rel-d{width:8px;height:8px;border-radius:50%;border:1.5px solid var(--railmute)}.rail-rel-d.active{background:linear-gradient(90deg,var(--railmute) 50%,transparent 50%)}.rail-rel-d.released{background:var(--railmute)}.rail-rel-d.bad{border-color:var(--late);background:var(--late)}
 .scrim{display:none}
 .main{min-width:0;display:flex;flex-direction:column}
 .appbar{position:sticky;top:0;z-index:16;display:flex;align-items:center;gap:10px;padding:8px 18px;background:var(--bg);border-bottom:1px solid var(--hair);min-height:56px}
@@ -297,10 +303,12 @@ button,input,select,textarea{font-family:inherit}
 .tbtn:hover{background:var(--bg);border-color:var(--hair)}.appbar .tbtn:hover{background:var(--chrome)}
 .tbtn:disabled{opacity:.4;cursor:default;background:none;border-color:transparent}
 .tbtn[aria-pressed=true]{background:var(--accentbg);color:var(--accent);border-color:color-mix(in srgb,var(--accent) 35%,transparent)}
-.toolbar{position:sticky;top:56px;z-index:15;display:flex;flex-wrap:wrap;align-items:center;gap:4px;padding:6px 18px;background:var(--chrome);border-bottom:1px solid var(--hair)}
-.tsep{width:1px;height:22px;background:var(--hair);margin:0 6px}
+.toolbar{display:flex;flex-wrap:nowrap;align-items:center;gap:2px;padding:4px 6px;background:var(--chrome);border:1px solid var(--hair);border-radius:8px;overflow-x:auto;scrollbar-width:thin}
+.toolbar>*{flex:none}.toolbar .tbtn{padding:0 8px;font-size:13px}
+.toolbar .mlist{position:fixed;right:auto;overflow:auto}
+.tsep{width:1px;height:22px;background:var(--hair);margin:0 3px}
 .tabs{display:flex;gap:2px;background:var(--bg);border:1px solid var(--hair);border-radius:7px;padding:2px}
-.tabs button{border:0;background:none;padding:0 14px;min-height:32px;border-radius:5px;font-weight:600;font-size:14px;color:var(--mute);cursor:pointer;white-space:nowrap}
+.tabs button{border:0;background:none;padding:0 11px;min-height:32px;border-radius:5px;font-weight:600;font-size:13px;color:var(--mute);cursor:pointer;white-space:nowrap}
 .tabs button:hover{color:var(--ink)}.tabs button[aria-selected=true]{background:var(--accent);color:#fff}
 .menu{position:relative}
 .mlist{position:absolute;right:0;top:calc(100% + 6px);z-index:40;min-width:250px;background:var(--bg);border:1px solid var(--hair);border-radius:8px;box-shadow:0 12px 32px rgba(0,0,0,.18);padding:6px;display:flex;flex-direction:column}
@@ -314,7 +322,7 @@ button,input,select,textarea{font-family:inherit}
 .fo .fc{color:var(--mute);font-variant-numeric:tabular-nums;font-size:13px;margin-left:10px}
 .fq{display:flex;flex-wrap:wrap;gap:6px;padding:4px 6px}.mlist .fq .btn{font-size:13px;min-height:30px;padding:0 10px;border:1px solid var(--hair);text-align:center}
 .fn{margin:8px 6px 2px;font-size:12px;color:var(--mute);line-height:1.4;max-width:260px}
-.fltsum{font-size:13px;color:var(--mute);margin-left:6px;white-space:nowrap}.fltsum b{color:var(--ink)}
+.fltsum{margin:-6px 0 0 6px;font-size:13px;color:var(--mute)}.fltsum b{color:var(--ink)}
 .fltsum button{border:0;background:none;color:var(--accent);font-weight:600;cursor:pointer;padding:4px 6px;font-size:13px}.fltsum button:hover{text-decoration:underline}
 .ch.gap{box-shadow:inset 3px 0 0 var(--hair)}.gapl{position:absolute;top:0;width:0;border-left:3px solid var(--hair);pointer-events:none}
 .content{padding:12px 18px 28px;display:flex;flex-direction:column;gap:12px;min-width:0}
@@ -322,16 +330,10 @@ button,input,select,textarea{font-family:inherit}
 .t{border:1px solid var(--hair);background:var(--bg);border-radius:7px;padding:4px 12px;min-height:46px}
 .t b{font-size:20px}
 button.t:hover{border-color:var(--accent)}.t[aria-pressed=true]{border-color:var(--accent);background:var(--accentbg)}
-.rels{padding:0;border:1px solid var(--hair);border-radius:8px;overflow:hidden}
-.rels .rh{padding:8px 12px;margin:0;background:var(--chrome);border-bottom:1px solid var(--hair)}
-.rels .rh h2{font-size:15px}.rels .rl{border-top:0}.rels .rr{padding:9px 12px}.rels>.none{padding:8px 12px;margin:0!important}
 .btn{min-height:36px;border:1px solid var(--hair);border-radius:5px;font-size:14px;background:var(--bg);color:var(--ink)}
 .btn:hover{background:var(--chrome)}.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
 .t{flex-direction:row;align-items:baseline;gap:6px;min-height:36px;padding:5px 11px}.t b{font-size:17px}.t span{font-size:13px}
 .tgl[aria-pressed=true]{background:var(--accentbg);color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,transparent)}
-.rels .rh{display:flex;align-items:center;gap:12px}.relt{border:0;background:none;font:inherit;font-size:15px;font-weight:700;color:var(--ink);cursor:pointer;padding:4px 2px;white-space:nowrap}
-.relmini{display:flex;flex-wrap:wrap;gap:6px;flex:1;min-width:0}.rmc{font-size:13px;border:1px solid var(--hair);border-radius:12px;padding:2px 10px;white-space:nowrap;background:var(--bg)}.rmc.bad{border-color:var(--late);color:var(--late)}
-.rels .rh .btn{margin-left:auto}
 .note{margin:0;padding:8px 12px;border-radius:6px;background:var(--accentbg);color:var(--ink);font-size:14px}
 .board{margin:0;border:1px solid var(--hair);border-radius:8px;max-height:calc(100vh - 150px)}
 .lgd{margin:0;border:1px solid var(--hair);border-radius:8px}.lgd>summary{background:var(--chrome);border-radius:8px}
@@ -340,6 +342,22 @@ button.t:hover{border-color:var(--accent)}.t[aria-pressed=true]{border-color:var
 .hp{z-index:23}
 .ganttv{border:1px solid var(--hair);border-radius:8px;overflow:hidden}
 .ganttv .tl{position:static;border-bottom:0}
+/* releases view: list of releases, and one page per release */
+.relv{border:1px solid var(--hair);border-radius:8px;background:var(--bg)}
+.relv .rh{padding:8px 12px;margin:0;background:var(--chrome);border-bottom:1px solid var(--hair);border-radius:8px 8px 0 0}
+.relv .rh h2{font-size:15px}.relv .rl{border-top:0}.relv .rr{padding:9px 12px}.relv>.none{padding:8px 12px;margin:0}
+.relp{padding:10px 16px 20px}
+.relp-h{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:6px}
+.relp-h h2{margin:0;font-size:22px;line-height:1.2}
+.relp-k{margin-top:12px}.relp>.pg{margin-top:10px}
+.relp-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:0 28px}
+.relp h3{margin:20px 0 6px;font-size:15px;display:flex;gap:8px;align-items:baseline}.relp h3 span{color:var(--mute);font-weight:500}
+.relp-tw{overflow-x:auto}
+.relp-t{width:100%;border-collapse:collapse;font-size:14px}
+.relp-t th{text-align:left;font-size:13px;color:var(--mute);font-weight:600;padding:4px 8px;border-bottom:1px solid var(--hair);white-space:nowrap}
+.relp-t td{padding:0 8px;height:36px;border-bottom:1px solid var(--line);white-space:nowrap}
+.relp-t .lnk{padding:6px 0;max-width:340px}.relp-t .gcd{color:var(--mute);font-variant-numeric:tabular-nums}
+.relp-nt{white-space:pre-wrap;margin:0;font-size:14px}
 /* grid view */
 .gridv{border:1px solid var(--hair);border-radius:8px;overflow:auto;max-height:calc(100vh - 150px);background:var(--bg);outline:none}
 .gridv:focus-visible{box-shadow:0 0 0 2px var(--accent)}
@@ -382,7 +400,7 @@ button.t:hover{border-color:var(--accent)}.t[aria-pressed=true]{border-color:var
  .app{grid-template-columns:minmax(0,1fr)}
  .rail{position:fixed;left:0;top:0;bottom:0;width:280px;transform:translateX(-102%);transition:transform .2s ease-out;z-index:45}
  .app.railopen .rail{transform:none}.app.railopen .scrim{display:block;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:44}
- .ic{display:inline-grid}.appbar{padding:8px 12px}.toolbar{padding:6px 12px;top:56px}.content{padding:10px 12px 24px}
+ .ic{display:inline-grid}.appbar{padding:8px 12px}.content{padding:10px 12px 24px}
  #ver-btn{display:none}
 }
 @media(max-width:600px){.appbar .ttl{font-size:17px}.save{display:none}.imt{grid-template-columns:minmax(0,1fr)}.imex{display:none}}
@@ -390,13 +408,14 @@ button.t:hover{border-color:var(--accent)}.t[aria-pressed=true]{border-color:var
 
 </style></head><body>
 <div class="app" id="app">
-<aside class="rail" id="rail" aria-label="Plans">
+<aside class="rail" id="rail" aria-label="Plans and releases">
  <div class="brand"><span class="logo" aria-hidden="true"></span><b>Planner</b></div>
  <div class="rail-acts"><button class="rbtn pri" id="new-plan">New plan</button><button class="rbtn" id="imp-file">Import</button></div>
  <input id="plan-q" class="rq" type="search" placeholder="Search plans" aria-label="Search plans" autocomplete="off">
  <div class="rhd">Plans</div>
  <nav id="plans" class="plans" aria-label="Plan list"></nav>
  <button class="rlink" id="show-arch" aria-pressed="false">Show archived</button>
+ <details class="rail-rel" id="rail-rel" open><summary>Releases <span class="rail-rel-c" id="rail-rel-n"></span></summary><nav class="rail-rel-l" id="rail-rel-l" aria-label="Releases in this plan"></nav></details>
  <div class="rfoot"><div id="conn" class="conn"></div><label class="me" for="me">Your name<input id="me" placeholder="Shown in history" autocomplete="name"></label></div>
 </aside>
 <div class="scrim" id="scrim"></div>
@@ -416,25 +435,27 @@ button.t:hover{border-color:var(--accent)}.t[aria-pressed=true]{border-color:var
     <button data-m="sample" role="menuitem">New sample plan</button>
    </div></div>
  </header>
+ <div class="content">
+ <div id="tal" class="tal" aria-label="Tallies; click one to highlight those items"></div>
+ <p class="note" id="note" hidden>This is a sample plan to show how everything works. Create your own with New plan, or import a CSV or Excel export.</p>
  <div class="toolbar" role="toolbar" aria-label="Plan tools">
-  <div class="tabs" role="tablist" aria-label="View"><button role="tab" data-view="map" aria-selected="true">Dependency map</button><button role="tab" data-view="grid" aria-selected="false">Grid</button><button role="tab" data-view="gantt" aria-selected="false">Gantt</button></div>
+  <div class="tabs" role="tablist" aria-label="View"><button role="tab" data-view="map" aria-selected="true">Dependency map</button><button role="tab" data-view="grid" aria-selected="false">Grid</button><button role="tab" data-view="gantt" aria-selected="false">Gantt</button><button role="tab" data-view="rel" aria-selected="false">Releases</button></div>
   <span class="tsep"></span>
-  <div class="menu" id="flt-m"><button class="tbtn" id="flt-btn" aria-haspopup="true" aria-expanded="false" aria-pressed="false">Filter</button><div class="mlist fl" id="flt" hidden aria-label="Filter by status"></div></div><span class="fltsum" id="fltsum" hidden></span>
+  <div class="menu" id="flt-m"><button class="tbtn" id="flt-btn" aria-haspopup="true" aria-expanded="false" aria-pressed="false">Filter</button><div class="mlist fl" id="flt" hidden aria-label="Filter by status"></div></div>
   <span class="tsep"></span>
-  <button class="tbtn" id="add-obj">+ Objective</button><button class="tbtn" id="add-ms">+ Milestone</button><button class="tbtn" id="add-ext">+ External</button><button class="tbtn" id="add-rel2">+ Release</button>
+  <div class="menu" id="add-m"><button class="tbtn" id="add-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="add">Add ▾</button>
+   <div class="mlist" id="add" hidden role="menu" aria-label="Add to plan"><button data-add="obj" role="menuitem" tabindex="-1">Objective</button><button data-add="ms" role="menuitem" tabindex="-1">Milestone</button><button data-add="ext" role="menuitem" tabindex="-1">External dependency</button><button data-add="rel" role="menuitem" tabindex="-1">Release</button></div></div>
   <span class="tsep"></span>
   <button class="tbtn" id="undo">Undo</button><button class="tbtn" id="exp">Expand all</button><button class="tbtn" id="col">Collapse features</button>
   <span class="tsep"></span>
   <button class="tbtn tog" id="crit" aria-pressed="false">Critical path</button><button class="tbtn tog" id="tags" aria-pressed="true">Link tags</button>
  </div>
- <div class="content">
- <div id="tal" class="tal" aria-label="Tallies; click one to highlight those items"></div>
- <section id="rels" class="rels" aria-label="Release tracking"></section>
- <p class="note" id="note" hidden>This is a sample plan to show how everything works. Create your own with New plan, or import a CSV or Excel export.</p>
+ <p class="fltsum" id="fltsum" hidden></p>
  <div id="views">
   <div id="board" class="board"><div id="grid" class="grid"></div></div>
   <div id="gridv" class="gridv" tabindex="0" hidden aria-label="Grid view"></div>
   <div id="ganttv" class="ganttv" hidden></div>
+  <div id="relv" class="relv" hidden aria-label="Releases"></div>
  </div>
 <details class="lgd" id="lgd"><summary>Legend and how it works</summary>
 <div class="legend" aria-label="Legend">
@@ -555,7 +576,7 @@ function norm(s){
  const items=s.items.filter(i=>i&&i.id&&['obj','feat','task','ms','ext'].includes(i.type)).map(i=>({id:String(i.id),type:i.type,parent:i.parent&&i.type!=='ms'&&i.type!=='ext'?String(i.parent):null,name:String(i.name??''),owner:String(i.owner??''),status:(i.type==='ext'?XSV:['todo','doing','done','blocked']).includes(i.status)?i.status:i.type==='ext'?'pending':'todo',deps:normLinks(i.deps),blocker:String(i.blocker??''),earliest:+i.earliest>0?Math.floor(+i.earliest):null,collapsed:!!i.collapsed,notes:String(i.notes??''),rel:String(i.rel??''),target:String(i.target??''),due:okd(i.due),startBy:okd(i.startBy),startedOn:okd(i.startedOn),doneOn:okd(i.doneOn),team:String(i.team??''),ref:String(i.ref??''),color:/^#[0-9a-fA-F]{6}$/.test(String(i.color??''))?String(i.color):'',key:String(i.key??'')}));
  const releases=Array.isArray(s.releases)?s.releases.filter(r=>r&&r.id).map(r=>({id:String(r.id),name:String(r.name??''),target:String(r.target??''),status:RST[r.status]?r.status:'planned',notes:String(r.notes??''),due:okd(r.due)})):[];
  const cal={asof:okd((s.cal||{}).asof)},t=s.tl||{},tl={open:!!t.open,zoom:ZO[t.zoom]?t.zoom:'weeks',only:t.only!==false};
- return {title:String(s.title||'Untitled plan'),view:['map','grid','gantt'].includes(s.view)?s.view:'map',relOpen:s.relOpen!==false,sample:!!s.sample,msCollapsed:!!s.msCollapsed,extCollapsed:!!s.extCollapsed,cal,tl,releases,items};
+ return {title:String(s.title||'Untitled plan'),view:['map','grid','gantt','rel'].includes(s.view)?s.view:'map',relOpen:s.relOpen!==false,sample:!!s.sample,msCollapsed:!!s.msCollapsed,extCollapsed:!!s.extCollapsed,cal,tl,releases,items};
 }
 
 let S=blank();
@@ -642,7 +663,7 @@ function calc(){
  [...C.mss,...C.exts,...C.order].forEach(n=>{if(!C.done(n.id))up(n.id,new Set())});
  Object.assign(C,{T,df:F,endOf,lateUp:lu});
 }
-function recalc(){C=compute();C.rel=relStats();calc();if(sel&&!map[sel])sel=null;if(selRel&&!S.releases.some(r=>r.id===selRel))selRel=null;C.fs=fltSet()}
+function recalc(){C=compute();C.rel=relStats();calc();if(sel&&!map[sel])sel=null;if(selRel&&!S.releases.some(r=>r.id===selRel))selRel=null;if(relPage&&!S.releases.some(r=>r.id===relPage))relPage=null;C.fs=fltSet()}
 const FST=[['ready','Ready to start'],['doing','In progress'],['waiting','Waiting on links'],['blocked','Blocked'],['done','Done']];
 let flt={hide:[],compact:true};
 const fltOn=()=>flt.hide.length>0;
@@ -725,12 +746,6 @@ function renderStats(){
  if(document.activeElement!==ttl)ttl.value=S.title;
  renderFlt();
 }
-function renderRels(){
- const un=C.order.filter(t=>!C.relOf[t.id]).length;
- const ro2=S.relOpen!==false;
- $('#rels').innerHTML=`<div class="rh"><button class="relt" data-act="rel-tog" aria-expanded="${ro2}">${ro2?'▾':'▸'} Releases <span class="none">${C.rel.length}</span></button>${ro2?'':`<span class="relmini">${C.rel.map(x=>`<span class="rmc${x.od||x.rk?' bad':''}">${esc(x.r.name)} <b>${x.done}/${x.ts.length}</b>${x.od?' overdue':x.rk?' at risk':''}</span>`).join('')}</span>`}<button class="btn" data-act="add-rel">Add release</button></div>`+(!ro2?'':C.rel.length?`<div class="rl">${C.rel.map(x=>{const pct=x.ts.length?Math.round(x.done/x.ts.length*100):0;return `<button class="rr${selRel===x.r.id?' on':''}" data-rel="${x.r.id}"><span class="rn"><b>${esc(x.r.name)||'Untitled release'}</b><span>${esc(x.r.target)||'No target set'}${x.due!==null?` · due ${fd(x.due)}`:''}</span>${x.od?`<i class="lt">Overdue ${x.od}d</i>`:x.rk?`<i class="lt rk" title="Work due after the release date">At risk</i>`:''}</span><span class="pg" title="${pct}% of tasks done"><i style="width:${pct}%"></i></span><span class="rf"><b>${x.done}</b> of ${x.ts.length} done</span><span class="rf">${x.land?`Lands after step <b>${x.land}</b>`:'No tasks yet'}</span><span class="rf${x.blk?' red':''}"><b>${x.blk}</b> blocked</span><span class="rf"><b>${x.up.length}</b> needed from outside${x.xt.length?`, <b>${x.xt.length}</b> external`:''}</span><span class="st ${x.r.status}">${RST[x.r.status]}</span></button>`}).join('')}</div><p class="none" style="margin-top:6px">${un} ${un===1?'task is':'tasks are'} not in any release. Click a release to see its work and outside dependencies on the board.</p>`:'<p class="none">No releases yet. Add one, then assign features or tasks to it from their editor.</p>');
-}
-
 const PAL=['#2f6fdb','#0c8599','#7048e8','#c2255c','#f59f00','#2b8a3e','#5c940d','#9c36b5','#1098ad','#495057'],okc=v=>/^#[0-9a-fA-F]{6}$/.test(String(v??''))?String(v):'';
 const fcol=n=>{const f=n.type==='feat'?n:n.type==='task'?map[n.parent]:null;return f&&okc(f.color)};
 const fcs=n=>{const c=fcol(n);return c?`<i class="fcs ${n.type}" style="background:${c}"></i>`:''};
@@ -949,7 +964,7 @@ function renderDrawer(){
   h=`<div class="dh"><span>Release</span><button class="x" data-act="close" aria-label="Close editor">×</button></div>
   <label class="f">Name<input id="f-name" data-rf="name" value="${esc(r.name)}"></label>
   <div class="two"><label class="f">Target<input id="f-target" data-rf="target" value="${esc(r.target)}" placeholder="e.g. end of PI or a date"></label><label class="f">Status<select id="f-rstatus" data-rf="status">${Object.entries(RST).map(([v,l])=>`<option value="${v}"${r.status===v?' selected':''}>${l}</option>`).join('')}</select></label></div>
-  <label class="f">Due date<input id="f-rdue" data-rf="due" type="date" value="${esc(r.due)}"></label>${rx.od?`<p class="dsay"><b class="ltc">Overdue by ${days(rx.od)}</b>.</p>`:''}${rx.rk?`<p class="dsay"><b class="ltc">At risk:</b> ${[rx.after.length?`${rx.after.map(t=>esc(C.code[t.id])).join(', ')} ${rx.after.length===1?'is':'are'} due after the release date`:'',rx.xlate.length?`it waits on ${rx.xlate.map(d=>esc(C.code[d])).join(', ')}, expected after the release date`:''].filter(Boolean).join('; ')}.</p>`:''}
+  <label class="f">Due date<input id="f-rdue" data-rf="due" type="date" value="${esc(r.due)}"></label>${relSay(rx)}
   <div class="info${rx.blk?' blocked':''}"><b>${rx.done} of ${rx.ts.length} tasks done (${pct}%)</b>${rx.land?`. Last task lands after step ${rx.land}.`:''}${rx.blk?`<br>${rx.blk} blocked or held up by a blocker.`:''}${rx.up.length?`<br>${rx.up.length} unfinished ${rx.up.length===1?'task':'tasks'} outside this release must finish first. They are outlined on the board.`:''}</div>
   <h3>Features <span>${rx.feats.length}</span></h3><div class="chips">${rx.feats.map(fchip).join('')||'<p class="none">Assign a feature from its editor.</p>'}</div>
   <h3>Tasks <span>${rx.ts.length}</span></h3><div class="chips">${rx.ts.map(t=>fchip(t.id).replace('<span class="chip">',`<span class="chip">${icon(t.id)}`)).join('')||'<p class="none">No tasks yet.</p>'}</div>
@@ -1010,8 +1025,8 @@ function renderDrawer(){
  dr.innerHTML=h;dr.classList.add('open');dr.scrollTop=sc;
  if(act){const el=document.getElementById(act);if(el&&dr.contains(el))el.focus()}
 }
-function render(){if(sel||selRel)calOpen=false;if((sel||selRel||calOpen)&&histOpen){histOpen=false;renderHist()}S.view=view;recalc();renderStats();renderRels();renderView();renderDrawer();save()}
-function soft(){clearTimeout(tm);tm=setTimeout(()=>{recalc();renderStats();renderRels();renderView();save()},180)}
+function render(){if(sel||selRel)calOpen=false;if((sel||selRel||calOpen)&&histOpen){histOpen=false;renderHist()}S.view=view;recalc();renderStats();renderRailRels();renderView();renderDrawer();save()}
+function soft(){clearTimeout(tm);tm=setTimeout(()=>{recalc();renderStats();renderRailRels();renderView();save()},180)}
 
 function moveRow(it){const s=C.step[it.id],mn=C.minOf(it.id),pin=it.earliest&&it.earliest>mn;
  return `<div class="acts" style="border:0;margin-top:8px;padding:0;align-items:center"><button class="btn" data-act="mvl"${s<=mn?' disabled':''}>Earlier step</button><button class="btn" data-act="mvr">Later step</button>${pin?'<button class="btn" data-act="unpin">Unpin</button>':''}<span class="none">${pin?`Pinned. Its links allow step ${mn}.`:s<=mn&&mn>1?`Earliest its links allow: step ${mn}.`:'Or drag its bar on the board.'}</span></div>`}
@@ -1026,11 +1041,12 @@ function moveTo(id,tgt){
 function addItem(type,parent){
  const it=mk(nid(),type,parent||null,{obj:'New objective',feat:'New feature',task:'New task',ms:'New milestone',ext:'New external dependency'}[type]);
  if(type==='ext')it.status='pending';
+ if(view==='rel')view='map';
  mut(()=>{S.items.push(it);if(parent)map[parent].collapsed=false;if(type==='ms')S.msCollapsed=false;if(type==='ext')S.extCollapsed=false;sel=it.id;selRel=null;q=''});
  const n=$('#f-name');if(n){n.focus();n.select()}
  reveal(it.id);
 }
-function addRel(){const r={id:nid(),name:'R'+(S.releases.length+1),target:'',status:'planned',notes:''};mut(()=>{S.releases.push(r);selRel=r.id;sel=null});const n=$('#f-name');if(n){n.focus();n.select()}}
+function addRel(){const r={id:nid(),name:'R'+(S.releases.length+1),target:'',status:'planned',notes:''};view='rel';relPage=r.id;mut(()=>{S.releases.push(r);selRel=r.id;sel=null});const n=$('#f-name');if(n){n.focus();n.select()}}
 function del(id){
  const gone=new Set([id]);let ch=true;
  while(ch){ch=false;for(const i of S.items)if(i.parent&&gone.has(i.parent)&&!gone.has(i.id)){gone.add(i.id);ch=true}}
@@ -1138,7 +1154,7 @@ window.addEventListener('pointermove',dragMove,{passive:false});
 window.addEventListener('pointerup',()=>dragEnd(false));
 window.addEventListener('pointercancel',()=>dragEnd(true));
 views.addEventListener('click',e=>{
- if(!e.target.isConnected||e.target.closest('#gridv'))return;
+ if(!e.target.isConnected||e.target.closest('#gridv,#relv'))return;
  if(noClick){noClick=false;return}
  const tb=e.target.closest('[data-tl]');if(tb){const a=tb.dataset.tl;if(a==='toggle'){S.tl.open=!S.tl.open;tlReset=true}else if(a==='only')S.tl.only=!S.tl.only;else{S.tl.zoom=a.slice(2);tlReset=true}render();return}
  const cb=e.target.closest('[data-cal]');if(cb){openCal(null);return}
@@ -1155,11 +1171,16 @@ views.addEventListener('keydown',e=>{
  if(el.dataset.tog){const k=el.dataset.tog==='__ext'?'extCollapsed':'msCollapsed';S[k]=!S[k];render();return}
  sel=el.dataset.id;selRel=null;q='';render();const n=$('#f-name');if(n)n.focus();
 });
-$('#rels').addEventListener('click',e=>{
- const b=e.target.closest('button');if(!b)return;
- if(b.dataset.act==='add-rel'){addRel();return}
- if(b.dataset.act==='rel-tog'){S.relOpen=S.relOpen===false;render();return}
- if(b.dataset.rel){selRel=selRel===b.dataset.rel?null:b.dataset.rel;sel=null;render()}
+$('#relv').addEventListener('click',e=>{
+ if(!e.target.isConnected)return;
+ const b=e.target.closest('button'),a=b&&b.dataset.act;
+ if(b&&b.dataset.go){go(b.dataset.go);return}
+ if(b&&b.dataset.rel){openRel(b.dataset.rel);return}
+ if(a==='add-rel'){addRel();return}
+ if(a==='rel-back'){openRel(null);return}
+ if(a==='rel-edit'){selRel=relPage;sel=null;render();const n=$('#f-name');if(n)n.focus();return}
+ if(a==='rel-map'){view='map';selRel=relPage;sel=null;tlReset=true;render();return}
+ if(sel||selRel||calOpen){sel=null;selRel=null;calOpen=false;render()}
 });
 $('#tal').addEventListener('click',e=>{if(e.target.closest('[data-cal]')){openCal(null);return}const b=e.target.closest('[data-focus]');if(!b)return;focus=focus===b.dataset.focus?null:b.dataset.focus;sel=null;selRel=null;render()});
 dr.addEventListener('focusin',e=>{const d=e.target.dataset;if(d.f||d.rf||d.lk)pend=JSON.stringify(S)});
@@ -1210,16 +1231,12 @@ dr.addEventListener('click',e=>{
 });
 ttl.addEventListener('input',()=>{S.title=ttl.value;save()});
 ttl.addEventListener('change',()=>{if(!ttl.value.trim()){S.title='Untitled plan';ttl.value=S.title;save()}});
-$('#add-obj').onclick=()=>addItem('obj');
-$('#add-ms').onclick=()=>addItem('ms');
-$('#add-ext').onclick=()=>addItem('ext');
 $('#undo').onclick=undo;
 $('#exp').onclick=()=>{S.items.forEach(i=>i.collapsed=false);S.msCollapsed=false;S.extCollapsed=false;render()};
 $('#col').onclick=()=>{S.items.forEach(i=>{if(i.type==='feat')i.collapsed=true;if(i.type==='obj')i.collapsed=false});render()};
 $('#crit').onclick=()=>{critOn=!critOn;render()};
 $('#tags').onclick=()=>{tagsOn=!tagsOn;render()};
 const exportText=()=>JSON.stringify({title:S.title,tl:S.tl,msCollapsed:S.msCollapsed,extCollapsed:S.extCollapsed,cal:S.cal,releases:S.releases,items:S.items},null,1);
-$('#add-rel2').onclick=()=>addRel();
 const _unused_json=()=>ov('Export plan','Copy this and keep it somewhere safe. Paste it into Import to restore the plan or hand it to someone else.',JSON.stringify({title:S.title,tl:S.tl,msCollapsed:S.msCollapsed,extCollapsed:S.extCollapsed,cal:S.cal,releases:S.releases,items:S.items},null,1),'json');
 const _unused_csv=()=>ov('Export CSV','One row per milestone, objective, feature, task and release. Links read like "1.2.2 FS", "1.1.3 SS+1" or "1.2.2 FS blocked". Paste into Excel, or save as .csv for a Jira import.',csv(),'csv');
 
@@ -1230,7 +1247,7 @@ $('#ovgo').onclick=async()=>{let s=null;try{s=norm(JSON.parse($('#ovx').value))}
 document.addEventListener('keydown',e=>{
  if(e.key==='Escape'&&drag){dragEnd(true);return}
  if(e.key==='Escape'&&td){tdEnd(true);return}
- if(e.key==='Escape'){for(const d of ['#impd','#vdl'])if(!$(d).hidden){$(d).hidden=true;return}if(!$('#more').hidden){closeMenu();return}if(!$('#flt').hidden){fltMenu(false);$('#flt-btn').focus();return}if(histOpen&&!sel&&!selRel&&!calOpen){histOpen=false;renderHist();return}if(!$('#ov').hidden)$('#ov').hidden=true;else if(sel||selRel||calOpen){sel=null;selRel=null;calOpen=false;render()}}
+ if(e.key==='Escape'){for(const d of ['#impd','#vdl'])if(!$(d).hidden){$(d).hidden=true;return}if(!$('#more').hidden){closeMenu();return}if(!$('#add').hidden){addMenu(false);$('#add-btn').focus();return}if(!$('#flt').hidden){fltMenu(false);$('#flt-btn').focus();return}if(histOpen&&!sel&&!selRel&&!calOpen){histOpen=false;renderHist();return}if(!$('#ov').hidden)$('#ov').hidden=true;else if(sel||selRel||calOpen){sel=null;selRel=null;calOpen=false;render()}}
  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'&&!e.shiftKey&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName||'')){e.preventDefault();undo()}
 });
 // ===================================================================== storage
@@ -1279,7 +1296,7 @@ const Store={
   const all=[];for(const p of [...this.lidx()])all.push(await this.get(p.id));return {exported:Date.now()/1000,plans:all};
  }
 };
-let cur=null,plans=[],archList=[],showArch=false,lastSaved='',saveT=0,saving=false,histOpen=false,histTab='changes',view='map',gsel=null,gedit=null,lastVW=0;
+let cur=null,plans=[],archList=[],showArch=false,lastSaved='',saveT=0,saving=false,histOpen=false,histTab='changes',view='map',relPage=null,gsel=null,gedit=null,lastVW=0;
 const tmFmt=ts=>{const d=new Date(ts*1000);return d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})};
 const dtFmt=ts=>{const d=new Date(ts*1000);return d.toLocaleDateString([],{month:'short',day:'numeric'})+' '+tmFmt(ts)};
 const ago=ts=>{const s=Date.now()/1000-ts;return s<60?'just now':s<3600?Math.floor(s/60)+'m ago':s<86400?Math.floor(s/3600)+'h ago':new Date(ts*1000).toLocaleDateString([],{month:'short',day:'numeric'})};
@@ -1315,7 +1332,7 @@ async function openPlan(id){
  let p;try{p=await Store.get(id)}catch(e){toast('Could not open that plan: '+e.message);return}
  S=norm(p.data)||blank();if(!S.title)S.title=p.name;
  cur={id:p.id,rev:p.rev,name:p.name,archived:p.archived};view=S.view||'map';fltLoad();
- hist=[];sel=null;selRel=null;calOpen=false;focus=null;gsel=null;gedit=null;tlReset=true;
+ hist=[];sel=null;selRel=null;relPage=null;calOpen=false;focus=null;gsel=null;gedit=null;tlReset=true;
  lastSaved=JSON.stringify(S);LS.set('planner.last',p.id);
  setSave(p.updated?('Last saved '+dtFmt(p.updated)+(p.updated_by?' by '+p.updated_by:'')):'');
  $('#app').classList.remove('railopen');render();renderPlans();if(histOpen)loadHist();
@@ -1363,10 +1380,11 @@ const fileSafe=s=>String(s||'plan').replace(/[^\w\- ]+/g,'').trim().replace(/\s+
 
 // ======================================================================= views
 function renderView(){
- board.hidden=view!=='map';$('#gridv').hidden=view!=='grid';$('#ganttv').hidden=view!=='gantt';
+ board.hidden=view!=='map';$('#gridv').hidden=view!=='grid';$('#ganttv').hidden=view!=='gantt';$('#relv').hidden=view!=='rel';
  document.querySelectorAll('.tabs [data-view]').forEach(b=>b.setAttribute('aria-selected',b.dataset.view===view));
+ const rv=view==='rel';for(const s of ['#flt-btn','#exp','#col','#crit','#tags'])$(s).disabled=rv;if(rv)fltMenu(false);$('#fltsum').hidden=rv||!fltOn();
  lastVW=views.clientWidth;
- if(view==='map')renderBoard();else if(view==='grid')renderGrid();else renderGantt();
+ if(view==='map')renderBoard();else if(view==='grid')renderGrid();else if(view==='gantt')renderGantt();else renderRelv();
 }
 function renderGantt(){
  const el=$('#ganttv'),W=el.clientWidth||1000,LW=W<700?190:320;
@@ -1374,6 +1392,38 @@ function renderGantt(){
  const o=el.querySelector('.tlb'),sl=o?o.scrollLeft:null,st=o?o.scrollTop:null;
  const TL=renderTimeline(rowsVisible(),W,LW,hgt);el.innerHTML=TL.html;
  const n=el.querySelector('.tlb');if(n){if(sl!==null&&!tlReset){n.scrollLeft=sl;n.scrollTop=st}else n.scrollLeft=Math.max(0,TL.tx-LW-(W-LW)/2);tlReset=false}
+}
+
+// ----------------------------------------------------------------------- releases
+function openRel(id){view='rel';relPage=id||null;sel=null;selRel=null;calOpen=false;gsel=null;$('#app').classList.remove('railopen');render()}
+function relSay(x){
+ const why=[x.after.length?`${x.after.map(t=>esc(C.code[t.id])).join(', ')} ${x.after.length===1?'is':'are'} due after the release date`:'',x.xlate.length?`it waits on ${x.xlate.map(d=>esc(C.code[d])).join(', ')}, expected after the release date`:''].filter(Boolean).join('; ');
+ return (x.od?`<p class="dsay"><b class="ltc">Overdue by ${days(x.od)}</b>.</p>`:'')+(x.rk?`<p class="dsay"><b class="ltc">At risk:</b> ${why}.</p>`:'');
+}
+function relFlag(x){return x.od?`<i class="lt">Overdue ${x.od}d</i>`:x.rk?'<i class="lt rk" title="Work due after the release date">At risk</i>':''}
+function relListHtml(){
+ const un=C.order.filter(t=>!C.relOf[t.id]).length;
+ return `<div class="rh"><h2>Releases <span class="none">${C.rel.length}</span></h2><button class="btn" data-act="add-rel">Add release</button></div>`+(C.rel.length?`<div class="rl">${C.rel.map(x=>{const pct=x.ts.length?Math.round(x.done/x.ts.length*100):0;return `<button class="rr" data-rel="${esc(x.r.id)}"><span class="rn"><b>${esc(x.r.name)||'Untitled release'}</b><span>${esc(x.r.target)||'No target set'}${x.due!==null?` · due ${fd(x.due)}`:''}</span>${relFlag(x)}</span><span class="pg" title="${pct}% of tasks done"><i style="width:${pct}%"></i></span><span class="rf"><b>${x.done}</b> of ${x.ts.length} done</span><span class="rf">${x.land?`Lands after step <b>${x.land}</b>`:'No tasks yet'}</span><span class="rf${x.blk?' red':''}"><b>${x.blk}</b> blocked</span><span class="rf"><b>${x.up.length}</b> needed from outside${x.xt.length?`, <b>${x.xt.length}</b> external`:''}</span><span class="st ${x.r.status}">${RST[x.r.status]}</span></button>`}).join('')}</div><p class="none">${un} ${un===1?'task is':'tasks are'} not in any release. Click a release to open its page.</p>`:'<p class="none">No releases yet. Add one, then assign features or tasks to it from their editor.</p>');
+}
+function relPageHtml(x){
+ const r=x.r,pct=x.ts.length?Math.round(x.done/x.ts.length*100):0,k=(v,l,c)=>`<div class="t${c?' '+c:''}"><b>${v}</b><span>${l}</span></div>`;
+ const chips=(ids,none)=>`<div class="chips">${ids.map(d=>fchip(d).replace('<span class="chip">',`<span class="chip">${map[d].type==='ms'||map[d].type==='ext'?'':icon(d)}`)).join('')||`<p class="none">${none}</p>`}</div>`;
+ const rows=x.ts.map(t=>`<tr><td class="gcd">${esc(C.code[t.id])}</td><td><button class="lnk" data-go="${esc(t.id)}" title="${esc(t.name)}">${esc(t.name)}</button></td><td>${esc(t.owner)}</td><td>${cellHtml(t,'status')}</td><td>${C.step[t.id]}</td><td>${t.due?fd(dn(t.due)):''}</td><td>${flagsHtml(t)}</td></tr>`).join('');
+ return `<div class="relp"><button class="tbtn" data-act="rel-back">← All releases</button>
+ <div class="relp-h"><h2>${esc(r.name)||'Untitled release'}</h2><span class="st ${r.status}">${RST[r.status]}</span>${relFlag(x)}<span class="grow"></span><button class="btn" data-act="rel-map"${x.ts.length?'':' disabled'}>Show on map</button><button class="btn pri" data-act="rel-edit">Edit release</button></div>
+ <p class="none">${esc(r.target)||'No target set'}${x.due!==null?` · due ${fd(x.due)}`:''}</p>
+ <div class="tal relp-k">${k(`${x.done}/${x.ts.length}`,'tasks done')}${k(pct+'%','complete')}${x.land?k('Step '+x.land,'last task lands'):''}${k(x.blk,'blocked or held up',x.blk?'f-blocked':'')}${k(x.up.length,'needed from outside')}${x.xt.length?k(x.xt.length,'external, not delivered'):''}</div>
+ <div class="pg" title="${pct}% of tasks done"><i style="width:${pct}%"></i></div>${relSay(x)}
+ <h3>Tasks <span>${x.ts.length}</span></h3>${rows?`<div class="relp-tw"><table class="relp-t"><thead><tr><th>Code</th><th>Task</th><th>Owner</th><th>Status</th><th>Step</th><th>Due</th><th>Flags</th></tr></thead><tbody>${rows}</tbody></table></div>`:'<p class="none">No tasks yet. Assign a feature or task to this release from its editor.</p>'}
+ <div class="relp-g"><section><h3>Features <span>${x.feats.length}</span></h3>${chips(x.feats,'Assign a feature from its editor.')}</section>
+ <section><h3>Needed from outside <span>${x.up.length}</span></h3>${chips(x.up,'This release depends only on its own work.')}${x.xt.length?`<h3>Waiting on external teams <span>${x.xt.length}</span></h3>${chips(x.xt,'')}`:''}</section>
+ <section><h3>Notes</h3>${r.notes.trim()?`<p class="relp-nt">${esc(r.notes)}</p>`:'<p class="none">No notes. Add scope or release criteria with Edit release.</p>'}</section></div></div>`;
+}
+function renderRelv(){const x=relPage&&C.rel.find(x=>x.r.id===relPage);$('#relv').innerHTML=x?relPageHtml(x):relListHtml()}
+function renderRailRels(){
+ const on=id=>view==='rel'&&relPage===id?' on" aria-current="page':'';
+ $('#rail-rel-n').textContent=C.rel.length;
+ $('#rail-rel-l').innerHTML=`<button class="rail-rel-i${on(null)}" data-rp=""><span></span><span class="rail-rel-t">All releases</span><span></span></button>`+C.rel.map(x=>`<button class="rail-rel-i${on(x.r.id)}" data-rp="${esc(x.r.id)}" title="${esc(x.r.name)}${x.od?', overdue':x.rk?', at risk':''}"><span class="rail-rel-d ${x.r.status}${x.od||x.rk?' bad':''}"></span><span class="rail-rel-t">${esc(x.r.name)||'Untitled release'}</span><span class="rail-rel-c">${x.done}/${x.ts.length}</span></button>`).join('');
 }
 
 // ----------------------------------------------------------------------- grid
@@ -1715,8 +1765,27 @@ $('#impgo').onclick=async()=>{
 
 // ====================================================================== wiring
 function closeMenu(){$('#more').hidden=true;$('#more-btn').setAttribute('aria-expanded','false')}
-$('#more-btn').onclick=e=>{e.stopPropagation();fltMenu(false);const h=$('#more').hidden;$('#more').hidden=!h;$('#more-btn').setAttribute('aria-expanded',String(h))};
+$('#more-btn').onclick=e=>{e.stopPropagation();fltMenu(false);addMenu(false);const h=$('#more').hidden;$('#more').hidden=!h;$('#more-btn').setAttribute('aria-expanded',String(h))};
 document.addEventListener('click',e=>{if(!$('#more').hidden&&e.target.closest('.menu')!==$('#more').parentNode)closeMenu()});
+// Menus inside the toolbar are position:fixed so its sideways scrolling can't clip them.
+function placeMenu(m,b){if(m.hidden)return;const r=b.getBoundingClientRect();m.style.top=r.bottom+6+'px';m.style.maxHeight=Math.max(160,innerHeight-r.bottom-14)+'px';m.style.left=Math.max(8,Math.min(r.left,innerWidth-m.offsetWidth-8))+'px'}
+const placeMenus=()=>{placeMenu($('#flt'),$('#flt-btn'));placeMenu($('#add'),$('#add-btn'))};
+addEventListener('scroll',placeMenus,true);addEventListener('resize',placeMenus);
+const addItems=()=>[...$('#add').querySelectorAll('[role=menuitem]')];
+function addMenu(open,last){
+ const m=$('#add');m.hidden=!open;$('#add-btn').setAttribute('aria-expanded',String(open));if(!open)return;
+ closeMenu();fltMenu(false);placeMenu(m,$('#add-btn'));const it=addItems();it[last?it.length-1:0].focus();
+}
+$('#add-btn').onclick=e=>{e.stopPropagation();addMenu($('#add').hidden)};
+$('#add-btn').addEventListener('keydown',e=>{if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();addMenu(true,e.key==='ArrowUp')}});
+$('#add').addEventListener('keydown',e=>{
+ const it=addItems(),i=it.indexOf(document.activeElement);
+ if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();it[(i+(e.key==='ArrowDown'?1:-1)+it.length)%it.length].focus()}
+ else if(e.key==='Home'||e.key==='End'){e.preventDefault();it[e.key==='Home'?0:it.length-1].focus()}
+ else if(e.key==='Tab')addMenu(false);
+});
+$('#add').addEventListener('click',e=>{const b=e.target.closest('[data-add]');if(!b)return;addMenu(false);const t=b.dataset.add;if(t==='rel')addRel();else addItem(t)});
+document.addEventListener('click',e=>{if(!$('#add').hidden&&e.target.isConnected&&!e.target.closest('#add-m'))addMenu(false)});
 function renderFlt(){
  const on=fltOn(),c={};C.order.forEach(t=>{c[C.eff[t.id]]=(c[C.eff[t.id]]||0)+1});
  const shown=on?C.order.filter(t=>C.fs.has(t.id)).length:C.order.length,b=$('#flt-btn');
@@ -1729,8 +1798,8 @@ function renderFlt(){
 }
 function fltSave(){if(cur)LS.set('planner.flt.'+cur.id,JSON.stringify(flt))}
 function fltLoad(){let v=null;try{v=JSON.parse(LS.get('planner.flt.'+(cur?cur.id:''))||'null')}catch(e){}flt={hide:Array.isArray(v&&v.hide)?FST.map(f=>f[0]).filter(k=>v.hide.includes(k)):[],compact:!(v&&v.compact===false)}}
-function fltMenu(open){$('#flt').hidden=!open;$('#flt-btn').setAttribute('aria-expanded',String(open))}
-$('#flt-btn').onclick=e=>{e.stopPropagation();closeMenu();fltMenu($('#flt').hidden)};
+function fltMenu(open){$('#flt').hidden=!open;$('#flt-btn').setAttribute('aria-expanded',String(open));if(open)placeMenu($('#flt'),$('#flt-btn'))}
+$('#flt-btn').onclick=e=>{e.stopPropagation();closeMenu();addMenu(false);fltMenu($('#flt').hidden)};
 document.addEventListener('click',e=>{if(!$('#flt').hidden&&e.target.isConnected&&!e.target.closest('#flt-m'))fltMenu(false)});
 $('#flt').addEventListener('change',e=>{const k=e.target.dataset.fs;if(k){const h=new Set(flt.hide);if(e.target.checked)h.delete(k);else h.add(k);flt.hide=FST.map(f=>f[0]).filter(x=>h.has(x))}else if(e.target.hasAttribute('data-fc'))flt.compact=e.target.checked;else return;fltSave();render()});
 document.addEventListener('click',e=>{const p=e.target.closest('[data-fp]');if(!p)return;e.preventDefault();const v=p.dataset.fp;flt.hide=v==='done'?['done']:v==='stuck'?['ready','doing','done']:[];fltSave();render()});
@@ -1758,7 +1827,10 @@ $('#imp-file').onclick=()=>{$('#app').classList.remove('railopen');openImport()}
 $('#me').addEventListener('change',()=>{LS.set('planner.user',$('#me').value.trim());toast('Name saved. Your next changes will show it in History.')});
 $('#rail-tg').onclick=()=>$('#app').classList.toggle('railopen');
 $('#scrim').onclick=()=>$('#app').classList.remove('railopen');
-document.querySelector('.tabs').addEventListener('click',e=>{const b=e.target.closest('[data-view]');if(!b)return;view=b.dataset.view;tlReset=true;gsel=null;render();if(view==='grid')$('#gridv').focus({preventScroll:true})});
+document.querySelector('.tabs').addEventListener('click',e=>{const b=e.target.closest('[data-view]');if(!b)return;view=b.dataset.view;if(view==='rel')relPage=null;tlReset=true;gsel=null;render();if(view==='grid')$('#gridv').focus({preventScroll:true})});
+$('#rail-rel-l').addEventListener('click',e=>{const b=e.target.closest('[data-rp]');if(b)openRel(b.dataset.rp)});
+if(LS.get('planner.relrail')==='0')$('#rail-rel').open=false;
+$('#rail-rel').addEventListener('toggle',()=>LS.set('planner.relrail',$('#rail-rel').open?'1':'0'));
 $('#hist-btn').onclick=()=>{histOpen=!histOpen;if(histOpen&&(sel||selRel||calOpen)){sel=null;selRel=null;calOpen=false;render()}renderHist()};
 $('#ver-btn').onclick=()=>{if(Store.mode!=='server'){toast('Named versions need the local server.');return}$('#vdn').value='';$('#vdl').hidden=false;$('#vdn').focus()};
 $('#vd-close').onclick=()=>{$('#vdl').hidden=true};

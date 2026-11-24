@@ -10,8 +10,8 @@ later. Objectives → features → tasks are laid out in **steps** (sequence, no
 dates) by typed dependencies (FS, SS, FF, SF, with lag), plus milestones,
 external-team dependencies, releases and dates. There are three views over the
 same data: **Dependency map** (the main one), **Grid** (spreadsheet editing)
-and **Gantt**. Plans, every version and a field-level change log live in one
-SQLite file.
+and **Gantt**, plus a **Releases** tab with a page per release. Plans, every
+version and a field-level change log live in one SQLite file.
 
 It must run on air-gapped and classified networks. That drives most of the
 rules below.
@@ -92,8 +92,8 @@ banner comments (`// ===== storage`, `// ===== views`, `// ----- grid`,
 
 Render pipeline: `mut(fn)` → `render()` → `recalc()`, which calls `compute()`,
 `relStats()`, `calc()` and `fltSet()` and fills `C`. Then come
-`renderStats()`, `renderRels()`, `renderView()` (`renderBoard` /
-`renderGrid` / `renderGantt`) and `renderDrawer()`, and finally `save()`
+`renderStats()`, `renderRailRels()`, `renderView()` (`renderBoard` /
+`renderGrid` / `renderGantt` / `renderRelv`) and `renderDrawer()`, and finally `save()`
 (debounced autosave). `soft()` is the debounced version used while typing.
 
 Globals worth knowing:
@@ -101,7 +101,8 @@ Globals worth knowing:
 - `C`: computed results, rebuilt every render
 - `map` / `kids`: id lookup and children
 - `sel` / `selRel`: what's open in the editor
-- `view`: the current view
+- `view`: the current view (`map`, `grid`, `gantt` or `rel`)
+- `relPage`: the release whose page is open in the Releases tab (`null` = the list)
 - `flt`: the status filter, stored per plan in localStorage
 - `cur`: the open plan's id and rev
 
