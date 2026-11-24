@@ -143,8 +143,19 @@ belongs there.
 
 ## Git
 
-- Branch: `feat/<issue>-short-name`, `fix/<issue>-short-name`,
-  `docs/...`.
+- **Every issue gets its own branch, made when work starts.** Before changing
+  anything, run:
+
+  ```sh
+  scripts/start-issue.sh <issue-number>          # or: ... <n> fix  /  ... <n> docs
+  ```
+
+  It creates `feat/<n>-<short-title>` from the latest `main`, links it to the
+  issue (shown under "Development" on the issue page), checks it out, and moves
+  the issue to *In progress* on the project board. If the branch already
+  exists, it switches to it instead. Never commit straight to `main`.
+- One issue per branch. If you find something else that needs doing, note it
+  in the PR description rather than fixing it on this branch.
 - Commits: short imperative subject ("Add status filter to all views").
 - PRs use `.github/pull_request_template.md` and say `Closes #<issue>`.
 - Never commit: `data/`, `.data-*/`, `backups/`, `*.db*`, `node_modules/`.
