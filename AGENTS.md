@@ -25,8 +25,9 @@ Deeper reading:
 ## Hard rules
 
 1. **No runtime dependencies.** `server.py` uses the Python 3.8+ standard
-   library only. `static/index.html` is plain HTML, CSS and JavaScript: no
-   frameworks, no npm packages, no build step, no CDN links, no web fonts, no
+   library only. The page (`static/index.html`, `static/app.css`,
+   `static/js/*.js`) is plain HTML, CSS and JavaScript: no frameworks, no npm
+   packages, no modules, no build step, no CDN links, no web fonts, no
    external images or scripts. It must work with no internet. Dev-only tooling
    under `tests/` is fine.
 2. **Never touch real data.** `data/` holds the owner's live `planner.db`. Don't
@@ -69,8 +70,8 @@ and `--data` folder. `.data-*` folders are gitignored.
    Node 18+). It starts its own server on a free port with a temp data folder.
    Extend it when you add a feature: one or two `ok(...)` lines that click
    through the new thing.
-3. Syntax check the page script:
-   `python3 -c "s=open('static/index.html').read();i=s.rfind('<script>');j=s.rfind('</script>');open('/tmp/p.js','w').write(s[i+8:j])" && node --check /tmp/p.js`
+3. Syntax check the page scripts:
+   `for f in static/js/*.js; do node --check "$f" || echo "FAILED: $f"; done`
 4. In a real browser, load the sample plan and check:
    - all three views
    - light and dark mode
@@ -79,16 +80,30 @@ and `--data` folder. `.data-*` folders are gitignored.
 
    For UI changes, attach a screenshot to the PR.
 
-jsdom gotcha: top-level `let`/`const` in the page script are not reachable from
+jsdom gotcha: top-level `let`/`const` in the page scripts are not reachable from
 test code. Drive the page through the DOM (clicks, `input`/`change` events).
 Editor fields record the undo snapshot on `focusin`, so call `.focus()` before
 changing a value.
 
 ## How the page is put together (short version)
 
-`static/index.html` is one file: markup, then CSS, then one `<script>` split by
-banner comments (`// ===== storage`, `// ===== views`, `// ----- grid`,
-`// ===== history`, `// ===== import`, `// ===== wiring`).
+`static/index.html` holds only the markup. Styles are in `static/app.css`.
+The script is split into classic `<script src>` files in `static/js/`, loaded
+in this order at the end of `index.html`:
+
+| File | What's there |
+|---|---|
+| `core.js` | constants, date helpers, model (`mk`, `sample`, `blank`, `norm`), `mut`/`undo`, `compute`, `relStats`, `calc`, `recalc`, status filter, `rowsVisible`, `focusSet` |
+| `board.js` | link routing, map (`renderBoard`), timeline, drawer editor, `render`/`soft`, actions, drag, toolbar handlers, and the views switch (`renderView`, `renderGantt`) |
+| `store.js` | `LS`, `Store`, autosave, conflict dialog, plan list, `boot` |
+| `grid.js` | Grid view |
+| `history.js` | History panel |
+| `import.js` | CSV and `.xlsx` import |
+| `wiring.js` | menus, filter menu, dialogs, rail, tabs; calls `boot()`. Must load last. |
+
+No modules and no bundler: every top-level name in every file is a shared
+global, as if it were one script. Relative paths only, so `file://` keeps
+working. A new file needs its own `<script src>` line in `index.html`.
 
 Render pipeline: `mut(fn)` → `render()` → `recalc()`, which calls `compute()`,
 `relStats()`, `calc()` and `fltSet()` and fills `C`. Then come
@@ -114,7 +129,13 @@ belongs there.
 - **Global, short CSS class names collide.** Before adding a class, grep for it
   (`.ms` clashed and became `.mk`; `.top` clashed and became `.up`/`.lo`).
 - **Order of `const` declarations matters** (temporal dead zone). `board`,
-  `grid`, `views` and `dr` are declared together near the top for this reason.
+  `grid`, `views` and `dr` are declared together near the top of `core.js` for
+  this reason. The same goes across files: code that runs at load time (not
+  inside a function) can only use names from its own file or an earlier one.
+- **Top-level names are shared across all `static/js/` files.** A `const` or
+  `let` name used again in another file is a SyntaxError that stops the later
+  file from loading; two `function`s with the same name silently override each
+  other. Grep `static/js/` before adding a top-level name.
 - **Event handlers on `#views` must ignore events from `#gridv` and from
   detached targets** (`if(!e.target.isConnected||e.target.closest('#gridv'))return;`).
   Re-renders replace `innerHTML`, so a click can land on a node that no longer
@@ -127,9 +148,8 @@ belongs there.
   (see DECISIONS).
 - **The map's link routing is deliberate.** A lanes/casing redesign was tried
   and the owner rejected it. Leave routing alone unless an issue asks for it.
-- **`index.html` is large and one file.** Two agents editing it in parallel
-  will conflict. Keep PRs small and rebase often; see the "Split index.html"
-  item in the backlog.
+- **Several features share `board.js`.** Two agents editing the map or drawer
+  in parallel will still conflict there. Keep PRs small and rebase often.
 
 ## Working style
 

@@ -3,38 +3,8 @@
 Each item is written so it can be pasted into a GitHub issue as is. Suggested
 order is top to bottom. Finished items move to "Done" at the end.
 
-Several items change `static/index.html` in the same areas (toolbar, map), so
-run them one at a time, or do item 1 first.
-
----
-
-## 1. Split `index.html` into a few files (no visible change)
-
-**Why:** one 190 KB file means parallel agents in separate worktrees will
-conflict on almost every PR.
-
-**Do:**
-- Move the CSS to `static/app.css`.
-- Move the script to a handful of plain `<script src>` files in
-  `static/js/`. Suggested split, following the existing banner comments:
-  - `core.js`: constants, model, `compute`/`calc`, filter
-  - `board.js`: map, timeline, drawer
-  - `store.js`: storage and plans
-  - `grid.js`
-  - `history.js`
-  - `import.js`
-  - `wiring.js`
-- No modules and no bundler: classic scripts loaded in order, sharing
-  globals as they do today.
-- The page must still work from `file://` (relative paths only).
-- `server.py` already serves any file under `static/`. Check the content
-  types for `.css` and `.js`.
-
-**Done when:**
-- The app behaves identically.
-- Both test suites pass.
-- The Docker image still builds.
-- AGENTS.md and ARCHITECTURE.md are updated with the new layout.
+Several items change the same areas (toolbar, map) in `static/js/board.js`, so
+run them one at a time or rebase often.
 
 ---
 
@@ -165,6 +135,9 @@ and undo works.
 - **Status filter on all three views** (Nov 2026). Filter menu, presets, a
   "Showing X of Y" summary, closed-up empty steps on the map, and the open
   item kept visible.
+- **Split `index.html` into a few files** (Nov 2026). Styles in
+  `static/app.css`, the script in classic `<script src>` files under
+  `static/js/`. No visible change.
 - **One toolbar row above the view, a single Add menu, and a Releases tab**
   (Nov 2026). The toolbar sits directly above the active view and scrolls
   sideways instead of wrapping; *Add ▾* replaces the four add buttons and

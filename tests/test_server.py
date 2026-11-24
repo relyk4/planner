@@ -94,6 +94,15 @@ class ServerTest(unittest.TestCase):
         self.assertEqual(code, 200)
         self.assertIn(b"<!DOCTYPE html>", body[:200])
 
+    def test_assets_are_served_with_types(self):
+        for path, ctype in (("/app.css", "text/css"), ("/js/core.js", "application/javascript"),
+                            ("/js/wiring.js", "application/javascript")):
+            with urllib.request.urlopen("http://127.0.0.1:%d%s" % (self.port, path), timeout=5) as r:
+                self.assertEqual(r.status, 200, path)
+                self.assertEqual(r.headers.get_content_type(), ctype, path)
+        code, _ = self.call("GET", "/js/missing.js")
+        self.assertEqual(code, 404)
+
     def test_no_path_traversal(self):
         code, _ = self.call("GET", "/../server.py")
         self.assertEqual(code, 404)

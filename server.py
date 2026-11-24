@@ -423,7 +423,10 @@ def main():
     CFG["data"] = os.path.abspath(a.data)
     CFG["coalesce"] = a.coalesce
     init_db()
+    # Pin these: on Windows the registry can map them to text/plain, and
+    # browsers refuse a stylesheet served as text/plain.
     mimetypes.add_type("application/javascript", ".js")
+    mimetypes.add_type("text/css", ".css")
     srv = ThreadingHTTPServer((a.host, a.port), Api)
     shown = "localhost" if a.host in ("127.0.0.1", "0.0.0.0") else a.host
     print("Planner %s running at http://%s:%d  (data: %s)" % (VERSION, shown, a.port, CFG["data"]), flush=True)

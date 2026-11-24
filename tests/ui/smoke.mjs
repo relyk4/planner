@@ -22,16 +22,19 @@ const ok = (cond, msg) => {console.log((cond ? 'ok   ' : 'FAIL ') + msg); if (!c
 try {
   for (let i = 0; i < 50; i++) {try {await fetch(base + 'api/health'); break} catch {await sleep(100)}}
   const html = await (await fetch(base)).text();
-  const dom = new JSDOM(html, {url: base, runScripts: 'dangerously', pretendToBeVisual: true, beforeParse(w) {
+  // resources:'usable' makes jsdom fetch app.css and the js/*.js files from the server.
+  let loaded;
+  const dom = new JSDOM(html, {url: base, runScripts: 'dangerously', resources: 'usable', pretendToBeVisual: true, beforeParse(w) {
     w.ResizeObserver = class {observe() {}};
     w.Element.prototype.scrollIntoView = function () {};
     w.fetch = (u, o) => fetch(new URL(u, base), o);
     w.localStorage.setItem('planner.user', 'Smoke test');
+    w.addEventListener('error', e => errors.push(e.message));
+    w.onunhandledrejection = e => errors.push(String(e.reason && e.reason.stack || e.reason));
+    loaded = new Promise(r => w.addEventListener('load', r));
   }});
   const w = dom.window, d = w.document, $ = s => d.querySelector(s), $$ = s => [...d.querySelectorAll(s)];
-  w.addEventListener('error', e => errors.push(e.message));
-  w.onunhandledrejection = e => errors.push(String(e.reason && e.reason.stack || e.reason));
-  await sleep(1200);
+  await loaded; await sleep(1200);
   ok($('#conn').textContent.includes('local server'), 'page talks to the server');
 
   $('[data-m=sample]').click(); await sleep(800);
