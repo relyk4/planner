@@ -50,7 +50,7 @@ function renderStats(){
  renderFlt();
 }
 const PAL=['#2f6fdb','#0c8599','#7048e8','#c2255c','#f59f00','#2b8a3e','#5c940d','#9c36b5','#1098ad','#495057'],okc=v=>/^#[0-9a-fA-F]{6}$/.test(String(v??''))?String(v):'';
-const fcol=n=>{const f=n.type==='feat'?n:n.type==='task'?map[n.parent]:null;return f&&okc(f.color)};
+const fcol=n=>{const f=n.type==='feat'?n:n.type==='obj'?null:map[n.parent]?.type==='feat'?map[n.parent]:null;return f&&okc(f.color)};
 const fcs=n=>{const c=fcol(n);return c?`<i class="fcs ${n.type}" style="background:${c}"></i>`:''};
 const featsOf=o=>(kids[o.id]||[]).filter(f=>f.type==='feat');
 const featDone=f=>{const ts=tasksUnder(f);return ts.length>0&&ts.every(t=>t.status==='done')};
@@ -84,7 +84,7 @@ function renderTimeline(rows,W,LW,full){
  const tx=X(T)+ppd/2;gl+=`<i class="tlt" style="left:${tx-1}px" title="Today, ${fd(T)}"></i>`;
  const tipD=(l,v)=>v?`${l} ${fd(dn(v))}`:'';
  list.forEach((n,i)=>{
-  const y=i*RH2,lvl=n.type==='obj'||n.type==='ms'||n.type==='ext'?0:n.type==='feat'?1:2,cd=esc(C.lbl[n.id]);
+  const y=i*RH2,lvl=lvlOf(n),cd=esc(C.lbl[n.id]);
   const ic=n.type==='task'?`<span class="dot ${C.eff[n.id]}" style="margin:0 2px 0 6px;width:9px;height:9px"></span>`:n.type==='ms'?`<span class="dia ${C.eff[n.id]}" style="margin:0 4px 0 8px;width:8px;height:8px"></span>`:n.type==='ext'?`<span class="xq ${C.eff[n.id]}" style="margin:0 4px 0 6px;width:10px;height:10px"></span>`:'';
   lab+=`<div class="tlrow"><div class="tll ${n.type}" data-id="${n.id}" style="width:${LW}px;padding-left:${6+lvl*14}px">${fcs(n)}${ic}<span class="cd${idk(n.id)}">${cd}</span><span class="nm">${esc(n.name)||'Untitled'}</span></div></div>`;
   const f=C.df[n.id]||{};
@@ -143,7 +143,7 @@ function renderBoard(){
  const rows=rowsVisible(),TL=renderTimeline(rows,W,LW),H=Math.max(rows.length,1)*RH,F=focusSet(),rx=selRel&&C.rel.find(x=>x.r.id===selRel);
  const ri={};rows.forEach((r,i)=>ri[r.id]=i);const kinds=rows.map(r=>r.type),occ=[];
  const free=(r,x,w)=>{const o=occ[r];return !o||x+w/2+3<o[0]||x-w/2-3>o[1]};
- const anc=id=>{if(id in ri)return ri[id];const n=map[id];if(!n)return -1;if(n.type==='ms')return ri.__ms??-1;if(n.type==='ext')return ri.__ext??-1;let p=map[n.parent];while(p&&!(p.id in ri))p=map[p.parent];return p?ri[p.id]:-1};
+ const anc=id=>{if(id in ri)return ri[id];const n=map[id];if(!n)return -1;if(n.type==='ms'&&!n.parent)return ri.__ms??-1;if(n.type==='ext'&&!n.parent)return ri.__ext??-1;let p=map[n.parent];while(p&&!(p.id in ri))p=map[p.parent];return p?ri[p.id]:-1};
  const per=Array(N+2).fill(0),lateS=Array(N+2).fill(0);C.order.forEach(t=>{if(FV&&!FV.has(t.id))return;per[C.step[t.id]]++;const f=C.df[t.id];if(f.ls||f.od)lateS[C.step[t.id]]++});
  const grpIn=it=>!F||tasksUnder(it).some(t=>F.has(t.id));
  const cy=i=>i*RH+RH/2;
@@ -155,15 +155,16 @@ function renderBoard(){
  const xMark=(x,i,bar)=>{ptM(x.id,i);const g=C.step[x.id],ef=C.eff[x.id],f=C.df[x.id]||{},dm=F&&!F.has(x.id)?' dim':'',cls=[ef,lateHeld(x.id)?'lchain':'',f.od?'late':'',critOn&&C.crit.has(x.id)?'crit':'',sel===x.id?'on':''].join(' ');const tip=`${esc(C.lbl[x.id])} ${esc(x.name)}${x.team?' ('+esc(x.team)+')':''}: ${LBL[ef]}${x.due?', expected '+fd(dn(x.due)):''}`;return (bar&&g>0?`<div class="xb ${ef}${dm}" data-id="${x.id}" title="${tip}" style="left:0;width:${Math.max(0,bx(g)-12*zf)}px;top:${cy(i)-4*zf}px"></div>`:'')+`<div class="xk ${cls}${dm}" data-id="${x.id}" title="${tip}${x.gate?`, pinned to ${gateTxt(g)}`:''}. Drag to move" style="left:${bx(g)-9*zf}px;top:${cy(i)-9*zf}px"></div>`};
  rows.forEach((it,i)=>{
   const y=i*RH;
-  if(it.type==='exth'){BG+=`<div class="rbg exth" style="top:${y}px;height:${RH}px"></div>`;const xd=C.exts.filter(x=>C.done(x.id)).length;L+=`<div class="lr exth" data-tog="__ext" role="button" tabindex="0" aria-expanded="${!S.extCollapsed}" style="height:${RH}px;padding-left:4px"><span class="car" aria-hidden="true">${S.extCollapsed?'▸':'▾'}</span><span class="nm">External dependencies</span><span class="ow">${xd} of ${C.exts.length} delivered</span></div>`;if(S.extCollapsed)C.exts.filter(x=>!FV||FV.has(x.id)).forEach(x=>B+=xMark(x,i,false));return}
+  // Section headers count and, when collapsed, mark only the items in their section (not those shown under an objective or feature).
+  if(it.type==='exth'){BG+=`<div class="rbg exth" style="top:${y}px;height:${RH}px"></div>`;const xs=C.exts.filter(x=>!x.parent),xd=xs.filter(x=>C.done(x.id)).length;L+=`<div class="lr exth" data-tog="__ext" role="button" tabindex="0" aria-expanded="${!S.extCollapsed}" style="height:${RH}px;padding-left:4px"><span class="car" aria-hidden="true">${S.extCollapsed?'▸':'▾'}</span><span class="nm">External dependencies</span><span class="ow">${xd} of ${xs.length} delivered</span></div>`;if(S.extCollapsed)xs.filter(x=>!FV||FV.has(x.id)).forEach(x=>B+=xMark(x,i,false));return}
   BG+=`<div class="rbg ${it.type}" style="top:${y}px;height:${RH}px"></div>`;
   if(it.type==='msh'){
-   const mr=C.mss.filter(m=>C.done(m.id)).length;
-   L+=`<div class="lr msh" data-tog="__ms" role="button" tabindex="0" aria-expanded="${!S.msCollapsed}" style="height:${RH}px;padding-left:4px"><span class="car" aria-hidden="true">${S.msCollapsed?'▸':'▾'}</span><span class="nm">Milestones</span><span class="ow">${mr} of ${C.mss.length} reached</span></div>`;
-   if(S.msCollapsed)C.mss.filter(m=>!FV||FV.has(m.id)).forEach(m=>B+=msMark(m,i));
+   const ms=C.mss.filter(m=>!m.parent),mr=ms.filter(m=>C.done(m.id)).length;
+   L+=`<div class="lr msh" data-tog="__ms" role="button" tabindex="0" aria-expanded="${!S.msCollapsed}" style="height:${RH}px;padding-left:4px"><span class="car" aria-hidden="true">${S.msCollapsed?'▸':'▾'}</span><span class="nm">Milestones</span><span class="ow">${mr} of ${ms.length} reached</span></div>`;
+   if(S.msCollapsed)ms.filter(m=>!FV||FV.has(m.id)).forEach(m=>B+=msMark(m,i));
    return;
   }
-  const lvl=it.type==='obj'||it.type==='ms'||it.type==='ext'?0:it.type==='feat'?1:2,cd=esc(C.lbl[it.id]);
+  const lvl=lvlOf(it),cd=esc(C.lbl[it.id]);
   const dim=(it.type==='task'||it.type==='ms'||it.type==='ext'?F&&!F.has(it.id):!grpIn(it))?' dim':'',on=sel===it.id?' on':'';
   const ef=C.eff[it.id],chn=(it.type==='task'||it.type==='ms'||it.type==='ext')&&held(it.id)?' chain':'';
   const relN=it.type==='task'?S.releases.find(r=>r.id===C.relOf[it.id])?.name:it.type==='feat'?S.releases.find(r=>r.id===it.rel)?.name:'';
@@ -179,6 +180,8 @@ function renderBoard(){
    B+=msMark(it,i)+dueTag(it,i,bx(C.step[it.id])+16*zf);
    const g=C.step[it.id];occ[i]=[bx(g)-10*zf,bx(g)+(it.due?110:10)*zf];G+=`<line class="g ${ef}${chn}${dim}" x1="${bx(g)}" y1="${cy(i)+D}" x2="${bx(g)}" y2="${H}"/>`;
   }else{
+   // Collapsed: milestones and externals shown under it put their markers on this row, as on a collapsed top section.
+   if(it.collapsed)placedIn(it).filter(n=>!FV||FV.has(n.id)).forEach(n=>B+=n.type==='ms'?msMark(n,i):xMark(n,i,false));
    const ts=tasksUnder(it);if(!ts.length)return;
    const ss=ts.map(t=>C.step[t.id]),a=Math.min(...ss),z=Math.max(...ss),d=ts.filter(t=>t.status==='done').length,h=Math.round(RH-20*zf);occ[i]=[bx(a-1)+P/2,bx(z)-P/2];
    const oc=it.type==='obj'?objCount(it):null;
@@ -310,12 +313,12 @@ function renderDrawer(){
   }else if(it.type==='ms'){
    const ls=C.links(it),dd=ls.filter(C.sat).length,ef=C.eff[it.id];
    h+=`<div class="info${held(it.id)?' blocked':''}"><b>Gate after step ${C.step[it.id]}</b>. ${ef==='reached'?(it.status==='done'?'Marked as reached':'Reached: every link is satisfied'):ls.length?`Open: ${dd} of ${ls.length} links satisfied`:'Open: add what it requires, or mark it reached'}.${ef==='reached'?'':heldTxt(heldBy(it.id))+lateTxt(it.id)}${C.crit.has(it.id)?'<br>On the critical path.':''}</div>
-   ${gateRow(it)}
+   ${gateRow(it)}${underRow(it)}
    <div class="two"><label class="f">Target<input id="f-target" data-f="target" value="${esc(it.target)}" placeholder="e.g. sprint 3 or a date"></label><label class="f">Reached<select id="f-status" data-f="status"><option value="todo"${it.status!=='done'?' selected':''}>When links are met</option><option value="done"${it.status==='done'?' selected':''}>Mark as reached</option></select></label></div>${msDates(it)}`+depBlock(it,'Requires');
   }else if(it.type==='ext'){
    const ef=C.eff[it.id],f=C.df[it.id]||{},g=C.step[it.id],out=C.succ[it.id]||[];
    h+=`<div class="info${ef==='blocked'?' blocked':''}"><b>${LBL[ef]}</b>${it.due?`. Expected ${fd(dn(it.due))}`:''}.${ef!=='delivered'?`<br>${out.length} ${out.length===1?'item waits':'items wait'} on this until it is delivered.`:''}${f.od?`<br><b class="ltc">Overdue by ${days(f.od)}</b>.`:''}${f.rk&&!f.their?`<br><b class="ltc">At risk:</b> ${rkTxt(f)}.`:''}${ef==='delivered'?'':heldTxt(heldBy(it.id))+lateTxt(it.id)}${C.crit.has(it.id)?'<br>On the critical path.':''}</div>
-   ${gateRow(it)}
+   ${gateRow(it)}${underRow(it)}
    <label class="f">Team<input id="f-team" data-f="team" value="${esc(it.team)}" placeholder="e.g. Platform team"></label>
    <div class="two"><label class="f">Status<select id="f-status" data-f="status">${XS.map(([v,l])=>`<option value="${v}"${it.status===v?' selected':''}>${l}</option>`).join('')}</select></label><label class="f">Expected date<input id="f-due" data-f="due" type="date" value="${esc(it.due)}"></label></div>
    <div class="two"><label class="f">Their ticket or link<input id="f-ref" data-f="ref" value="${esc(it.ref)}" placeholder="e.g. PLAT-412"></label><label class="f">Delivered on<input id="f-doneOn" data-f="doneOn" type="date" value="${esc(it.doneOn)}"></label></div>`+depBlock(it,'Needs from us first');
@@ -352,6 +355,11 @@ function moveRow(it){const s=C.step[it.id],mn=C.minOf(it.id),pin=it.earliest&&it
 const gateTxt=g=>g>0?'the gate after step '+g:'the gate before step 1',allowTxt=mn=>mn>0?'Its links allow '+gateTxt(mn):'Without the pin it would sit at the start';
 function gateRow(it){const g=C.step[it.id],mn=C.minOf(it.id),p=it.gate;
  return `<div class="acts" style="border:0;margin-top:8px;padding:0;align-items:center"><button class="btn" data-act="mvl"${g<=mn?' disabled':''}>Earlier gate</button><button class="btn" data-act="mvr">Later gate</button>${p?'<button class="btn" data-act="unpin">Reset to auto</button>':''}<span class="none">${p?(p>=mn?`Pinned to ${gateTxt(p)}. ${allowTxt(mn)}.`:`Pinned to ${gateTxt(p)}, but its links push it to ${gateTxt(mn)}.`):`At ${gateTxt(g)}, the earliest its links allow. Drag its marker on the map to pin it.`}</span></div>`}
+// "Show under" for milestones and externals: their top section, or any objective or feature. It only moves the row.
+function underRow(it){
+ const o=(n,pad)=>`<option value="${n.id}"${n.id===it.parent?' selected':''}>${pad}${esc(C.lbl[n.id])} ${esc(n.name)}</option>`;
+ return `<label class="f">Show under<select id="f-parent" data-f="parent"><option value="">${it.type==='ms'?'Milestones':'External dependencies'} section (top)</option>${(kids.root||[]).filter(n=>n.type==='obj').map(ob=>o(ob,'')+featsOf(ob).map(f=>o(f,'&nbsp;&nbsp;&nbsp;')).join('')).join('')}</select></label><p class="none" style="margin-top:4px">Only where its row is shown. It doesn't add links.</p>`;
+}
 function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>{t.hidden=true},4200)}
 function moveTo(id,tgt){
  const t=map[id];if(!t||t.type!=='task')return;const mn=C.minOf(id);
@@ -376,16 +384,19 @@ function addItem(type,parent){
 }
 function addRel(){const r={id:nid(),name:'R'+(S.releases.length+1),target:'',status:'planned',notes:''};view='rel';relPage=r.id;mut(()=>{S.releases.push(r);selRel=r.id;sel=null});const n=$('#f-name');if(n){n.focus();n.select()}}
 function del(id){
- const gone=new Set([id]);let ch=true;
- while(ch){ch=false;for(const i of S.items)if(i.parent&&gone.has(i.parent)&&!gone.has(i.id)){gone.add(i.id);ch=true}}
- mut(()=>{S.items=S.items.filter(i=>!gone.has(i.id));S.items.forEach(i=>i.deps=i.deps.filter(l=>!gone.has(l.id)));sel=null});
+ // Milestones and externals shown under a deleted objective or feature go back to their top section.
+ const gone=new Set([id]),back=new Set();let ch=true;
+ while(ch){ch=false;for(const i of S.items)if(i.parent&&gone.has(i.parent)&&!gone.has(i.id)){if(i.type==='ms'||i.type==='ext')back.add(i);else{gone.add(i.id);ch=true}}}
+ const bl=[...back],ms=bl.some(i=>i.type==='ms'),xs=bl.some(i=>i.type==='ext'),names=bl.map(i=>C.lbl[i.id]).join(', ');
+ mut(()=>{bl.forEach(i=>i.parent=null);if(ms)S.msCollapsed=false;if(xs)S.extCollapsed=false;S.items=S.items.filter(i=>!gone.has(i.id));S.items.forEach(i=>i.deps=i.deps.filter(l=>!gone.has(l.id)));sel=null});
+ if(bl.length)toast(`${names} ${bl.length===1?'was':'were'} shown under it and ${bl.length===1?'is':'are'} back in ${ms&&xs?'their sections':ms?'the Milestones section':'the External dependencies section'} at the top.`);
 }
 function move(id,dir){
  const it=map[id],sib=S.items.filter(i=>i.parent===it.parent&&i.type===it.type),o=sib[sib.indexOf(it)+dir];if(!o)return;
  mut(()=>{const a=S.items.indexOf(it),b=S.items.indexOf(o);S.items[a]=o;S.items[b]=it});
 }
 function go(id,from){
- const n=map[id];if(!n)return;if(n.type==='ms')S.msCollapsed=false;if(n.type==='ext')S.extCollapsed=false;let p=n;while(p&&(p=map[p.parent]))p.collapsed=false;
+ const n=map[id];if(!n)return;if(n.type==='ms'&&!n.parent)S.msCollapsed=false;if(n.type==='ext'&&!n.parent)S.extCollapsed=false;let p=n;while(p&&(p=map[p.parent]))p.collapsed=false;
  sel=id;selRel=null;q='';render();reveal(id);
  if(from){const el=document.getElementById('dep-'+from);if(el){el.scrollIntoView({block:'center'});el.classList.add('flash')}}
 }
@@ -606,7 +617,9 @@ dr.addEventListener('change',e=>{
   if(it.type==='ext'){if(v==='delivered'){if(!it.doneOn)it.doneOn=td}else it.doneOn=''}
   if(it.type==='task'){if(v==='doing'){if(!it.startedOn)it.startedOn=td;it.doneOn=''}else if(v==='done'){if(!it.startedOn)it.startedOn=td;if(!it.doneOn)it.doneOn=td}else if(v==='todo'){it.startedOn='';it.doneOn=''}else it.doneOn=''}});
  else if(f==='rel')mut(()=>{it.rel=t.value});
- else if(f==='parent')mut(()=>{it.parent=t.value;S.items.splice(S.items.indexOf(it),1);S.items.push(it);map[t.value].collapsed=false});
+ else if(f==='parent'&&it.type==='task')mut(()=>{it.parent=t.value;S.items.splice(S.items.indexOf(it),1);S.items.push(it);map[t.value].collapsed=false});
+ // Milestones and externals keep their place in S.items, so their M#/X# code doesn't change.
+ else if(f==='parent')mut(()=>{const p=map[t.value];it.parent=p&&(p.type==='obj'||p.type==='feat')?p.id:null;if(!it.parent){if(it.type==='ms')S.msCollapsed=false;else S.extCollapsed=false}for(let a=p;a;a=map[a.parent])a.collapsed=false});
  else if(['earliest','blocker','due','startBy','startedOn','doneOn','color'].includes(f))render();
 });
 dr.addEventListener('click',e=>{

@@ -44,8 +44,9 @@ function cellHtml(it,k){
 }
 function gridRows(){
  const vis=rowsVisible(),res=[];
- const featOf=x=>x&&(x.type==='feat'?x:x.type==='task'?map[x.parent]:null);
- const objOf=x=>x&&(x.type==='obj'?x:x.type==='feat'?map[x.parent]:x.type==='task'?map[map[x.parent]?.parent]:null);
+ // A milestone or external shown under a feature or objective counts as part of that group, so the "+ Add" rows come after it.
+ const featOf=x=>x&&(x.type==='feat'?x:map[x.parent]?.type==='feat'?map[x.parent]:null);
+ const objOf=x=>x&&(x.type==='obj'?x:map[x.parent]?objOf(map[x.parent]):null);
  vis.forEach((r,i)=>{res.push(r);const nx=vis[i+1];
   const f=featOf(r);if(f&&!f.collapsed&&featOf(nx)!==f)res.push({add:'task',parent:f.id,lvl:2});
   const o=objOf(r);if(o&&!o.collapsed&&objOf(nx)!==o)res.push({add:'feat',parent:o.id,lvl:1});
@@ -58,7 +59,7 @@ function renderGrid(){
  const body=rows.map(r=>{
   if(r.add){const lab={task:'Add task',feat:'Add feature',obj:'Add objective'}[r.add];return `<tr class="addr"><td class="rn"></td><td class="nmc" data-add="${r.add}" data-p="${r.parent||''}" style="padding-left:${12+r.lvl*20}px">+ ${lab}</td><td colspan="${GCOLS.length-1}"></td></tr>`}
   if(r.type==='msh'||r.type==='exth'){const ms=r.type==='msh';return `<tr class="lane"><td class="rn"></td><td class="nmc" data-tog="${r.id}"><span class="gcar">${(ms?S.msCollapsed:S.extCollapsed)?'▸':'▾'}</span>${ms?'Milestones':'External dependencies'}</td><td colspan="${GCOLS.length-1}"><button class="glink" data-gadd="${ms?'ms':'ext'}">+ Add ${ms?'milestone':'external dependency'}</button></td></tr>`}
-  n++;const it=r,lvl=it.type==='obj'||it.type==='ms'||it.type==='ext'?0:it.type==='feat'?1:2;
+  n++;const it=r,lvl=lvlOf(it);
   const cells=GCOLS.map((c,ci)=>{
    const ed=canEdit(it,c.k),on=gsel&&gsel.id===it.id&&gsel.k===c.k;
    if(ci===0){const car=it.type==='obj'||it.type==='feat'?`<span class="gcar" data-tog="${it.id}">${it.collapsed?'▸':'▾'}</span>`:'<span class="gcar"></span>';
