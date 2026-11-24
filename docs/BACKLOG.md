@@ -8,20 +8,6 @@ run them one at a time or rebase often.
 
 ---
 
-## 3. Done work shows translucent green on the map
-
-**Do:**
-- Done task bars: green (`--ok`), slightly translucent, with text still
-  readable in light and dark mode.
-- The small status dot next to a done task is solid green.
-- The legend matches.
-- Other states are unchanged.
-
-**Done when:** done work reads as clearly finished at a glance, and contrast
-is still acceptable for the bar text.
-
----
-
 ## 4. Full screen and zoom for the dependency map
 
 **Do:**
@@ -143,3 +129,7 @@ and undo works.
   sideways instead of wrapping; *Add ▾* replaces the four add buttons and
   works with the keyboard. Releases moved off the plan page into their own
   tab, with a page per release, linked from the sidebar.
+- **Done work shows translucent green on the map** (Nov 2026). Done task
+  bars are a see-through green tint with a green outline and dark text (light
+  mode) or light text (dark mode); the status dot next to a done task is solid
+  green everywhere it appears, and the legend matches.
