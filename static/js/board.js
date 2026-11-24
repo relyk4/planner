@@ -84,9 +84,9 @@ function renderTimeline(rows,W,LW,full){
  const tx=X(T)+ppd/2;gl+=`<i class="tlt" style="left:${tx-1}px" title="Today, ${fd(T)}"></i>`;
  const tipD=(l,v)=>v?`${l} ${fd(dn(v))}`:'';
  list.forEach((n,i)=>{
-  const y=i*RH2,lvl=n.type==='obj'||n.type==='ms'||n.type==='ext'?0:n.type==='feat'?1:2,cd=esc(C.code[n.id]);
+  const y=i*RH2,lvl=n.type==='obj'||n.type==='ms'||n.type==='ext'?0:n.type==='feat'?1:2,cd=esc(C.lbl[n.id]);
   const ic=n.type==='task'?`<span class="dot ${C.eff[n.id]}" style="margin:0 2px 0 6px;width:9px;height:9px"></span>`:n.type==='ms'?`<span class="dia ${C.eff[n.id]}" style="margin:0 4px 0 8px;width:8px;height:8px"></span>`:n.type==='ext'?`<span class="xq ${C.eff[n.id]}" style="margin:0 4px 0 6px;width:10px;height:10px"></span>`:'';
-  lab+=`<div class="tlrow"><div class="tll ${n.type}" data-id="${n.id}" style="width:${LW}px;padding-left:${6+lvl*14}px">${fcs(n)}${ic}<span class="cd">${cd}</span><span class="nm">${esc(n.name)||'Untitled'}</span></div></div>`;
+  lab+=`<div class="tlrow"><div class="tll ${n.type}" data-id="${n.id}" style="width:${LW}px;padding-left:${6+lvl*14}px">${fcs(n)}${ic}<span class="cd${idk(n.id)}">${cd}</span><span class="nm">${esc(n.name)||'Untitled'}</span></div></div>`;
   const f=C.df[n.id]||{};
   if(n.type==='task'){
    const sb=dn(n.startBy),du=dn(n.due),st=dn(n.startedOn),dd=dn(n.doneOn),done=n.status==='done',started=done||n.status==='doing'||st!==null;
@@ -95,13 +95,13 @@ function renderTimeline(rows,W,LW,full){
    if(a0!==null&&a1!==null&&a1>=a0){const c=done?'done':'prog';if(du!==null&&a1>du){if(du>=a0)segs.push([a0,du,c]);segs.push([Math.max(a0,du+1),a1,'over'])}else segs.push([a0,a1,c])}
    if(!started&&s0!==null&&T>s0)segs.push([s0,T,'ls']);
    const what=done?'Done':n.status==='doing'?'In progress':n.status==='blocked'?'Blocked':'Not started';
-   const tip=esc(`${C.code[n.id]} ${n.name}. ${what}. `+[tipD('Start by',n.startBy),tipD('due',n.due),tipD('started',n.startedOn),tipD('done',n.doneOn)].filter(Boolean).join(', ')+(f.od?`. ${days(f.od)} past due`:'')+(f.ls?`. Should have started ${days(f.ls)} ago`:''));
+   const tip=esc(`${C.lbl[n.id]} ${n.name}. ${what}. `+[tipD('Start by',n.startBy),tipD('due',n.due),tipD('started',n.startedOn),tipD('done',n.doneOn)].filter(Boolean).join(', ')+(f.od?`. ${days(f.od)} past due`:'')+(f.ls?`. Should have started ${days(f.ls)} ago`:''));
    const seg=(base)=>segs.map(([a,b,c])=>`<i class="sg ${c}" style="left:${X(a)-base}px;width:${Math.max(4,(b-a+1)*ppd)}px"></i>`).join('');
    if(s0!==null)bars+=`<div class="tk${n.status==='blocked'||C.eff[n.id]==='blocked'?' blk':''}" data-id="${n.id}" data-tdrag="${n.id}" title="${tip}" style="left:${X(s0)}px;width:${Math.max(6,(e0-s0+1)*ppd)}px;top:${y+6}px">${seg(X(s0))}<i class="th l" data-h="s"></i><i class="th r" data-h="e"></i></div>`;
    else if(segs.length)bars+=`<div class="tko" data-id="${n.id}" title="${tip}" style="left:0;top:${y+6}px">${seg(0)}</div>`;
   }else if(n.type==='ms'||n.type==='ext'){
    const d=dn(n.due),dd=n.type==='ext'&&n.status==='delivered'?dn(n.doneOn):null,cls=n.type==='ms'?'dia':'xq';
-   const tip=esc(`${C.code[n.id]} ${n.name}. ${LBL[C.eff[n.id]]}. ${[tipD(n.type==='ms'?'Due':'Expected',n.due),tipD('delivered',dd!==null?n.doneOn:'')].filter(Boolean).join(', ')}${f.od?`. ${days(f.od)} past due`:''}`);
+   const tip=esc(`${C.lbl[n.id]} ${n.name}. ${LBL[C.eff[n.id]]}. ${[tipD(n.type==='ms'?'Due':'Expected',n.due),tipD('delivered',dd!==null?n.doneOn:'')].filter(Boolean).join(', ')}${f.od?`. ${days(f.od)} past due`:''}`);
    if(d!==null&&dd!==null&&d!==dd)bars+=`<i class="tln" style="left:${X(Math.min(d,dd))+ppd/2}px;width:${Math.abs(dd-d)*ppd}px;top:${y+14}px"></i>`;
    if(d!==null)bars+=`<span class="tmk${f.od?' od':''}" data-id="${n.id}" data-tdrag="${n.id}" title="${tip}. Drag to change the date" style="left:${X(d)+ppd/2-8}px;top:${y+7}px"><span class="${cls} ${dd!==null?'':C.eff[n.id]}"></span></span>`;
    if(dd!==null)bars+=`<span class="tmk" data-id="${n.id}" title="${tip}" style="left:${X(dd)+ppd/2-8}px;top:${y+7}px"><span class="${cls} delivered"></span></span>`;
@@ -141,9 +141,9 @@ function renderBoard(){
  let L='',B='',BG='',E='',G='',T='';
  // Edge points per task, milestone and external, for the link handles (lkShow) and drop targets (lkHit).
  const pt={},ptM=(id,i)=>{const x=bx(C.step[id]);pt[id]={l:x-16*zf,r:x+16*zf,y:cy(i),h:20*zf,row:i}};
- const msMark=(m,i)=>{ptM(m.id,i);const g=C.step[m.id],ef=C.eff[m.id],cls=[ef,lateHeld(m.id)?'lchain':'',held(m.id)?'chain':'',C.df[m.id]?.od?'late':C.df[m.id]?.rk?'risk':'',critOn&&C.crit.has(m.id)?'crit':'',sel===m.id?'on':'',F&&!F.has(m.id)?'dim':''].join(' ');return `<div class="mk ${cls}" data-id="${m.id}" title="${esc(C.code[m.id])} ${esc(m.name)}: ${LBL[ef]}, gate after step ${g}${m.gate?' (pinned)':''}. Drag to move" style="left:${bx(g)-7.5*zf}px;top:${cy(i)-7.5*zf}px"></div>`};
+ const msMark=(m,i)=>{ptM(m.id,i);const g=C.step[m.id],ef=C.eff[m.id],cls=[ef,lateHeld(m.id)?'lchain':'',held(m.id)?'chain':'',C.df[m.id]?.od?'late':C.df[m.id]?.rk?'risk':'',critOn&&C.crit.has(m.id)?'crit':'',sel===m.id?'on':'',F&&!F.has(m.id)?'dim':''].join(' ');return `<div class="mk ${cls}" data-id="${m.id}" title="${esc(C.lbl[m.id])} ${esc(m.name)}: ${LBL[ef]}, gate after step ${g}${m.gate?' (pinned)':''}. Drag to move" style="left:${bx(g)-7.5*zf}px;top:${cy(i)-7.5*zf}px"></div>`};
  const dueTag=(n,i,x)=>{const f=C.df[n.id]||{},dl=n.type==='ext'&&n.status==='delivered'?(n.doneOn?'Delivered '+fd(dn(n.doneOn)):''):n.due?(n.type==='ext'?'Expected ':'Due ')+fd(dn(n.due)):'';return dl?`<span class="xd${f.od?' late':''}" style="left:${x}px;top:${cy(i)-9*zf}px">${dl}</span>`:''};
- const xMark=(x,i,bar)=>{ptM(x.id,i);const g=C.step[x.id],ef=C.eff[x.id],f=C.df[x.id]||{},dm=F&&!F.has(x.id)?' dim':'',cls=[ef,lateHeld(x.id)?'lchain':'',f.od?'late':'',critOn&&C.crit.has(x.id)?'crit':'',sel===x.id?'on':''].join(' ');const tip=`${esc(C.code[x.id])} ${esc(x.name)}${x.team?' ('+esc(x.team)+')':''}: ${LBL[ef]}${x.due?', expected '+fd(dn(x.due)):''}`;return (bar&&g>0?`<div class="xb ${ef}${dm}" data-id="${x.id}" title="${tip}" style="left:0;width:${Math.max(0,bx(g)-12*zf)}px;top:${cy(i)-4*zf}px"></div>`:'')+`<div class="xk ${cls}${dm}" data-id="${x.id}" title="${tip}${x.gate?`, pinned to ${gateTxt(g)}`:''}. Drag to move" style="left:${bx(g)-9*zf}px;top:${cy(i)-9*zf}px"></div>`};
+ const xMark=(x,i,bar)=>{ptM(x.id,i);const g=C.step[x.id],ef=C.eff[x.id],f=C.df[x.id]||{},dm=F&&!F.has(x.id)?' dim':'',cls=[ef,lateHeld(x.id)?'lchain':'',f.od?'late':'',critOn&&C.crit.has(x.id)?'crit':'',sel===x.id?'on':''].join(' ');const tip=`${esc(C.lbl[x.id])} ${esc(x.name)}${x.team?' ('+esc(x.team)+')':''}: ${LBL[ef]}${x.due?', expected '+fd(dn(x.due)):''}`;return (bar&&g>0?`<div class="xb ${ef}${dm}" data-id="${x.id}" title="${tip}" style="left:0;width:${Math.max(0,bx(g)-12*zf)}px;top:${cy(i)-4*zf}px"></div>`:'')+`<div class="xk ${cls}${dm}" data-id="${x.id}" title="${tip}${x.gate?`, pinned to ${gateTxt(g)}`:''}. Drag to move" style="left:${bx(g)-9*zf}px;top:${cy(i)-9*zf}px"></div>`};
  rows.forEach((it,i)=>{
   const y=i*RH;
   if(it.type==='exth'){BG+=`<div class="rbg exth" style="top:${y}px;height:${RH}px"></div>`;const xd=C.exts.filter(x=>C.done(x.id)).length;L+=`<div class="lr exth" data-tog="__ext" role="button" tabindex="0" aria-expanded="${!S.extCollapsed}" style="height:${RH}px;padding-left:4px"><span class="car" aria-hidden="true">${S.extCollapsed?'▸':'▾'}</span><span class="nm">External dependencies</span><span class="ow">${xd} of ${C.exts.length} delivered</span></div>`;if(S.extCollapsed)C.exts.filter(x=>!FV||FV.has(x.id)).forEach(x=>B+=xMark(x,i,false));return}
@@ -154,16 +154,16 @@ function renderBoard(){
    if(S.msCollapsed)C.mss.filter(m=>!FV||FV.has(m.id)).forEach(m=>B+=msMark(m,i));
    return;
   }
-  const lvl=it.type==='obj'||it.type==='ms'||it.type==='ext'?0:it.type==='feat'?1:2,cd=esc(C.code[it.id]);
+  const lvl=it.type==='obj'||it.type==='ms'||it.type==='ext'?0:it.type==='feat'?1:2,cd=esc(C.lbl[it.id]);
   const dim=(it.type==='task'||it.type==='ms'||it.type==='ext'?F&&!F.has(it.id):!grpIn(it))?' dim':'',on=sel===it.id?' on':'';
   const ef=C.eff[it.id],chn=(it.type==='task'||it.type==='ms'||it.type==='ext')&&held(it.id)?' chain':'';
   const relN=it.type==='task'?S.releases.find(r=>r.id===C.relOf[it.id])?.name:it.type==='feat'?S.releases.find(r=>r.id===it.rel)?.name:'';
   const icon=it.type==='task'?`<span class="dot ${ef}${lateHeld(it.id)?' lchain':''}${chn}" title="${LBL[ef]}${lateHeld(it.id)?', held up by overdue work':''}"></span>`:it.type==='ms'?`<span class="dia ${ef}${chn}" title="${LBL[ef]}"></span>`:it.type==='ext'?`<span class="xq ${ef}" title="${LBL[ef]}"></span>`:`<button class="car" data-tog="${it.id}" aria-expanded="${!it.collapsed}" aria-label="${it.collapsed?'Expand':'Collapse'} ${cd}">${it.collapsed?'▸':'▾'}</button>`;
-  L+=`<div class="lr ${it.type}${on}${dim}" data-id="${it.id}" role="button" tabindex="0" style="height:${RH}px;padding-left:${(4+lvl*(W<600?10:18))*zf}px">${fcs(it)}${icon}<span class="cd">${cd}</span>${it.key?`<span class="ky">${esc(it.key)}</span>`:''}<span class="nm">${esc(it.name)||'Untitled'}</span>${relN&&(it.type==='feat'||it.rel)?`<i class="rp" title="Release: ${esc(relN)}">${esc(relN)}</i>`:''}${it.type==='ext'&&!C.df[it.id]?.od&&C.df[it.id]?.their?'':latePill(it.id)}${it.type==='task'&&it.due&&it.status!=='done'&&!latePill(it.id)?`<span class="du" title="Due">${fd(dn(it.due))}</span>`:''}${it.type==='ext'?`${it.team?`<i class="rp" title="External team">${esc(it.team)}</i>`:''}<span class="ow">${LBL[ef]}</span>`:it.type==='ms'?(it.target?`<span class="ow">${esc(it.target)}</span>`:''):it.owner?`<span class="ow">${esc(it.owner)}</span>`:''}</div>`;
+  L+=`<div class="lr ${it.type}${on}${dim}" data-id="${it.id}" role="button" tabindex="0" style="height:${RH}px;padding-left:${(4+lvl*(W<600?10:18))*zf}px">${fcs(it)}${icon}<span class="cd${idk(it.id)}">${cd}</span>${it.key&&!(S.itemIds==='key'&&(it.type==='feat'||it.type==='task'))?`<span class="ky">${esc(it.key)}</span>`:''}<span class="nm">${esc(it.name)||'Untitled'}</span>${relN&&(it.type==='feat'||it.rel)?`<i class="rp" title="Release: ${esc(relN)}">${esc(relN)}</i>`:''}${it.type==='ext'&&!C.df[it.id]?.od&&C.df[it.id]?.their?'':latePill(it.id)}${it.type==='task'&&it.due&&it.status!=='done'&&!latePill(it.id)?`<span class="du" title="Due">${fd(dn(it.due))}</span>`:''}${it.type==='ext'?`${it.team?`<i class="rp" title="External team">${esc(it.team)}</i>`:''}<span class="ow">${LBL[ef]}</span>`:it.type==='ms'?(it.target?`<span class="ow">${esc(it.target)}</span>`:''):it.owner?`<span class="ow">${esc(it.owner)}</span>`:''}</div>`;
   if(it.type==='task'){
    const s=C.step[it.id],h=Math.round(RH-14*zf);occ[i]=[bx(s-1)+P,bx(s)-P];pt[it.id]={l:bx(s-1)+P,r:bx(s)-P,y:cy(i),h,row:i};const ext=rx&&F&&F.has(it.id)&&!rx.ids.has(it.id)?'ext':'';
    const df=C.df[it.id]||{},cls=[ef,lateHeld(it.id)?'lchain':'',chn,C.warn[it.id]?'warn':'',df.ls?'lstart':'',df.od?'over':df.rk?'risk':'',critOn&&C.crit.has(it.id)?'crit':'',ext,on,dim].join(' ');
-   B+=`<div class="b ${cls}" data-id="${it.id}" title="${cd} ${esc(it.name)}: ${LBL[ef]}${relN?', '+esc(relN):''}${C.warn[it.id]?'. Status breaks a link':''}${dateTip(it.id)}" style="${fcol(it)?`--fc:inset 0 4px 0 ${fcol(it)};`:''}left:${bx(s-1)+P}px;top:${y+7*zf}px;width:${CW-2*P}px;height:${h}px;line-height:${h-3}px"><span class="cd">${cd}</span>${esc(it.name)}</div>`;
+   B+=`<div class="b ${cls}" data-id="${it.id}" title="${cd} ${esc(it.name)}: ${LBL[ef]}${relN?', '+esc(relN):''}${C.warn[it.id]?'. Status breaks a link':''}${dateTip(it.id)}" style="${fcol(it)?`--fc:inset 0 4px 0 ${fcol(it)};`:''}left:${bx(s-1)+P}px;top:${y+7*zf}px;width:${CW-2*P}px;height:${h}px;line-height:${h-3}px"><span class="cd${idk(it.id)}">${cd}</span>${esc(it.name)}</div>`;
   }else if(it.type==='ext'){
    B+=xMark(it,i,true)+dueTag(it,i,bx(C.step[it.id])+16*zf);occ[i]=[0,bx(C.step[it.id])+150*zf];
   }else if(it.type==='ms'){
@@ -188,7 +188,7 @@ function renderBoard(){
   const [pa,pts]=poly(route(a,b,((m-1)%5)*2,RH,D));
   const bk=l.st==='blocked'||(!C.sat(l)&&C.eff[l.id]==='blocked'),sat=!bk&&C.sat(l),ov=!bk&&!sat&&!!C.df[l.id]?.od;
   const dim=F&&!(inF(l.id)&&inF(n.id))?' dim':'',cls=`${l.type}${bk?' bk':''}${sat?' sat':''}${ov?' ovd':''}${dim}`;
-  const tip=`${C.code[l.id]} → ${C.code[n.id]}: ${TYPES[l.type]}${l.lag?`, lag ${lagTxt(l)}`:''}, ${linkState(l)}${ov?`, ${C.code[l.id]} is overdue`:''}`;
+  const tip=`${C.lbl[l.id]} → ${C.lbl[n.id]}: ${TYPES[l.type]}${l.lag?`, lag ${lagTxt(l)}`:''}, ${linkState(l)}${ov?`, ${C.lbl[l.id]} is overdue`:''}`;
   if(critOn&&(n.type==='feat'?tasksUnder(n).some(t=>C.critE.has(l.id+'>'+t.id)):C.critE.has(l.id+'>'+n.id)))E=`<path class="e u${dim}" d="${pa}"/>`+E;
   E+=`<path class="e ${cls}" d="${pa}" marker-end="url(#m${bk?'bk':sat?'ok':ov?'ovd':l.type})"><title>${esc(tip)}</title></path>`;
   if(tagsOn){const tx=l.st==='blocked'?tag(l):l.type+lagTxt(l),w=(tx.length*8+10)*zf,[x0,y]=tagAt(pts,w,RH,kinds,free),x=Math.max(w/2+3-X0,x0);T+=`<span class="tp lk ${cls}" data-lk="${n.id}" data-from="${l.id}" title="${esc(tip)}" style="left:${x}px;top:${y}px">${esc(tx)}</span>`}
@@ -222,17 +222,19 @@ function msDates(it){
  return `<label class="f">Due date<input id="f-due" data-f="due" type="date" value="${esc(it.due)}"></label>${l.length?`<p class="dsay">${l.join('<br>')}</p>`:''}`;
 }
 function calForm(){
- return `<div class="dh"><span>Status date</span><button class="x" data-act="close" aria-label="Close editor">×</button></div>
- <p class="dsay" style="margin-top:0">Late starts, overdue work and risks are worked out as of this date.</p>
- <label class="f">Status date<input id="c-asof" data-cf="asof" type="date" value="${esc(S.cal.asof)}"></label><p class="none" style="margin-top:4px">Leave it blank to use today, ${fd(dn(todayIso()))}.</p>`;
+ const k=S.itemIds==='key';
+ return `<div class="dh"><span>Plan settings</span><button class="x" data-act="close" aria-label="Close editor">×</button></div>
+ <p class="dsay" style="margin-top:0">Late starts, overdue work and risks are worked out as of the status date.</p>
+ <label class="f">Status date<input id="c-asof" data-cf="asof" type="date" value="${esc(S.cal.asof)}"></label><p class="none" style="margin-top:4px">Leave it blank to use today, ${fd(dn(todayIso()))}.</p>
+ <label class="f">Item IDs<select id="c-ids" data-pf="itemIds"><option value="outline"${k?'':' selected'}>Outline numbers (1.2.3)</option><option value="key"${k?' selected':''}>Ticket keys (UDM-123)</option></select></label><p class="none" style="margin-top:4px">With ticket keys, features and tasks show their ticket key in place of the outline number. Ones without a key keep their number. Objectives, milestones and external items always keep theirs.</p>`;
 }
 function openCal(k){sel=null;selRel=null;calOpen=true;calStep=k||null;render();if(k){const el=document.getElementById('srow-'+k);if(el)el.scrollIntoView({block:'nearest'})}}
 const icon=d=>map[d].type==='feat'||map[d].type==='obj'?'':map[d].type==='ext'?`<span class="xq ${C.eff[d]}"></span>`:map[d].type==='ms'?`<span class="dia ${C.eff[d]}"></span>`:`<span class="dot ${C.eff[d]}"></span>`;
-const nameOf=d=>`${esc(C.code[d])} ${esc(map[d].name)}`;
+const nameOf=d=>`${esc(C.lbl[d])} ${esc(map[d].name)}`;
 const fchip=f=>`<span class="chip">${map[f].type==='ms'||map[f].type==='ext'?icon(f):''}<button class="lnk" data-go="${f}">${nameOf(f)}</button></span>`;
 const relOpts=(cur,first)=>first+S.releases.map(r=>`<option value="${r.id}"${cur===r.id?' selected':''}>${esc(r.name)||'Untitled release'}</option>`).join('');
 function sayLink(n,l){
- const me=esc(C.code[n.id]),it=esc(C.code[l.id]),lg=l.lag?`, ${l.lag>0?'plus':'minus'} ${Math.abs(l.lag)} ${Math.abs(l.lag)===1?'step':'steps'}`:'',pv=C.isX(l.id)?'is delivered':l.type[0]==='S'?'has started':'finishes';
+ const me=esc(C.lbl[n.id]),it=esc(C.lbl[l.id]),lg=l.lag?`, ${l.lag>0?'plus':'minus'} ${Math.abs(l.lag)} ${Math.abs(l.lag)===1?'step':'steps'}`:'',pv=C.isX(l.id)?'is delivered':l.type[0]==='S'?'has started':'finishes';
  if(n.type==='ms')return `${me} is reached only after ${it} ${pv}${lg}.`;
  if(n.type==='ext')return `${me} can be delivered only after ${it} ${pv}${lg}.`;
  const v=l.type[1]==='S'?'starts'+(l.type[0]==='S'&&!C.isX(l.id)?' once':' after'):'can finish only '+(l.type[0]==='S'&&!C.isX(l.id)?'once':'after');
@@ -240,20 +242,20 @@ function sayLink(n,l){
 }
 function depCard(n,l){
  const s=linkState(l),bk=l.st==='blocked';
- return `<div class="dep ${l.type}${bk?' bk':''}" id="dep-${l.id}"><div class="dtop">${icon(l.id)}<button class="lnk" data-go="${l.id}">${nameOf(l.id)}</button><i class="tp ${l.type}${bk?' bk':''}">${esc(l.type+lagTxt(l))}</i><span class="dst ${s.toLowerCase()}">${s}</span><button class="rm" data-rmdep="${l.id}" aria-label="Remove link to ${esc(C.code[l.id])}">×</button></div>
+ return `<div class="dep ${l.type}${bk?' bk':''}" id="dep-${l.id}"><div class="dtop">${icon(l.id)}<button class="lnk" data-go="${l.id}">${nameOf(l.id)}</button><i class="tp ${l.type}${bk?' bk':''}">${esc(l.type+lagTxt(l))}</i><span class="dst ${s.toLowerCase()}">${s}</span><button class="rm" data-rmdep="${l.id}" aria-label="Remove link to ${esc(C.lbl[l.id])}">×</button></div>
  <div class="drow"><label>Type<select id="lt-${l.id}" data-lk="${l.id}" data-lf="type">${Object.entries(TYPES).map(([k,v])=>`<option value="${k}"${l.type===k?' selected':''}>${k}: ${v}</option>`).join('')}</select></label><label>Lag<input id="lg-${l.id}" data-lk="${l.id}" data-lf="lag" type="number" min="-9" max="9" step="1" inputmode="numeric" value="${l.lag}"></label><label>Link status<select id="ls-${l.id}" data-lk="${l.id}" data-lf="st"><option value="auto"${bk?'':' selected'}>Automatic</option><option value="blocked"${bk?' selected':''}>Blocked</option></select></label></div>
  <p class="dsay">${sayLink(n,l)}</p>
  <label class="dnote" style="display:block;font-size:13px;font-weight:600">Note<input id="ln-${l.id}" data-lk="${l.id}" data-lf="note" value="${esc(l.note)}" placeholder="${bk?'What is blocking this handoff?':'Handoff details, ticket link'}"></label></div>`;
 }
 function pickList(it){
  const base=it.type==='feat'?tasksUnder(it).map(t=>t.id):[it.id],bs=new Set(base),down=downOf(base),ql=q.trim().toLowerCase();
- const list=[...C.mss,...C.exts,...C.order].filter(t=>t.id!==it.id&&!bs.has(t.id)&&(!ql||(C.code[t.id]+' '+t.name).toLowerCase().includes(ql)));
+ const list=[...C.mss,...C.exts,...C.order].filter(t=>t.id!==it.id&&!bs.has(t.id)&&(!ql||(C.lbl[t.id]+' '+C.code[t.id]+' '+t.name).toLowerCase().includes(ql)));
  if(!list.length)return '<p class="none" style="padding:8px 10px">Nothing matches.</p>';
- return list.map(t=>{const loop=down.has(t.id);return `<label class="pk${loop?' off':''}"><input type="checkbox" data-dep="${t.id}"${it.deps.some(l=>l.id===t.id)?' checked':''}${loop?' disabled':''}><span class="cd">${esc(C.code[t.id])}</span><span class="nm">${esc(t.name)}</span>${loop?'<em>would loop</em>':''}</label>`}).join('');
+ return list.map(t=>{const loop=down.has(t.id);return `<label class="pk${loop?' off':''}"><input type="checkbox" data-dep="${t.id}"${it.deps.some(l=>l.id===t.id)?' checked':''}${loop?' disabled':''}><span class="cd">${esc(C.lbl[t.id])}</span><span class="nm">${esc(t.name)}</span>${loop?'<em>would loop</em>':''}</label>`}).join('');
 }
 function depBlock(it,title){
  const ls=C.own(it),inh=it.type==='task'?C.links(it).filter(l=>!it.deps.includes(l)):[],out=C.succL[it.id]||[];
- return `<h3>${title} <span>${ls.length}</span></h3><div class="chips">${ls.map(l=>depCard(it,l)).join('')||(inh.length?'':'<p class="none">No dependencies.</p>')}</div>${inh.length?`<p class="none" style="margin-top:8px">From feature ${esc(C.code[it.parent])} (edit there):</p><div class="chips">${inh.map(l=>`<span class="chip">${icon(l.id)}<button class="lnk" data-go="${l.id}">${nameOf(l.id)}</button><i class="tp ${l.type}${l.st==='blocked'?' bk':''}">${esc(tag(l))}</i></span>`).join('')}</div>`:''}
+ return `<h3>${title} <span>${ls.length}</span></h3><div class="chips">${ls.map(l=>depCard(it,l)).join('')||(inh.length?'':'<p class="none">No dependencies.</p>')}</div>${inh.length?`<p class="none" style="margin-top:8px">From feature ${esc(C.lbl[it.parent])} (edit there):</p><div class="chips">${inh.map(l=>`<span class="chip">${icon(l.id)}<button class="lnk" data-go="${l.id}">${nameOf(l.id)}</button><i class="tp ${l.type}${l.st==='blocked'?' bk':''}">${esc(tag(l))}</i></span>`).join('')}</div>`:''}
  <label class="f">Add or remove links<input id="f-q" type="search" placeholder="Search tasks, milestones, external" value="${esc(q)}" autocomplete="off"></label><div id="pick" class="pick">${pickList(it)}</div><p class="none" style="margin-top:4px">New links start as FS. Change the type above.</p>
  ${it.type==='feat'?'':`<h3>Unlocks <span>${out.length}</span></h3>`}<div class="chips">${it.type==='feat'?'':out.map(({n,l})=>`<span class="chip">${icon(n.id)}<button class="lnk" data-go="${n.id}">${nameOf(n.id)}</button><i class="tp ${l.type}${l.st==='blocked'?' bk':''}" title="${TYPES[l.type]}">${esc(tag(l))}</i></span>`).join('')||(it.type==='feat'?'':'<p class="none">Nothing waits on this yet.</p>')}</div>`;
 }
@@ -279,19 +281,19 @@ function renderDrawer(){
   <div class="acts"><button class="btn" data-act="del-rel">Delete release</button></div>`;
  }else{
   const kind=KIND[it.type];
-  h=`<div class="dh"><span>${kind} ${esc(C.code[it.id]||'')}</span><button class="x" data-act="close" aria-label="Close editor">×</button></div>
+  h=`<div class="dh"><span>${kind} ${esc(C.lbl[it.id]||'')}</span><button class="x" data-act="close" aria-label="Close editor">×</button></div>
   <label class="f">Name<input id="f-name" data-f="name" value="${esc(it.name)}"></label>
   ${['task','feat','obj'].includes(it.type)?`<label class="f">Ticket key<input id="f-key" data-f="key" value="${esc(it.key||'')}" placeholder="e.g. UDM-1031"></label>`:''}
   <label class="f">${it.type==='ext'?'Contact':'Owner'}<input id="f-owner" data-f="owner" value="${esc(it.owner)}" placeholder="${it.type==='ext'?'Who to ask on their side':'Unassigned'}"></label>`;
   if(it.type==='task'){
    const s=C.step[it.id],ef=C.eff[it.id],ls=C.links(it);
    const sw=ls.filter(l=>l.type[1]==='S'&&!C.sat(l)),fw=ls.filter(l=>l.type[1]==='F'&&!C.sat(l)),bl=ls.filter(l=>l.st==='blocked');
-   const feats=S.items.filter(f=>f.type==='feat'&&C.code[f.id]).map(f=>`<option value="${f.id}"${f.id===it.parent?' selected':''}>${esc(C.code[f.id])} ${esc(f.name)}</option>`).join('');
+   const feats=S.items.filter(f=>f.type==='feat'&&C.lbl[f.id]).map(f=>`<option value="${f.id}"${f.id===it.parent?' selected':''}>${esc(C.lbl[f.id])} ${esc(f.name)}</option>`).join('');
    const frn=S.releases.find(r=>r.id===map[it.parent]?.rel)?.name;
    const w=C.warn[it.id]||[];
-   h+=`<div class="info ${ef}"><b>Step ${s} of ${C.N}</b>. ${LBL[ef]}${ef==='blocked'&&it.blocker.trim()?`: ${esc(it.blocker)}`:''}${bl.length?`<br>Blocked link${bl.length>1?'s':''}: ${bl.map(l=>`${esc(C.code[l.id])}${l.note?` (${esc(l.note)})`:''}`).join(', ')}`:''}${sw.length&&it.status!=='done'?`<br>Can't start until: ${sw.map(l=>esc(C.code[l.id])+' '+(C.isX(l.id)?'is delivered':l.type[0]==='S'?'starts':'finishes')).join(', ')}`:''}${fw.length&&it.status!=='done'?`<br>Can't finish until: ${fw.map(l=>esc(C.code[l.id])+' '+(C.isX(l.id)?'is delivered':l.type[0]==='S'?'starts':'finishes')).join(', ')}`:''}${ef==='done'?'':heldTxt(heldBy(it.id))+lateTxt(it.id)}${C.crit.has(it.id)?'<br>On the critical path.':''}</div>
+   h+=`<div class="info ${ef}"><b>Step ${s} of ${C.N}</b>. ${LBL[ef]}${ef==='blocked'&&it.blocker.trim()?`: ${esc(it.blocker)}`:''}${bl.length?`<br>Blocked link${bl.length>1?'s':''}: ${bl.map(l=>`${esc(C.lbl[l.id])}${l.note?` (${esc(l.note)})`:''}`).join(', ')}`:''}${sw.length&&it.status!=='done'?`<br>Can't start until: ${sw.map(l=>esc(C.lbl[l.id])+' '+(C.isX(l.id)?'is delivered':l.type[0]==='S'?'starts':'finishes')).join(', ')}`:''}${fw.length&&it.status!=='done'?`<br>Can't finish until: ${fw.map(l=>esc(C.lbl[l.id])+' '+(C.isX(l.id)?'is delivered':l.type[0]==='S'?'starts':'finishes')).join(', ')}`:''}${ef==='done'?'':heldTxt(heldBy(it.id))+lateTxt(it.id)}${C.crit.has(it.id)?'<br>On the critical path.':''}</div>
    ${moveRow(it)}
-   ${w.length?`<div class="warnbox">Status breaks ${w.length===1?'a link':w.length+' links'}: ${w.map(l=>`this is ${l.type[1]==='S'?'started':'done'} but ${esc(C.code[l.id])} has not ${l.type[0]==='S'?'started':'finished'} (${l.type})`).join('; ')}.</div>`:''}
+   ${w.length?`<div class="warnbox">Status breaks ${w.length===1?'a link':w.length+' links'}: ${w.map(l=>`this is ${l.type[1]==='S'?'started':'done'} but ${esc(C.lbl[l.id])} has not ${l.type[0]==='S'?'started':'finished'} (${l.type})`).join('; ')}.</div>`:''}
    <label class="f">Status<select id="f-status" data-f="status">${[['todo','Not started'],['doing','In progress'],['done','Done'],['blocked','Blocked']].map(([v,l])=>`<option value="${v}"${it.status===v?' selected':''}>${l}</option>`).join('')}</select></label>
    <label class="f">External blocker<input id="f-blocker" data-f="blocker" value="${esc(it.blocker)}" placeholder="Something outside this plan"></label>
    <label class="f">Feature<select id="f-parent" data-f="parent">${feats}</select></label>
@@ -344,16 +346,16 @@ function gateRow(it){const g=C.step[it.id],mn=C.minOf(it.id),p=it.gate;
 function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>{t.hidden=true},4200)}
 function moveTo(id,tgt){
  const t=map[id];if(!t||t.type!=='task')return;const mn=C.minOf(id);
- if(tgt<mn){toast(`${C.code[id]} can't move before step ${mn}: ${C.whyMin(id)}.`);render();return}
+ if(tgt<mn){toast(`${C.lbl[id]} can't move before step ${mn}: ${C.whyMin(id)}.`);render();return}
  if(tgt===C.step[id]&&(t.earliest||0)===(tgt>mn?tgt:0)){render();return}
  mut(()=>{t.earliest=tgt>mn?tgt:null});
- toast(tgt>mn?`${C.code[id]} pinned to step ${tgt}. Its links allow step ${mn}.`:`${C.code[id]} moved to step ${tgt}, the earliest its links allow.`);
+ toast(tgt>mn?`${C.lbl[id]} pinned to step ${tgt}. Its links allow step ${mn}.`:`${C.lbl[id]} moved to step ${tgt}, the earliest its links allow.`);
 }
 function moveGate(id,tgt){
  const n=map[id];if(!n||!C.isP(id))return;const mn=C.minOf(id),g=Math.max(tgt,mn),pin=g>mn?g:null;
  if(tgt===C.step[id]&&(n.gate||null)===pin){render();return}
  if((n.gate||null)!==pin)mut(()=>{n.gate=pin});else render();
- toast(tgt<mn?`${C.code[id]} snapped to ${gateTxt(mn)}, the earliest its links allow: ${C.whyMin(id)}.`:pin?`${C.code[id]} pinned to ${gateTxt(g)}. ${allowTxt(mn)}.`:`${C.code[id]} moved to ${gateTxt(g)}, the earliest its links allow.`);
+ toast(tgt<mn?`${C.lbl[id]} snapped to ${gateTxt(mn)}, the earliest its links allow: ${C.whyMin(id)}.`:pin?`${C.lbl[id]} pinned to ${gateTxt(g)}. ${allowTxt(mn)}.`:`${C.lbl[id]} moved to ${gateTxt(g)}, the earliest its links allow.`);
 }
 function addItem(type,parent){
  const it=mk(nid(),type,parent||null,{obj:'New objective',feat:'New feature',task:'New task',ms:'New milestone',ext:'New external dependency'}[type]);
@@ -387,18 +389,18 @@ function arm(b,label,fn){
 function csv(){
  const qv=v=>{v=String(v??'');return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
  const rn=id=>S.releases.find(r=>r.id===id)?.name||'';
- const dl=n=>C.links(n).map(l=>`${C.code[l.id]} ${tag(l)}${l.note?` (${l.note})`:''}`).join('; ');
- const ul=n=>(C.succL[n.id]||[]).map(({n:s,l})=>`${C.code[s.id]} ${tag(l)}`).join('; ');
+ const dl=n=>C.links(n).map(l=>`${C.lbl[l.id]} ${tag(l)}${l.note?` (${l.note})`:''}`).join('; ');
+ const ul=n=>(C.succL[n.id]||[]).map(({n:s,l})=>`${C.lbl[s.id]} ${tag(l)}`).join('; ');
  const flagT=f=>f.od?`Overdue ${days(f.od)}`:f.ls?`Late start ${days(f.ls)}`:f.their?'At risk (their call)':f.rk?`At risk: ${rkTxt(f)}`:'';
  const dcols=n=>{const f=C.df[n.id]||{};return [n.startBy||'',n.due,n.startedOn||'',n.doneOn||'',flagT(f)]};
- const out=[['WBS','Level','Name','Owner','Release','Target','Status','State','Step','Depends on (type, lag, status)','Unlocks','External blocker','Notes','Start by','Due','Started','Done','Date flag']];
- for(const m of C.mss)out.push([C.code[m.id],'Milestone',m.name,m.owner,'',m.target,m.status==='done'?'Marked reached':'Automatic',LBL[C.eff[m.id]],'after '+C.step[m.id],dl(m),ul(m),'',m.notes,...dcols(m)]);
- for(const x of C.exts)out.push([C.code[x.id],'External',x.name,x.owner,'',x.team,XSL[x.status],LBL[C.eff[x.id]],'after '+C.step[x.id],dl(x),ul(x),x.ref,x.notes,...dcols(x)]);
+ const out=[[S.itemIds==='key'?'ID':'WBS','Level','Name','Owner','Release','Target','Status','State','Step','Depends on (type, lag, status)','Unlocks','External blocker','Notes','Start by','Due','Started','Done','Date flag']];
+ for(const m of C.mss)out.push([C.lbl[m.id],'Milestone',m.name,m.owner,'',m.target,m.status==='done'?'Marked reached':'Automatic',LBL[C.eff[m.id]],'after '+C.step[m.id],dl(m),ul(m),'',m.notes,...dcols(m)]);
+ for(const x of C.exts)out.push([C.lbl[x.id],'External',x.name,x.owner,'',x.team,XSL[x.status],LBL[C.eff[x.id]],'after '+C.step[x.id],dl(x),ul(x),x.ref,x.notes,...dcols(x)]);
  for(const o of (kids.root||[]).filter(x=>x.type==='obj'))for(const it of [o,...(kids[o.id]||[]).filter(f=>f.type==='feat').flatMap(f=>[f,...(kids[f.id]||[]).filter(t=>t.type==='task')])]){
   const ts=tasksUnder(it),ss=ts.map(t=>C.step[t.id]),isT=it.type==='task';
-  out.push([C.code[it.id],KIND[it.type],it.name,it.owner,isT?rn(C.relOf[it.id]):it.type==='feat'?rn(it.rel):'','',isT?{todo:'Not started',doing:'In progress',done:'Done',blocked:'Blocked'}[it.status]:'',isT?LBL[C.eff[it.id]]:'',isT?C.step[it.id]:ss.length?Math.min(...ss)+'-'+Math.max(...ss):'',isT||it.type==='feat'?dl(it):'',isT?ul(it):'',it.blocker,it.notes,...(isT?dcols(it):['','','','',''])]);
+  out.push([C.lbl[it.id],KIND[it.type],it.name,it.owner,isT?rn(C.relOf[it.id]):it.type==='feat'?rn(it.rel):'','',isT?{todo:'Not started',doing:'In progress',done:'Done',blocked:'Blocked'}[it.status]:'',isT?LBL[C.eff[it.id]]:'',isT?C.step[it.id]:ss.length?Math.min(...ss)+'-'+Math.max(...ss):'',isT||it.type==='feat'?dl(it):'',isT?ul(it):'',it.blocker,it.notes,...(isT?dcols(it):['','','','',''])]);
  }
- for(const x of C.rel)out.push(['','Release',x.r.name,'',x.r.name,x.r.target,RST[x.r.status],`${x.done} of ${x.ts.length} done`,x.land||'',x.up.map(d=>C.code[d]).join('; '),'','',x.r.notes,'',x.r.due,'','',x.od?`Overdue ${days(x.od)}`:x.rk?`At risk: ${x.rk} due after release`:'']);
+ for(const x of C.rel)out.push(['','Release',x.r.name,'',x.r.name,x.r.target,RST[x.r.status],`${x.done} of ${x.ts.length} done`,x.land||'',x.up.map(d=>C.lbl[d]).join('; '),'','',x.r.notes,'',x.r.due,'','',x.od?`Overdue ${days(x.od)}`:x.rk?`At risk: ${x.rk} due after release`:'']);
  return out.map(r=>r.map(qv).join(',')).join('\n');
 }
 function ov(title,blurb,text,mode){
@@ -438,10 +440,10 @@ function lkShow(id){
  const p=geo.pt&&geo.pt[id],ch=grid.querySelector('.chart');if(!p||!ch){lkHide();return}
  if(lkHov&&lkHov.id===id&&lkHov.els[0].isConnected)return;
  lkHide();
- lkHov={id,els:['S','F'].map(s=>{const h=document.createElement('i');h.className='lkh';h.dataset.side=s;h.title=`Drag from the ${s==='S'?'start':'end'} of ${C.code[id]} onto another item to link them`;h.style.left=(s==='S'?p.l:p.r)+'px';h.style.top=p.y+'px';ch.appendChild(h);return h})};
+ lkHov={id,els:['S','F'].map(s=>{const h=document.createElement('i');h.className='lkh';h.dataset.side=s;h.title=`Drag from the ${s==='S'?'start':'end'} of ${C.lbl[id]} onto another item to link them`;h.style.left=(s==='S'?p.l:p.r)+'px';h.style.top=p.y+'px';ch.appendChild(h);return h})};
 }
 function lkHide(){if(lkHov){lkHov.els.forEach(h=>h.remove());lkHov=null}}
-const lkWhy=(a,b)=>map[b].deps.some(l=>l.id===a)?{tag:'Already linked',msg:`${C.code[b]} already depends on ${C.code[a]}. Change that link in ${C.code[b]}'s editor`}:downOf([b]).has(a)?{tag:'Would make a loop',msg:`${C.code[a]} already waits on ${C.code[b]}, so the link would make a loop`}:null;
+const lkWhy=(a,b)=>map[b].deps.some(l=>l.id===a)?{tag:'Already linked',msg:`${C.lbl[b]} already depends on ${C.lbl[a]}. Change that link in ${C.lbl[b]}'s editor`}:downOf([b]).has(a)?{tag:'Would make a loop',msg:`${C.lbl[a]} already waits on ${C.lbl[b]}, so the link would make a loop`}:null;
 function lkHit(x,y){
  const row=Math.floor(y/geo.RH);let id=null,bd=1e9;
  for(const k in geo.pt){const p=geo.pt[k];if(p.row!==row||k===ld.id||x<p.l-8||x>p.r+8)continue;const d=Math.abs(x-(p.l+p.r)/2);if(d<bd){bd=d;id=k}}
@@ -480,9 +482,9 @@ function lkEnd(cancel){
  if(!l.on)return;
  noClick=true;setTimeout(()=>{noClick=false},0);
  if(cancel||!map[l.id])return;
- const h=l.hit,a=C.code[l.id];
+ const h=l.hit,a=C.lbl[l.id];
  if(!h||!map[h.id]){toast(`To link ${a}, drop the arrow on a task, milestone or external item.`);return}
- const b=C.code[h.id];
+ const b=C.lbl[h.id];
  if(h.why){toast(`Can't link ${a} to ${b}: ${h.why.msg}.`);return}
  mut(()=>{map[h.id].deps.push(link(l.id,h.type));sel=h.id;selRel=null;q=''});
  const c=document.getElementById('dep-'+l.id);if(c){c.scrollIntoView({block:'center'});c.classList.add('flash');document.getElementById('lt-'+l.id)?.focus({preventScroll:true})}
@@ -518,7 +520,7 @@ function tdMove(e){
  if(!td)return;td.dx=e.clientX-td.x0;
  if(!td.on){if(Math.abs(td.dx)<4)return;td.on=true;try{td.el.setPointerCapture(td.pid)}catch(_){}td.el.classList.add('tdrag')}
  e.preventDefault();
- const [s,en]=tdRange(td),X=d=>(d-tlGeo.lo)*tlGeo.ppd,n=map[td.id],c=C.code[n.id];
+ const [s,en]=tdRange(td),X=d=>(d-tlGeo.lo)*tlGeo.ppd,n=map[td.id],c=C.lbl[n.id];
  if(td.mode==='d')td.el.style.left=(X(s)+tlGeo.ppd/2-7)+'px';else{td.el.style.left=X(s)+'px';td.el.style.width=Math.max(6,(en-s+1)*tlGeo.ppd)+'px'}
  tip(td.mode==='d'?`${c} ${n.type==='ext'?'expected':'due'} ${fd(s)}`:td.mode==='s'?`${c} start by ${fd(s)} (due ${fd(en)})`:td.mode==='e'?`${c} due ${fd(en)} (start by ${fd(s)})`:`${c} start by ${fd(s)}, due ${fd(en)}`);
 }
@@ -527,7 +529,7 @@ function tdEnd(cancel){
  if(!t.on){if(t.mode==='n')t.el.remove();return}
  noClick=true;setTimeout(()=>{noClick=false},0);
  if(cancel){$('#toast').hidden=true;render();return}
- const [s,en,D]=tdRange(t),n=map[t.id],c=C.code[n.id];
+ const [s,en,D]=tdRange(t),n=map[t.id],c=C.lbl[n.id];
  if(D===0&&t.mode!=='n'){$('#toast').hidden=true;render();return}
  mut(()=>{if(t.mode==='d')n.due=iso(s);else if(t.mode==='s')n.startBy=iso(s);else if(t.mode==='e')n.due=iso(en);else{n.startBy=iso(s);n.due=iso(en)}});
  toast(t.mode==='d'?`${c} ${n.type==='ext'?'expected':'due'} ${fd(s)}.`:t.mode==='s'?`${c} start by ${fd(s)}.`:t.mode==='e'?`${c} due ${fd(en)}.`:`${c} start by ${fd(s)}, due ${fd(en)}.`);
@@ -586,6 +588,7 @@ dr.addEventListener('change',e=>{
  const t=e.target,f=t.dataset.f;
  if(t.dataset.rf==='status'){const r=S.releases.find(r=>r.id===selRel);if(r)mut(()=>{r.status=t.value});return}
  if(t.dataset.cf){const f=t.dataset.cf;mut(()=>{S.cal[f]=f==='len'?Math.max(1,Math.min(120,Math.round(+t.value)||14)):okd(t.value)});return}
+ if(t.dataset.pf==='itemIds'){mut(()=>{S.itemIds=t.value==='key'?'key':'outline'});return}
  if(t.dataset.rf==='due'){render();return}
  const it=map[sel];if(!it)return;
  if(t.dataset.lk){const lf=t.dataset.lf,l=it.deps.find(x=>x.id===t.dataset.lk);if(!l)return;if(lf==='note'){render();return}pend=null;mut(()=>{l[lf]=lf==='lag'?clampLag(t.value):t.value});return}
@@ -669,7 +672,7 @@ function fullScreen(on){
 }
 $('#fs-btn').onclick=()=>fullScreen(!fsOn);
 document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&fsOn)fullScreen(false)});
-const exportText=()=>JSON.stringify({title:S.title,tl:S.tl,msCollapsed:S.msCollapsed,extCollapsed:S.extCollapsed,cal:S.cal,releases:S.releases,items:S.items},null,1);
+const exportText=()=>JSON.stringify({title:S.title,tl:S.tl,msCollapsed:S.msCollapsed,extCollapsed:S.extCollapsed,itemIds:S.itemIds,cal:S.cal,releases:S.releases,items:S.items},null,1);
 const _unused_json=()=>ov('Export plan','Copy this and keep it somewhere safe. Paste it into Import to restore the plan or hand it to someone else.',JSON.stringify({title:S.title,tl:S.tl,msCollapsed:S.msCollapsed,extCollapsed:S.extCollapsed,cal:S.cal,releases:S.releases,items:S.items},null,1),'json');
 const _unused_csv=()=>ov('Export CSV','One row per milestone, objective, feature, task and release. Links read like "1.2.2 FS", "1.1.3 SS+1" or "1.2.2 FS blocked". Paste into Excel, or save as .csv for a Jira import.',csv(),'csv');
 
@@ -704,7 +707,7 @@ function renderGantt(){
 // ----------------------------------------------------------------------- releases
 function openRel(id){view='rel';relPage=id||null;sel=null;selRel=null;calOpen=false;gsel=null;$('#app').classList.remove('railopen');render()}
 function relSay(x){
- const why=[x.after.length?`${x.after.map(t=>esc(C.code[t.id])).join(', ')} ${x.after.length===1?'is':'are'} due after the release date`:'',x.xlate.length?`it waits on ${x.xlate.map(d=>esc(C.code[d])).join(', ')}, expected after the release date`:''].filter(Boolean).join('; ');
+ const why=[x.after.length?`${x.after.map(t=>esc(C.lbl[t.id])).join(', ')} ${x.after.length===1?'is':'are'} due after the release date`:'',x.xlate.length?`it waits on ${x.xlate.map(d=>esc(C.lbl[d])).join(', ')}, expected after the release date`:''].filter(Boolean).join('; ');
  return (x.od?`<p class="dsay"><b class="ltc">Overdue by ${days(x.od)}</b>.</p>`:'')+(x.rk?`<p class="dsay"><b class="ltc">At risk:</b> ${why}.</p>`:'');
 }
 function relFlag(x){return x.od?`<i class="lt">Overdue ${x.od}d</i>`:x.rk?'<i class="lt rk" title="Work due after the release date">At risk</i>':''}
@@ -715,7 +718,7 @@ function relListHtml(){
 function relPageHtml(x){
  const r=x.r,pct=x.ts.length?Math.round(x.done/x.ts.length*100):0,k=(v,l,c)=>`<div class="t${c?' '+c:''}"><b>${v}</b><span>${l}</span></div>`;
  const chips=(ids,none)=>`<div class="chips">${ids.map(d=>fchip(d).replace('<span class="chip">',`<span class="chip">${map[d].type==='ms'||map[d].type==='ext'?'':icon(d)}`)).join('')||`<p class="none">${none}</p>`}</div>`;
- const rows=x.ts.map(t=>`<tr><td class="gcd">${esc(C.code[t.id])}</td><td><button class="lnk" data-go="${esc(t.id)}" title="${esc(t.name)}">${esc(t.name)}</button></td><td>${esc(t.owner)}</td><td>${cellHtml(t,'status')}</td><td>${C.step[t.id]}</td><td>${t.due?fd(dn(t.due)):''}</td><td>${flagsHtml(t)}</td></tr>`).join('');
+ const rows=x.ts.map(t=>`<tr><td class="gcd">${esc(C.lbl[t.id])}</td><td><button class="lnk" data-go="${esc(t.id)}" title="${esc(t.name)}">${esc(t.name)}</button></td><td>${esc(t.owner)}</td><td>${cellHtml(t,'status')}</td><td>${C.step[t.id]}</td><td>${t.due?fd(dn(t.due)):''}</td><td>${flagsHtml(t)}</td></tr>`).join('');
  return `<div class="relp"><button class="tbtn" data-act="rel-back">← All releases</button>
  <div class="relp-h"><h2>${esc(r.name)||'Untitled release'}</h2><span class="st ${r.status}">${RST[r.status]}</span>${relFlag(x)}<span class="grow"></span><button class="btn" data-act="rel-map"${x.ts.length?'':' disabled'}>Show on map</button><button class="btn pri" data-act="rel-edit">Edit release</button></div>
  <p class="none">${esc(r.target)||'No target set'}${x.due!==null?` · due ${fd(x.due)}`:''}</p>
