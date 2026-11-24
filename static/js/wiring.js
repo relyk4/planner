@@ -68,8 +68,9 @@ $('#rail-tg').onclick=()=>$('#app').classList.toggle('railopen');
 $('#scrim').onclick=()=>$('#app').classList.remove('railopen');
 document.querySelector('.tabs').addEventListener('click',e=>{const b=e.target.closest('[data-view]');if(!b)return;view=b.dataset.view;if(view==='rel')relPage=null;tlReset=true;gsel=null;render();if(view==='grid')$('#gridv').focus({preventScroll:true})});
 $('#rail-rel-l').addEventListener('click',e=>{const b=e.target.closest('[data-rp]');if(b)openRel(b.dataset.rp)});
-// Collapsed sidebar sections are a per-viewer preference.
+// Collapsed sidebar sections and the map zoom are per-viewer preferences.
 for(const d of document.querySelectorAll('.rsec[data-ls]')){if(LS.get(d.dataset.ls)==='0')d.open=false;d.addEventListener('toggle',()=>LS.set(d.dataset.ls,d.open?'1':'0'))}
+mapZ=zClamp(parseFloat(LS.get('planner.mapzoom')));
 $('#hist-btn').onclick=()=>{histOpen=!histOpen;if(histOpen&&(sel||selRel||calOpen)){sel=null;selRel=null;calOpen=false;render()}renderHist()};
 $('#ver-btn').onclick=()=>{if(Store.mode!=='server'){toast('Named versions need the local server.');return}$('#vdn').value='';$('#vdl').hidden=false;$('#vdn').focus()};
 $('#vd-close').onclick=()=>{$('#vdl').hidden=true};

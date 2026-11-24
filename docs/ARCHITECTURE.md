@@ -143,6 +143,13 @@ Releases get `od`/`rk` from their tasks and externals.
     boundary into an x position. When the filter closes up empty steps, `vs`
     is the list of visible steps.
   - Dragging a bar sideways pins the task to a step (`moveTo`).
+  - Zoom (`mapZ`, 0.5 to 2) is a redraw, not a CSS transform:
+    `renderBoard` multiplies its geometry (`LW`, `CW`, row height, offsets)
+    by `mapZ` and sets `--z` on `#grid`; map text and marker sizes in
+    `app.css` are written `calc(Npx*var(--z,1))`. `.tl` resets `--z` to 1,
+    so the embedded timeline keeps its own scale. `zoomTo()` batches
+    requests to one redraw per frame and keeps the point under the cursor
+    in place. Drag code reads `geo`, so it follows the zoom.
 - **Grid** (`renderGrid`):
   - Columns come from `GCOLS`; which cells each type can edit comes from
     `GEDIT`.
@@ -163,13 +170,20 @@ Releases get `od`/`rk` from their tasks and externals.
 
 - One row directly above the active view (not sticky): view tabs, Filter,
   **Add ▾** (objective, milestone, external, release), Undo, Expand all,
-  Collapse features, Critical path, Link tags.
+  Collapse features, Critical path, Link tags, then map zoom (`−`, level,
+  `+`) and Full screen pinned to the right end (`position: sticky`).
 - It never wraps. When it doesn't fit it scrolls sideways, so its menus are
   `position: fixed` and placed by `placeMenu()` to avoid being clipped.
 - The "Showing X of Y tasks" filter summary sits on its own line under the
   toolbar, only while a filter is on.
 - In the Releases tab the tools that only affect Map, Grid and Gantt (Filter,
   Expand all, Collapse features, Critical path, Link tags) are disabled.
+  Zoom is disabled outside the map.
+- *Full screen* (`fullScreen()`) adds `.fullmap` to `#app`, which hides the
+  sidebar, header, tallies and legend so the toolbar and view fill the
+  window, and asks for browser full screen on the whole page (so the drawer
+  and dialogs still show). Without the Fullscreen API the class alone is the
+  fallback. Esc exits; it works from any tab.
 
 ### Storage (`Store`)
 
@@ -179,6 +193,6 @@ Releases get `od`/`rk` from their tasks and externals.
 - Autosave is debounced in `save()` and done in `flush()`. On a 409 the
   conflict dialog offers "load theirs" or "keep mine".
 - Per-viewer preferences use `LS` keys (`planner.user`, `planner.last`,
-  `planner.flt.<planId>`, and `planner.plansrail` / `planner.relrail` for the
-  sidebar's Plans and Releases sections being collapsed) and never go into
-  plan data.
+  `planner.flt.<planId>`, `planner.mapzoom` for the map zoom, and
+  `planner.plansrail` / `planner.relrail` for the sidebar's Plans and
+  Releases sections being collapsed) and never go into plan data.
