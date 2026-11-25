@@ -185,6 +185,10 @@ Releases get `od`/`rk` from their tasks and externals.
     pointer, so sticky header and labels keep working. Its `pointerdown` runs
     in the capture phase; while Space is held (`spaceOn`) it starts over bars
     too and stops the press reaching the bar, link and date drag handlers.
+  - Objective and feature rows end in a "+" (`.lra`, `data-addto`) that
+    adds a feature or task under that row through `addItem()`. With a mouse
+    it shows on hover or focus, over the owner and release pill
+    (`@media(hover:hover)`); on touch screens it is always shown in the row.
 - **Grid** (`renderGrid`):
   - Columns come from `GCOLS`; which cells each type can edit comes from
     `GEDIT`.
@@ -217,9 +221,15 @@ Releases get `od`/`rk` from their tasks and externals.
 ### Toolbar
 
 - One row directly above the active view (not sticky): view tabs, Filter,
-  **Add ▾** (objective, milestone, external, release), Undo, Expand all,
+  **Add ▾** (objective, feature, task, milestone, external, release), Undo, Expand all,
   Collapse features, Critical path, Link tags, then map zoom (`−`, level,
   `+`), Legend and Full screen pinned to the right end (`position: sticky`).
+- *Add ▾ > Feature/Task* go under the selection, else the last objective or
+  feature on the map (`addHome()` in `board.js`). The menu shows where they
+  will go, or keeps them `aria-disabled` with a hint when there's nowhere yet
+  (`addState()` in `wiring.js`). `addItem()` expands every ancestor, and if
+  the status filter hides the new task's status it says so in a toast (the
+  filter keeps the selected item visible).
 - It never wraps. When it doesn't fit it scrolls sideways, so its menus are
   `position: fixed` and placed by `placeMenu()` to avoid being clipped.
 - The "Showing X of Y tasks" filter summary sits on its own line under the

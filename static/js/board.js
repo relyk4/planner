@@ -169,7 +169,9 @@ function renderBoard(){
   const ef=C.eff[it.id],chn=(it.type==='task'||it.type==='ms'||it.type==='ext')&&held(it.id)?' chain':'';
   const relN=it.type==='task'?S.releases.find(r=>r.id===C.relOf[it.id])?.name:it.type==='feat'?S.releases.find(r=>r.id===it.rel)?.name:'';
   const icon=it.type==='task'?`<span class="dot ${ef}${lateHeld(it.id)?' lchain':''}${chn}" title="${LBL[ef]}${lateHeld(it.id)?', held up by overdue work':''}"></span>`:it.type==='ms'?`<span class="dia ${ef}${chn}" title="${LBL[ef]}"></span>`:it.type==='ext'?`<span class="xq ${ef}" title="${LBL[ef]}"></span>`:`<button class="car" data-tog="${it.id}" aria-expanded="${!it.collapsed}" aria-label="${it.collapsed?'Expand':'Collapse'} ${cd}">${it.collapsed?'▸':'▾'}</button>`;
-  L+=`<div class="lr ${it.type}${on}${dim}" data-id="${it.id}" role="button" tabindex="0" style="height:${RH}px;padding-left:${(4+lvl*(W<600?10:18))*zf}px">${fcs(it)}${icon}<span class="cd${idk(it.id)}">${cd}</span>${it.key&&!(S.itemIds==='key'&&(it.type==='feat'||it.type==='task'))?`<span class="ky">${esc(it.key)}</span>`:''}<span class="nm">${esc(it.name)||'Untitled'}</span>${relN&&(it.type==='feat'||it.rel)?`<i class="rp" title="Release: ${esc(relN)}">${esc(relN)}</i>`:''}${it.type==='ext'&&!C.df[it.id]?.od&&C.df[it.id]?.their?'':latePill(it.id)}${it.type==='task'&&it.due&&it.status!=='done'&&!latePill(it.id)?`<span class="du" title="Due">${fd(dn(it.due))}</span>`:''}${it.type==='ext'?`${it.team?`<i class="rp" title="External team">${esc(it.team)}</i>`:''}<span class="ow">${LBL[ef]}</span>`:it.type==='ms'?(it.target?`<span class="ow">${esc(it.target)}</span>`:''):it.owner?`<span class="ow">${esc(it.owner)}</span>`:''}</div>`;
+  // "+" at the end of objective and feature rows adds a feature or task under it (styled in app.css: hover/focus on mouse, always on touch).
+  const add=it.type==='obj'||it.type==='feat'?`<button class="lra" data-addto="${it.id}" aria-label="Add ${it.type==='obj'?'feature':'task'} to ${cd} ${esc(it.name)||'Untitled'}" title="Add ${it.type==='obj'?'feature':'task'} to ${cd} ${esc(it.name)||'Untitled'}">+</button>`:'';
+  L+=`<div class="lr ${it.type}${on}${dim}" data-id="${it.id}" role="button" tabindex="0" style="height:${RH}px;padding-left:${(4+lvl*(W<600?10:18))*zf}px">${fcs(it)}${icon}<span class="cd${idk(it.id)}">${cd}</span>${it.key&&!(S.itemIds==='key'&&(it.type==='feat'||it.type==='task'))?`<span class="ky">${esc(it.key)}</span>`:''}<span class="nm">${esc(it.name)||'Untitled'}</span>${relN&&(it.type==='feat'||it.rel)?`<i class="rp" title="Release: ${esc(relN)}">${esc(relN)}</i>`:''}${it.type==='ext'&&!C.df[it.id]?.od&&C.df[it.id]?.their?'':latePill(it.id)}${it.type==='task'&&it.due&&it.status!=='done'&&!latePill(it.id)?`<span class="du" title="Due">${fd(dn(it.due))}</span>`:''}${it.type==='ext'?`${it.team?`<i class="rp" title="External team">${esc(it.team)}</i>`:''}<span class="ow">${LBL[ef]}</span>`:it.type==='ms'?(it.target?`<span class="ow">${esc(it.target)}</span>`:''):it.owner?`<span class="ow">${esc(it.owner)}</span>`:''}${add}</div>`;
   if(it.type==='task'){
    const s=C.step[it.id],h=Math.round(RH-14*zf);occ[i]=[bx(s-1)+P,bx(s)-P];pt[it.id]={l:bx(s-1)+P,r:bx(s)-P,y:cy(i),h,row:i};const ext=rx&&F&&F.has(it.id)&&!rx.ids.has(it.id)?'ext':'';
    const df=C.df[it.id]||{},cls=[ef,lateHeld(it.id)?'lchain':'',chn,C.warn[it.id]?'warn':'',df.ls?'lstart':'',df.od?'over':df.rk?'risk':'',critOn&&C.crit.has(it.id)?'crit':'',ext,on,dim].join(' ');
@@ -381,9 +383,19 @@ function addItem(type,parent){
  const it=mk(nid(),type,parent||null,{obj:'New objective',feat:'New feature',task:'New task',ms:'New milestone',ext:'New external dependency'}[type]);
  if(type==='ext')it.status='pending';
  if(view==='rel')view='map';
- mut(()=>{S.items.push(it);if(parent)map[parent].collapsed=false;if(type==='ms')S.msCollapsed=false;if(type==='ext')S.extCollapsed=false;sel=it.id;selRel=null;q=''});
+ mut(()=>{S.items.push(it);for(let p=map[parent];p;p=map[p.parent])p.collapsed=false;if(type==='ms')S.msCollapsed=false;if(type==='ext')S.extCollapsed=false;sel=it.id;selRel=null;q=''});
  const n=$('#f-name');if(n){n.focus();n.select()}
  reveal(it.id);
+ // The status filter keeps the selected item visible; say so, or the new task seems to vanish once it's closed.
+ const fh=it.type==='task'&&C.fs&&FST.find(f=>f[0]===C.eff[it.id]&&flt.hide.includes(f[0]));
+ if(fh)toast(`The filter hides "${fh[1]}" tasks, so ${C.lbl[it.id]} shows only while it's open. Clear the filter to keep it in view.`);
+}
+// Where the Add menu puts a feature or task: under the selection, else the last objective or feature on the map. null: nowhere yet.
+function addHome(type){
+ const objs=(kids.root||[]).filter(o=>o.type==='obj'),last=a=>a[a.length-1]||null;let n=map[sel];
+ if(type==='feat'){while(n&&n.type!=='obj')n=map[n.parent];return n||last(objs)}
+ while(n&&n.type!=='feat'&&n.type!=='obj')n=map[n.parent];
+ return (n&&n.type==='obj'?last(featsOf(n)):n)||last(objs.flatMap(featsOf));
 }
 function addRel(){const r={id:nid(),name:'R'+(S.releases.length+1),target:'',status:'planned',notes:''};view='rel';relPage=r.id;mut(()=>{S.releases.push(r);selRel=r.id;sel=null});const n=$('#f-name');if(n){n.focus();n.select()}}
 function del(id){
@@ -403,7 +415,7 @@ function go(id,from){
  sel=id;selRel=null;q='';render();reveal(id);
  if(from){const el=document.getElementById('dep-'+from);if(el){el.scrollIntoView({block:'center'});el.classList.add('flash')}}
 }
-function reveal(id){const el=grid.querySelector(`.b[data-id="${id}"],.mk[data-id="${id}"],.xk[data-id="${id}"]`)||grid.querySelector(`.lr[data-id="${id}"]`);if(el)el.scrollIntoView({block:'nearest',inline:'nearest'})}
+function reveal(id){const el=view==='grid'?$('#gridv').querySelector(`td[data-id="${id}"]`):view==='gantt'?$('#ganttv').querySelector(`.tll[data-id="${id}"]`):grid.querySelector(`.b[data-id="${id}"],.mk[data-id="${id}"],.xk[data-id="${id}"]`)||grid.querySelector(`.lr[data-id="${id}"]`);if(el)el.scrollIntoView({block:'nearest',inline:'nearest'})}
 function arm(b,label,fn){
  if(b.dataset.armed){delete b.dataset.armed;b.textContent=b.dataset.l;fn();return}
  b.dataset.l=b.textContent;b.dataset.armed='1';b.textContent=label;
@@ -604,6 +616,7 @@ views.addEventListener('click',e=>{
  const tb=e.target.closest('[data-tl]');if(tb){const a=tb.dataset.tl;if(a==='toggle'){S.tl.open=!S.tl.open;tlReset=true}else if(a==='only')S.tl.only=!S.tl.only;else{S.tl.zoom=a.slice(2);tlReset=true}render();return}
  const cb=e.target.closest('[data-cal]');if(cb){openCal(null);return}
  const lk=e.target.closest('.lk');if(lk){go(lk.dataset.lk,lk.dataset.from);return}
+ const ad=e.target.closest('[data-addto]');if(ad){const p=map[ad.dataset.addto];if(p)addItem(p.type==='obj'?'feat':'task',p.id);return}
  const tg=e.target.closest('[data-tog]');
  if(tg){const id=tg.dataset.tog;if(id==='__ms')S.msCollapsed=!S.msCollapsed;else if(id==='__ext')S.extCollapsed=!S.extCollapsed;else map[id].collapsed=!map[id].collapsed;render();return}
  const el=e.target.closest('[data-id]');
