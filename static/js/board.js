@@ -135,7 +135,7 @@ function keyW(){
 function renderBoard(){
  const W=board.clientWidth||960,zf=mapZ;lastW=W;
  // Zoom scales the map's geometry here; --z (set on #grid below) scales its text and markers in app.css.
- const N=C.N,X0=18*zf,LW0=W<600?170:W<900?250:330,LW=Math.round(LW0*zf),FV=C.fs,vs=stepsShown(),NC=Math.max(1,vs.length),KW=keyW(),CW=Math.round(Math.max(W<600?126:146,Math.floor((W-LW0-18-28)/NC),KW?KW+68:0)*zf),RH=Math.round(42*zf),P=14*zf,D=10*zf;
+ const N=C.N,X0=18*zf,LW0=lbWidth(W),LW=Math.round(LW0*zf),FV=C.fs,vs=stepsShown(),NC=Math.max(1,vs.length),KW=keyW(),CW=Math.round(Math.max(W<600?126:146,Math.floor((W-LW0-18-28)/NC),KW?KW+68:0)*zf),RH=Math.round(42*zf),P=14*zf,D=10*zf;
  const bc=Array(N+2).fill(0);{const vset=new Set(vs);let k=0;for(let g=0;g<=N+1;g++){if(vset.has(g))k++;bc[g]=k}}
  const bx=g=>bc[Math.max(0,Math.min(N+1,g))]*CW;
  const flags={};C.rel.forEach(x=>{if(x.land)(flags[x.land]??=[]).push(x.r.name||'Release')});
@@ -209,10 +209,10 @@ function renderBoard(){
   if(tagsOn){const tx=l.st==='blocked'?tag(l):l.type+lagTxt(l),w=(tx.length*8+10)*zf,[x0,y]=tagAt(pts,w,RH,kinds,free),x=Math.max(w/2+3-X0,x0);T+=`<span class="tp lk ${cls}" data-lk="${n.id}" data-from="${l.id}" title="${esc(tip)}" style="left:${x}px;top:${y}px">${esc(tx)}</span>`}
  }
  const cols=vs.map((k,ci)=>{const gp=ci>0&&vs[ci-1]!==k-1;if(gp)BG+=`<div class="gapl" style="left:${ci*CW-1}px;height:${H}px"></div>`;return `<div class="ch${gp?' gap':''}" style="width:${CW}px"${gp?` title="${k-vs[ci-1]-1===1?'Step '+(k-1)+' is':'Steps '+(vs[ci-1]+1)+' to '+(k-1)+' are'} hidden by the filter"`:''}><b>Step ${k}</b><span>${per[k]} ${per[k]===1?'task':'tasks'}${lateS[k]?` · <span class="ltc">${lateS[k]} late</span>`:''}</span>${flags[k]?`<em title="Last task of ${esc(flags[k].join(', '))} lands here">${esc(flags[k].join(', '))}</em>`:''}</div>`}).join('');
- geo={LW,X0,CW,H,N,HH,vs,RH,pt};
- grid.style.width=LW+X0+NC*CW+([...C.mss,...C.exts].some(n=>C.step[n.id]>=vs[vs.length-1])?120:28)*zf+'px';grid.style.setProperty('--z',zf);
+ geo={LW,LW0,X0,CW,H,N,HH,vs,RH,pt};
+ grid.style.width=LW+X0+NC*CW+([...C.mss,...C.exts].some(n=>C.step[n.id]>=vs[vs.length-1])?120:28)*zf+'px';grid.style.setProperty('--z',zf);grid.classList.toggle('lbn',LW0<LBNARROW);
  const otl=grid.querySelector('.tlb'),tsl=otl?otl.scrollLeft:null,tst=otl?otl.scrollTop:null;
- grid.innerHTML=`<div class="hdr" style="height:${HH}px"><div class="corner" style="width:${LW}px">Work breakdown</div><div style="flex:none;width:${X0}px"></div>${cols}</div>${TL.html}<div class="labels" style="width:${LW}px;min-height:${H}px">${L||(FV?'<p class="none" style="padding:10px 12px">Nothing matches the filter. <button class="lnk2" data-fp="all">Show all</button></p>':'<p class="none" style="padding:10px 12px">Add an objective to start.</p>')}</div><div class="chart" style="left:${LW+X0}px;top:${HH+TL.h}px;width:${NC*CW+1}px;height:${H}px;background-size:${CW}px 100%">${BG}<svg class="edges" width="${NC*CW}" height="${H}" aria-hidden="true">${DEFS}${G}${E}</svg>${B}${T}</div>`;
+ grid.innerHTML=`<div class="hdr" style="height:${HH}px"><div class="corner" style="width:${LW}px">Work breakdown${lbHtml(LW0,W,true)}</div><div style="flex:none;width:${X0}px"></div>${cols}</div>${TL.html}<div class="labels" style="width:${LW}px;min-height:${H}px">${L||(FV?'<p class="none" style="padding:10px 12px">Nothing matches the filter. <button class="lnk2" data-fp="all">Show all</button></p>':'<p class="none" style="padding:10px 12px">Add an objective to start.</p>')}${lbHtml(LW0,W,false)}</div><div class="chart" style="left:${LW+X0}px;top:${HH+TL.h}px;width:${NC*CW+1}px;height:${H}px;background-size:${CW}px 100%">${BG}<svg class="edges" width="${NC*CW}" height="${H}" aria-hidden="true">${DEFS}${G}${E}</svg>${B}${T}</div>`;
  {const te=grid.querySelector('.tl'),ch=grid.querySelector('.chart');if(te&&ch&&te.offsetHeight)ch.style.top=(HH+te.offsetHeight)+'px'}
  const ntl=grid.querySelector('.tlb');if(ntl){if(tsl!==null&&!tlReset){ntl.scrollLeft=tsl;ntl.scrollTop=tst}else ntl.scrollLeft=Math.max(0,TL.tx-LW-(W-LW)/2);tlReset=false}
 }
@@ -692,7 +692,7 @@ const zClamp=v=>Number.isFinite(v)?Math.min(ZMAX,Math.max(ZMIN,v)):1;
 // Zoom to z keeping the map point under (cx,cy) where it is; default is the middle of the map.
 // Requests are batched to one redraw per frame.
 function zoomTo(z,cx,cy){
- if(view!=='map'||drag||td||ld||pan?.on)return;
+ if(view!=='map'||drag||td||ld||lb||pan?.on)return;
  const r=board.getBoundingClientRect();
  zPend={z:zClamp(z),cx:cx??r.left+r.width/2,cy:cy??r.top+r.height/2};
  if(!zRaf)zRaf=requestAnimationFrame(zoomApply);
@@ -720,6 +720,53 @@ board.addEventListener('wheel',e=>{
 board.addEventListener('gesturestart',e=>{e.preventDefault();gz=mapZ});
 board.addEventListener('gesturechange',e=>{e.preventDefault();if(gz!==null)zoomTo(gz*e.scale,e.clientX,e.clientY)});
 board.addEventListener('gestureend',e=>{e.preventDefault();gz=null});
+// The Work breakdown column's width is a per-viewer preference too (localStorage 'planner.lbw', the
+// width at 100% zoom, loaded in wiring.js; null is the default for the window size). It scales with
+// the zoom. Drag its right edge or focus the edge and press Left/Right; double-click resets it.
+// Below LBNARROW the owner and release pill hide (class lbn on #grid) so names keep the room.
+const LBMIN=120,LBNARROW=240;
+let lbW=null,lb=null,lbRaf=0,lbTap=null;
+const lbMax=W=>Math.max(LBMIN,Math.floor(W*.6/mapZ));
+const lbClamp=(v,W)=>Math.min(lbMax(W),Math.max(LBMIN,Math.round(v)));
+const lbWidth=W=>lbW===null?(W<600?170:W<900?250:330):lbClamp(lbW,W);
+const lbHtml=(w,W,kb)=>`<div class="lbw"${kb?` role="separator" tabindex="0" aria-orientation="vertical" aria-label="Work breakdown column width" aria-valuemin="${LBMIN}" aria-valuemax="${Math.max(w,lbMax(W))}" aria-valuenow="${w}"`:' aria-hidden="true"'} title="Drag to resize the Work breakdown column. Double-click to reset it"></div>`;
+// Redraw at width w (null: the default), keeping the first visible step where it was.
+function lbSet(w){
+ const sl=board.scrollLeft,u=(sl-geo.X0)/geo.CW;
+ lbW=w===null?null:lbClamp(w,board.clientWidth||960);renderBoard();
+ if(sl>0)board.scrollLeft=Math.max(0,geo.X0+u*geo.CW);
+ LS.set('planner.lbw',lbW===null?'':String(lbW));
+}
+// Handled on #grid and stopped there, so a press on the edge never reaches the board's other drags.
+// A second press within 500ms is the double-click that resets the width (counted here because
+// preventing the press's default stops some browsers from sending dblclick, and touch never does).
+grid.addEventListener('pointerdown',e=>{
+ if(!e.target.closest('.lbw'))return;e.stopPropagation();
+ if(e.button!==0||drag||td||ld)return;e.preventDefault();
+ const t=lbTap,dbl=t&&e.timeStamp-t.ts<500&&Math.abs(e.clientX-t.x)<6;lbTap=dbl?null:{ts:e.timeStamp,x:e.clientX};
+ if(dbl)lbSet(null);
+ lb={x0:e.clientX,w0:geo.LW0,w:geo.LW0,prev:lbW,on:false};
+});
+function lbMove(e){
+ if(!lb)return;
+ if(!lb.on){if(Math.abs(e.clientX-lb.x0)<3)return;lb.on=true;document.documentElement.classList.add('lbdrag')}
+ e.preventDefault();lb.w=lb.w0+(e.clientX-lb.x0)/mapZ;
+ if(!lbRaf)lbRaf=requestAnimationFrame(()=>{lbRaf=0;if(lb)lbSet(lb.w)});
+}
+function lbEnd(cancel){
+ if(!lb)return;const l=lb;lb=null;cancelAnimationFrame(lbRaf);lbRaf=0;
+ noClick=true;setTimeout(()=>{noClick=false},0);
+ if(!l.on)return;lbTap=null;document.documentElement.classList.remove('lbdrag');
+ lbSet(cancel?l.prev:l.w);
+}
+window.addEventListener('pointermove',lbMove,{passive:false});
+window.addEventListener('pointerup',()=>lbEnd(false));
+window.addEventListener('pointercancel',()=>lbEnd(true));
+grid.addEventListener('keydown',e=>{
+ if(!e.target.matches('.lbw')||(e.key!=='ArrowLeft'&&e.key!=='ArrowRight'))return;e.preventDefault();
+ lbSet(geo.LW0+(e.key==='ArrowLeft'?-1:1)*(e.shiftKey?50:10));
+ grid.querySelector('.lbw[tabindex]')?.focus({preventScroll:true});
+});
 // Full screen hides the sidebar, header and tallies (the Legend button still works), and asks the browser for real full screen
 // when it can. Without the Fullscreen API (or if the browser refuses) the page still fills the window.
 function fullScreen(on){
@@ -744,6 +791,7 @@ document.addEventListener('keydown',e=>{
  if(e.key==='Escape'&&ld){lkEnd(true);return}
  if(e.key==='Escape'&&drag){dragEnd(true);return}
  if(e.key==='Escape'&&td){tdEnd(true);return}
+ if(e.key==='Escape'&&lb){lbEnd(true);return}
  if(e.key==='Escape'){for(const d of ['#impd','#vdl'])if(!$(d).hidden){$(d).hidden=true;return}if(!$('#lgd').hidden){lgdOpen(false);$('#lgd-btn').focus();return}if(!$('#more').hidden||!$('#set').hidden){closeMenu();return}if(!$('#add').hidden){addMenu(false);$('#add-btn').focus();return}if(!$('#flt').hidden){fltMenu(false);$('#flt-btn').focus();return}if(histOpen&&!sel&&!selRel&&!calOpen){histOpen=false;renderHist();return}if(sysOpen){sysPanel(false);$('#set-btn').focus();return}if(!$('#ov').hidden)$('#ov').hidden=true;else if(sel||selRel||calOpen){sel=null;selRel=null;calOpen=false;render()}else if(fsOn)fullScreen(false)}
  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'&&!e.shiftKey&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName||'')){e.preventDefault();undo()}
 });

@@ -72,6 +72,20 @@ try {
   ok($('#app').classList.contains('fullmap') && $('#fs-btn').getAttribute('aria-pressed') === 'true', 'Full screen hides the sidebar and header');
   d.dispatchEvent(new w.KeyboardEvent('keydown', {key: 'Escape', bubbles: true})); await sleep(20);
   ok(!$('#app').classList.contains('fullmap'), 'Esc leaves full screen');
+  // Work breakdown column: drag its edge, arrow keys, double-click to reset
+  {const PE = w.PointerEvent || w.MouseEvent, at = (el, type, x) => el.dispatchEvent(new PE(type, {bubbles: true, cancelable: true, button: 0, clientX: x, clientY: 5}));
+    const edge = () => $('#grid .corner .lbw'), lw = () => parseFloat($('#grid .corner').style.width);
+    const w0 = lw(), dragTo = async x => {at(edge(), 'pointerdown', w0); at(edge(), 'pointermove', x); await sleep(40); at(w, 'pointerup', x); await sleep(20)};
+    const dblPress = async () => {for (let i = 0; i < 2; i++) {at(edge(), 'pointerdown', 0); at(w, 'pointerup', 0)} await sleep(20)};
+    await dragTo(w0 + 100);
+    ok(lw() === w0 + 100 && $('#grid .labels').style.width === (w0 + 100) + 'px' && w.localStorage.getItem('planner.lbw') === String(w0 + 100), 'dragging the Work breakdown edge widens the column and remembers it');
+    edge().focus(); edge().dispatchEvent(new w.KeyboardEvent('keydown', {key: 'ArrowLeft', bubbles: true})); await sleep(20);
+    ok(lw() === w0 + 90 && d.activeElement === edge(), 'Left arrow on the focused edge narrows the column and keeps focus');
+    await dblPress();
+    ok(lw() === w0 && !w.localStorage.getItem('planner.lbw'), 'double-clicking the edge resets the default width');
+    await dragTo(0);
+    ok(lw() === 120 && $('#grid').classList.contains('lbn'), 'the column stops at 120px and hides owners and release pills when narrow');
+    await dblPress()}
   // legend: opens from the toolbar (also in full screen), trims to the view, closes with Esc or a click outside
   const shown = s => {for (let e = $(s); e; e = e.parentElement) if (w.getComputedStyle(e).display === 'none') return false; return true};
   $('#fs-btn').click(); await sleep(20);

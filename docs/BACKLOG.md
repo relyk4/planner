@@ -106,6 +106,13 @@ time, and an edited export updates only what changed.
   collapsed objective or feature shows their markers on its row; deleting it
   moves them back to the top section. Dragging rows in and out of groups
   waits on #19.
+- **Drag to resize the Work breakdown column** (Nov 2026). Drag the divider
+  between the Work breakdown column and *Step 1* on the map (or focus it and
+  use the Left/Right arrow keys) to make the column narrower or wider;
+  double-click resets it. Limits are 120px and 60% of the map's visible
+  width. When narrow, owners and release pills hide so names keep the room.
+  The width is remembered per viewer, scales with the zoom and is not saved
+  in the plan.
 - **Legend opens from the toolbar** (Nov 2026). *Legend* in the toolbar
   opens a panel over the view, also in full screen; Esc or a click outside
   closes it. Short sections (task status, dates and risk, links and link
