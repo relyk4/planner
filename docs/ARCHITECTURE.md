@@ -179,6 +179,12 @@ Releases get `od`/`rk` from their tasks and externals.
     60% of the visible width at the current zoom, and it feeds `LW` and the
     step width `CW`. Under 240px `#grid` gets `lbn`, which hides owners and
     release pills. `lbSet` keeps the first visible step in place.
+  - Panning (`pan`, `panMove`/`panEnd`) is view-only: a mouse press on
+    empty map space (not `[data-id]`, link tags, handles, the header, labels
+    or timeline) that moves 6px sets `board.scrollLeft`/`scrollTop` from the
+    pointer, so sticky header and labels keep working. Its `pointerdown` runs
+    in the capture phase; while Space is held (`spaceOn`) it starts over bars
+    too and stops the press reaching the bar, link and date drag handlers.
 - **Grid** (`renderGrid`):
   - Columns come from `GCOLS`; which cells each type can edit comes from
     `GEDIT`.
@@ -213,7 +219,7 @@ Releases get `od`/`rk` from their tasks and externals.
 - One row directly above the active view (not sticky): view tabs, Filter,
   **Add ▾** (objective, milestone, external, release), Undo, Expand all,
   Collapse features, Critical path, Link tags, then map zoom (`−`, level,
-  `+`) and Full screen pinned to the right end (`position: sticky`).
+  `+`), Legend and Full screen pinned to the right end (`position: sticky`).
 - It never wraps. When it doesn't fit it scrolls sideways, so its menus are
   `position: fixed` and placed by `placeMenu()` to avoid being clipped.
 - The "Showing X of Y tasks" filter summary sits on its own line under the
@@ -221,11 +227,20 @@ Releases get `od`/`rk` from their tasks and externals.
 - In the Releases tab the tools that only affect Map, Grid and Gantt (Filter,
   Expand all, Collapse features, Critical path, Link tags) are disabled.
   Zoom is disabled outside the map.
+- *Legend* (`lgdOpen()` in `wiring.js`) opens `#lgd`, a panel over the view
+  placed by `placeMenu()`. Its markup is static in `index.html`, and every
+  swatch is the real element the views draw (`.b`, `.dot`, `.mk`, `.xk`,
+  `.tk`, an SVG `path.e` ...), taken out of absolute positioning by `.lgd`
+  rules, so it can't drift from the map. Entries carry `data-v` (`map`,
+  `gantt`, `list` for Grid and Releases); `renderView()` sets
+  `#lgd[data-view]` and CSS hides what doesn't apply. Esc or a click
+  outside closes it. Open or closed is never saved. The timeline and Gantt
+  have no key strip of their own; their entries live in the legend.
 - *Full screen* (`fullScreen()`) adds `.fullmap` to `#app`, which hides the
-  sidebar, header, tallies and legend so the toolbar and view fill the
-  window, and asks for browser full screen on the whole page (so the drawer
-  and dialogs still show). Without the Fullscreen API the class alone is the
-  fallback. Esc exits; it works from any tab.
+  sidebar, header and tallies so the toolbar and view fill the window
+  (Legend still opens over it), and asks for browser full screen on the
+  whole page (so the drawer and dialogs still show). Without the Fullscreen
+  API the class alone is the fallback. Esc exits; it works from any tab.
 
 ### Storage (`Store`)
 

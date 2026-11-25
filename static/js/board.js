@@ -72,7 +72,7 @@ function renderTimeline(rows,W,LW,full){
  const mY=n=>{const d=dObj(n);return MON[d.getUTCMonth()]+' '+d.getUTCFullYear()};
  const rangeTxt=list.length?`${mY(lo0)} to ${mY(hi0)}`:'No dates yet';
  const open=full||tl.open;
- const head=`<div class="tlh">${full?'':`<button class="car" data-tl="toggle" aria-expanded="${tl.open}" aria-label="${tl.open?'Collapse':'Expand'} timeline">${tl.open?'▾':'▸'}</button>`}<b>${full?'Gantt':'Timeline'}</b><span class="none">${rangeTxt}</span>${open?`<span class="tlsp"></span><span class="seg" role="group" aria-label="Timeline scale">${Object.entries(ZO).map(([k,o])=>`<button data-tl="z-${k}" aria-pressed="${tl.zoom===k}">${o.label}</button>`).join('')}</span><button class="tgl" data-tl="only" aria-pressed="${tl.only}">Dated items only</button>`:''}</div>`+(open?`<div class="tlk"><span><i class="ks plan"></i>Plan, start by to due</span><span><i class="ks prog"></i>In progress so far</span><span><i class="ks done"></i>Done</span><span><i class="ks over"></i>Past due</span><span><i class="ks ls"></i>Should have started</span><span><i class="ks sum"></i>Objective or feature, green is share done</span><span><i class="ks today"></i>Today</span><span><i class="ks rel"></i>Release due</span><span class="tlhint">Drag a plan bar to move it, or its ends to resize</span></div>`:'');
+ const head=`<div class="tlh">${full?'':`<button class="car" data-tl="toggle" aria-expanded="${tl.open}" aria-label="${tl.open?'Collapse':'Expand'} timeline">${tl.open?'▾':'▸'}</button>`}<b>${full?'Gantt':'Timeline'}</b><span class="none">${rangeTxt}</span>${open?`<span class="tlsp"></span><span class="seg" role="group" aria-label="Timeline scale">${Object.entries(ZO).map(([k,o])=>`<button data-tl="z-${k}" aria-pressed="${tl.zoom===k}">${o.label}</button>`).join('')}</span><button class="tgl" data-tl="only" aria-pressed="${tl.only}">Dated items only</button>`:''}</div>`;
  if(!open){tlGeo=null;return {html:`<div class="tl" style="width:${W}px">${head}</div>`,h:50,tx:0}}
  const ppd=z.ppd,lo=uStart(lo0-2,z.bot);let hi=uNext(uStart(hi0+3,z.bot),z.bot);
  while((hi-lo)*ppd<W-LW-6)hi=uNext(hi,z.bot);
@@ -121,7 +121,7 @@ function renderTimeline(rows,W,LW,full){
  tlGeo={lo,ppd,RH2,ids:list.map(n=>n.id)};
  const bodyH=full?Math.max(320,full):Math.min(42+H2+2,380);
  const body=list.length?`<div class="tlb" style="height:${bodyH}px"><div class="tli" style="width:${LW+span}px"><div class="tla"><div class="tlc" style="width:${LW}px">Calendar</div><div class="tlx" style="width:${span}px">${ax}</div></div>${lab}<div class="tlp" style="left:${LW}px;top:42px;width:${span}px;height:${H2}px">${gl}${bars}</div></div></div>`:`<p class="none" style="padding:12px 14px;margin:0">Add start-by, due, started or done dates to tasks, or due dates to milestones and external items, to see them here.</p>`;
- return {html:`<div class="tl" style="width:${W}px">${head}${body}</div>`,h:86+(list.length?bodyH+1:48),tx:LW+tx};
+ return {html:`<div class="tl" style="width:${W}px">${head}${body}</div>`,h:52+(list.length?bodyH+1:48),tx:LW+tx};
 }
 // Width at 100% zoom of the widest ticket key shown on a task bar (0 when none is). renderBoard()
 // widens the step columns so a bar fits that key in full, plus its padding, borders and status
@@ -183,9 +183,12 @@ function renderBoard(){
    // Collapsed: milestones and externals shown under it put their markers on this row, as on a collapsed top section.
    if(it.collapsed)placedIn(it).filter(n=>!FV||FV.has(n.id)).forEach(n=>B+=n.type==='ms'?msMark(n,i):xMark(n,i,false));
    const ts=tasksUnder(it);if(!ts.length)return;
-   const ss=ts.map(t=>C.step[t.id]),a=Math.min(...ss),z=Math.max(...ss),d=ts.filter(t=>t.status==='done').length,h=Math.round(RH-20*zf);occ[i]=[bx(a-1)+P/2,bx(z)-P/2];
-   const oc=it.type==='obj'?objCount(it):null;
-   B+=`<div class="sp ${it.type}${on}${dim}" data-id="${it.id}" title="${cd} spans steps ${a} to ${z}" style="${it.type==='feat'&&fcol(it)?`background:color-mix(in srgb,${fcol(it)} 30%,var(--bg));box-shadow:inset 6px 0 0 ${fcol(it)};`:''}left:${bx(a-1)+P/2}px;top:${y+10*zf}px;width:${Math.max(24*zf,bx(z)-bx(a-1)-P)}px;height:${h}px;line-height:${h}px">${oc?`${oc.d} of ${oc.n} ${oc.n===1?'feature':'features'} done`:`${d} of ${ts.length} done`}</div>`;
+   const ss=ts.map(t=>C.step[t.id]),a=Math.min(...ss),z=Math.max(...ss),d=ts.filter(t=>t.status==='done').length,h=Math.round(RH-20*zf),l=bx(a-1)+P/2,w=Math.max(24*zf,bx(z)-bx(a-1)-P);occ[i]=[l,bx(z)-P/2];
+   if(it.type==='obj'){
+    // A thin summary bracket in a transparent hit area that fills most of the row, so clicks and selection still cover the row. --p fills the bar by the share of features done.
+    const oc=objCount(it),ct=`${oc.d} of ${oc.n} ${oc.n===1?'feature':'features'} done`;
+    B+=`<div class="sp obj${on}${dim}" data-id="${it.id}" title="${cd} spans steps ${a} to ${z}. ${ct}" style="--p:${oc.n?Math.round(oc.d/oc.n*100):0}%;left:${l}px;top:${y+4*zf}px;width:${w}px;height:${RH-8*zf}px"><span>${ct}</span></div>`;
+   }else B+=`<div class="sp feat${on}${dim}" data-id="${it.id}" title="${cd} spans steps ${a} to ${z}" style="${fcol(it)?`background:color-mix(in srgb,${fcol(it)} 30%,var(--bg));box-shadow:inset 6px 0 0 ${fcol(it)};`:''}left:${l}px;top:${y+10*zf}px;width:${w}px;height:${h}px;line-height:${h}px">${d} of ${ts.length} done</div>`;
   }
  });
   const port=(id,side,row,tgt)=>{const n=map[id],y=cy(row);if(n.type==='ms'||n.type==='ext')return {x:bx(C.step[id]),y,v:true};if(n.type==='feat'){const ss=tasksUnder(n).map(t=>C.step[t.id]),a=Math.min(...ss),z=Math.max(...ss);return side==='S'?{x:bx(a-1)+P/2,y,d:tgt?1:-1}:{x:bx(z)-P/2,y,d:tgt?-1:1}}const s=C.step[id];return side==='S'?{x:bx(s-1)+P,y,d:tgt?1:-1}:{x:bx(s)-P,y,d:tgt?-1:1}};
@@ -560,6 +563,41 @@ window.addEventListener('pointercancel',()=>tdEnd(true));
 window.addEventListener('pointermove',dragMove,{passive:false});
 window.addEventListener('pointerup',()=>dragEnd(false));
 window.addEventListener('pointercancel',()=>dragEnd(true));
+// Panning the map is view-only, so it skips mut(). Press on empty map space and drag to scroll the
+// board both ways, 1:1 with the pointer; the sticky header and labels column stay put. Bars, milestones,
+// externals, link tags and handles keep their own drag and click. Holding Space pans from anywhere on
+// the map, bars included. Touch already scrolls the board natively, so it is left alone.
+let pan=null,spaceOn=false;
+views.addEventListener('pointerdown',e=>{
+ if(e.button!==0||e.pointerType==='touch'||view!=='map'||!grid.contains(e.target)||e.target.closest('button,input,select,textarea,a,label,summary'))return;
+ if(!spaceOn&&e.target.closest('[data-id],.lk,.lkh,[data-tdrag],[data-tog],.hdr,.labels,.tl'))return;
+ pan={x0:e.clientX,y0:e.clientY,sl:board.scrollLeft,st:board.scrollTop,pid:e.pointerId,on:false};
+ // Space-pan starts over bars too, so keep the bar drag, link and date handlers from seeing this press.
+ if(spaceOn){e.stopPropagation();e.preventDefault()}
+},true);
+function panMove(e){
+ if(!pan||e.pointerId!==pan.pid)return;
+ const dx=e.clientX-pan.x0,dy=e.clientY-pan.y0;
+ if(!pan.on){if(Math.abs(dx)+Math.abs(dy)<6)return;pan.on=true;try{board.setPointerCapture(pan.pid)}catch(_){}board.classList.add('panning');lkHide()}
+ e.preventDefault();
+ board.scrollLeft=pan.sl-dx;board.scrollTop=pan.st-dy;
+}
+function panEnd(){
+ if(!pan)return;const p=pan;pan=null;board.classList.remove('panning');
+ if(p.on){noClick=true;setTimeout(()=>{noClick=false},0)}
+}
+window.addEventListener('pointermove',panMove,{passive:false});
+window.addEventListener('pointerup',panEnd);
+window.addEventListener('pointercancel',panEnd);
+document.addEventListener('selectstart',e=>{if(pan)e.preventDefault()});
+// Space is only taken over when focus is not on a field, button or row, so typing and keyboard activation still work.
+function spacePan(on){if(spaceOn!==on){spaceOn=on;board.classList.toggle('spacepan',on)}}
+document.addEventListener('keydown',e=>{
+ if(e.code!=='Space'||view!=='map'||e.ctrlKey||e.metaKey||e.altKey||e.target.closest?.('input,textarea,select,button,a,summary,[contenteditable],[role=button],[tabindex]'))return;
+ e.preventDefault();spacePan(true);
+});
+document.addEventListener('keyup',e=>{if(e.code==='Space')spacePan(false)});
+window.addEventListener('blur',()=>spacePan(false));
 views.addEventListener('click',e=>{
  if(!e.target.isConnected||e.target.closest('#gridv,#relv'))return;
  if(noClick){noClick=false;return}
@@ -654,7 +692,7 @@ const zClamp=v=>Number.isFinite(v)?Math.min(ZMAX,Math.max(ZMIN,v)):1;
 // Zoom to z keeping the map point under (cx,cy) where it is; default is the middle of the map.
 // Requests are batched to one redraw per frame.
 function zoomTo(z,cx,cy){
- if(view!=='map'||drag||td||ld||lb)return;
+ if(view!=='map'||drag||td||ld||lb||pan?.on)return;
  const r=board.getBoundingClientRect();
  zPend={z:zClamp(z),cx:cx??r.left+r.width/2,cy:cy??r.top+r.height/2};
  if(!zRaf)zRaf=requestAnimationFrame(zoomApply);
@@ -729,7 +767,7 @@ grid.addEventListener('keydown',e=>{
  lbSet(geo.LW0+(e.key==='ArrowLeft'?-1:1)*(e.shiftKey?50:10));
  grid.querySelector('.lbw[tabindex]')?.focus({preventScroll:true});
 });
-// Full screen hides the sidebar, header, tallies and legend, and asks the browser for real full screen
+// Full screen hides the sidebar, header and tallies (the Legend button still works), and asks the browser for real full screen
 // when it can. Without the Fullscreen API (or if the browser refuses) the page still fills the window.
 function fullScreen(on){
  fsOn=on;$('#app').classList.toggle('fullmap',on);
@@ -754,7 +792,7 @@ document.addEventListener('keydown',e=>{
  if(e.key==='Escape'&&drag){dragEnd(true);return}
  if(e.key==='Escape'&&td){tdEnd(true);return}
  if(e.key==='Escape'&&lb){lbEnd(true);return}
- if(e.key==='Escape'){for(const d of ['#impd','#vdl'])if(!$(d).hidden){$(d).hidden=true;return}if(!$('#more').hidden||!$('#set').hidden){closeMenu();return}if(!$('#add').hidden){addMenu(false);$('#add-btn').focus();return}if(!$('#flt').hidden){fltMenu(false);$('#flt-btn').focus();return}if(histOpen&&!sel&&!selRel&&!calOpen){histOpen=false;renderHist();return}if(sysOpen){sysPanel(false);$('#set-btn').focus();return}if(!$('#ov').hidden)$('#ov').hidden=true;else if(sel||selRel||calOpen){sel=null;selRel=null;calOpen=false;render()}else if(fsOn)fullScreen(false)}
+ if(e.key==='Escape'){for(const d of ['#impd','#vdl'])if(!$(d).hidden){$(d).hidden=true;return}if(!$('#lgd').hidden){lgdOpen(false);$('#lgd-btn').focus();return}if(!$('#more').hidden||!$('#set').hidden){closeMenu();return}if(!$('#add').hidden){addMenu(false);$('#add-btn').focus();return}if(!$('#flt').hidden){fltMenu(false);$('#flt-btn').focus();return}if(histOpen&&!sel&&!selRel&&!calOpen){histOpen=false;renderHist();return}if(sysOpen){sysPanel(false);$('#set-btn').focus();return}if(!$('#ov').hidden)$('#ov').hidden=true;else if(sel||selRel||calOpen){sel=null;selRel=null;calOpen=false;render()}else if(fsOn)fullScreen(false)}
  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'&&!e.shiftKey&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName||'')){e.preventDefault();undo()}
 });
 
@@ -763,12 +801,13 @@ function renderView(){
  board.hidden=view!=='map';$('#gridv').hidden=view!=='grid';$('#ganttv').hidden=view!=='gantt';$('#relv').hidden=view!=='rel';
  document.querySelectorAll('.tabs [data-view]').forEach(b=>b.setAttribute('aria-selected',b.dataset.view===view));
  const rv=view==='rel';for(const s of ['#flt-btn','#exp','#col','#crit','#tags'])$(s).disabled=rv;if(rv)fltMenu(false);$('#fltsum').hidden=rv||!fltOn();zoomUi();
+ $('#lgd').dataset.view=view==='map'||view==='gantt'?view:'list';$('#lgd-on').textContent={map:'Dependency map',grid:'Grid',gantt:'Gantt',rel:'Releases'}[view];
  lastVW=views.clientWidth;
  if(view==='map')renderBoard();else if(view==='grid')renderGrid();else if(view==='gantt')renderGantt();else renderRelv();
 }
 function renderGantt(){
  const el=$('#ganttv'),W=el.clientWidth||1000,LW=W<700?190:320;
- const hgt=Math.max(320,innerHeight-el.getBoundingClientRect().top-110);
+ const hgt=Math.max(320,innerHeight-el.getBoundingClientRect().top-76);
  const o=el.querySelector('.tlb'),sl=o?o.scrollLeft:null,st=o?o.scrollTop:null;
  const TL=renderTimeline(rowsVisible(),W,LW,hgt);el.innerHTML=TL.html;
  const n=el.querySelector('.tlb');if(n){if(sl!==null&&!tlReset){n.scrollLeft=sl;n.scrollTop=st}else n.scrollLeft=Math.max(0,TL.tx-LW-(W-LW)/2);tlReset=false}

@@ -93,6 +93,12 @@ time, and an edited export updates only what changed.
   → start FS, start → start SS, end → end FF, start → end SF), shown on the
   drop edge while dragging. Loops and duplicates are refused; Esc cancels.
   The new link opens in the editor to set its type and lag.
+- **Drag empty map space to pan the dependency map** (Nov 2026). Press on
+  empty space in the map and drag to move the view both ways at once; the
+  step header and Work breakdown column stay pinned. Bars, markers, link tags
+  and handles keep their own drag and click, and a click without movement
+  still closes the editor. Hold Space to pan from anywhere, bars included.
+  Mouse and trackpad only; touch keeps scrolling natively.
 - **Milestones and externals can be shown under an objective or feature**
   (Nov 2026). *Show under* in their editor puts the row under an objective
   (feature level) or a feature (task level) in the map, grid and Gantt. It
@@ -107,3 +113,10 @@ time, and an edited export updates only what changed.
   width. When narrow, owners and release pills hide so names keep the room.
   The width is remembered per viewer, scales with the zoom and is not saved
   in the plan.
+- **Legend opens from the toolbar** (Nov 2026). *Legend* in the toolbar
+  opens a panel over the view, also in full screen; Esc or a click outside
+  closes it. Short sections (task status, dates and risk, links and link
+  states, milestones and externals, map extras, timeline and Gantt) each
+  draw their swatches with the views' own classes, plus "How it works"
+  bullets. It shows only what the current view draws. The bottom-of-page
+  legend and the timeline's own key strip are gone.

@@ -10,7 +10,7 @@ $('#more-btn').onclick=barMenu('more');$('#set-btn').onclick=barMenu('set');
 document.addEventListener('click',e=>{if((!$('#more').hidden||!$('#set').hidden)&&!e.target.closest('#more,#set'))closeMenu()});
 // Menus inside the toolbar are position:fixed so its sideways scrolling can't clip them.
 function placeMenu(m,b){if(m.hidden)return;const r=b.getBoundingClientRect();m.style.top=r.bottom+6+'px';m.style.maxHeight=Math.max(160,innerHeight-r.bottom-14)+'px';m.style.left=Math.max(8,Math.min(r.left,innerWidth-m.offsetWidth-8))+'px'}
-const placeMenus=()=>{placeMenu($('#flt'),$('#flt-btn'));placeMenu($('#add'),$('#add-btn'))};
+const placeMenus=()=>{placeMenu($('#flt'),$('#flt-btn'));placeMenu($('#add'),$('#add-btn'));placeMenu($('#lgd'),$('#lgd-btn'))};
 addEventListener('scroll',placeMenus,true);addEventListener('resize',placeMenus);
 const addItems=()=>[...$('#add').querySelectorAll('[role=menuitem]')];
 function addMenu(open,last){
@@ -44,6 +44,12 @@ $('#flt-btn').onclick=e=>{e.stopPropagation();closeMenu();addMenu(false);fltMenu
 document.addEventListener('click',e=>{if(!$('#flt').hidden&&e.target.isConnected&&!e.target.closest('#flt-m'))fltMenu(false)});
 $('#flt').addEventListener('change',e=>{const k=e.target.dataset.fs;if(k){const h=new Set(flt.hide);if(e.target.checked)h.delete(k);else h.add(k);flt.hide=FST.map(f=>f[0]).filter(x=>h.has(x))}else if(e.target.hasAttribute('data-fc'))flt.compact=e.target.checked;else return;fltSave();render()});
 document.addEventListener('click',e=>{const p=e.target.closest('[data-fp]');if(!p)return;e.preventDefault();const v=p.dataset.fp;flt.hide=v==='done'?['done']:v==='stuck'?['ready','doing','done']:[];fltSave();render()});
+// Legend: a panel over the view, from Legend in the toolbar (also in full screen). Opening it is view-only and isn't saved.
+// Esc (board.js keydown) or a click anywhere outside closes it; capture phase so menu buttons that stop clicks still close it.
+function lgdOpen(open){const p=$('#lgd'),b=$('#lgd-btn');p.hidden=!open;b.setAttribute('aria-expanded',String(open));if(open){closeMenu();fltMenu(false);addMenu(false);placeMenu(p,b);p.focus()}}
+$('#lgd-btn').onclick=()=>lgdOpen($('#lgd').hidden);
+$('#lgd-x').onclick=()=>{lgdOpen(false);$('#lgd-btn').focus()};
+document.addEventListener('click',e=>{if(!$('#lgd').hidden&&e.target.isConnected&&!e.target.closest('#lgd,#lgd-btn'))lgdOpen(false)},true);
 $('#more').addEventListener('click',async e=>{
  const b=e.target.closest('[data-m]');if(!b)return;closeMenu();const m=b.dataset.m;
  if(m==='dup'){await flush();try{const p=await Store.create(null,null,cur.id);plans.unshift(p);await openPlan(p.id);toast('Copied. You are now editing the copy.')}catch(err){toast(err.message)}}

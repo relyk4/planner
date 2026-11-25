@@ -52,7 +52,110 @@
   <button class="tbtn" id="undo">Undo</button><button class="tbtn" id="exp">Expand all</button><button class="tbtn" id="col">Collapse features</button>
   <span class="tsep"></span>
   <button class="tbtn tog" id="crit" aria-pressed="false">Critical path</button><button class="tbtn tog" id="tags" aria-pressed="true">Link tags</button>
-  <div class="zm"><div class="zmg" role="group" aria-label="Map zoom"><button class="tbtn" id="zm-out" aria-label="Zoom out" title="Zoom out. Or hold Ctrl or Cmd and scroll over the map, or pinch.">−</button><button class="tbtn" id="zm-0" title="Map zoom. Click to reset to 100%">100%</button><button class="tbtn" id="zm-in" aria-label="Zoom in" title="Zoom in. Or hold Ctrl or Cmd and scroll over the map, or pinch.">+</button></div><span class="tsep"></span><button class="tbtn tog" id="fs-btn" aria-pressed="false" title="Hide the sidebar and header and fill the screen. Esc exits.">Full screen</button></div>
+  <div class="zm"><div class="zmg" role="group" aria-label="Map zoom"><button class="tbtn" id="zm-out" aria-label="Zoom out" title="Zoom out. Or hold Ctrl or Cmd and scroll over the map, or pinch.">−</button><button class="tbtn" id="zm-0" title="Map zoom. Click to reset to 100%">100%</button><button class="tbtn" id="zm-in" aria-label="Zoom in" title="Zoom in. Or hold Ctrl or Cmd and scroll over the map, or pinch.">+</button></div><span class="tsep"></span><button class="tbtn" id="lgd-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="lgd" title="What each colour, shape and tag means">Legend</button><button class="tbtn tog" id="fs-btn" aria-pressed="false" title="Hide the sidebar and header and fill the screen. Esc exits.">Full screen</button></div>
+ </div>
+ <!-- Legend panel, opened from the toolbar. Swatches use the same classes the views draw with, so they can't drift.
+      data-v lists the views an entry applies to (map, gantt, list = Grid and Releases); renderView() sets data-view. -->
+ <div class="lgd" id="lgd" role="dialog" aria-labelledby="lgd-h" tabindex="-1" hidden data-view="map">
+  <div class="lgd-hd"><h2 id="lgd-h">Legend</h2><span id="lgd-on"></span><button class="x" id="lgd-x" aria-label="Close legend">×</button></div>
+  <div class="lgd-bd">
+  <div class="lgc lgk">
+   <section><h3>Task status</h3><ul>
+    <li><span class="lgw"><i class="b ready" data-v="map"></i><i class="dot ready"></i></span><span><b>Ready to start</b> Its links are met</span></li>
+    <li><span class="lgw"><i class="b doing" data-v="map"></i><i class="dot doing"></i></span><span><b>In progress</b></span></li>
+    <li><span class="lgw"><i class="b done" data-v="map"></i><i class="dot done"></i></span><span><b>Done</b></span></li>
+    <li><span class="lgw"><i class="b waiting" data-v="map"></i><i class="dot waiting"></i></span><span><b>Waiting on a link</b> Something it needs hasn't started or finished</span></li>
+    <li><span class="lgw"><i class="b blocked" data-v="map"></i><i class="dot blocked"></i></span><span><b>Blocked</b> Marked blocked, has a blocker, or a link is set to Blocked</span></li>
+    <li data-v="map"><span class="lgw"><i class="b waiting chain"></i><i class="dot waiting chain"></i><i class="mk chain"></i><svg class="lgl" width="10" height="20" aria-hidden="true"><line class="g chain" x1="5" y1="0" x2="5" y2="20"/></svg></span><span><b>Held up by blocked work</b> Something it waits on is blocked</span></li>
+   </ul></section>
+   <section data-v="map list"><h3>Dates and risk</h3><ul>
+    <li><span class="lgw"><i class="b lstart" data-v="map"></i><i class="lt">Late start 3d</i></span><span><b>Late start</b> Not started, past its start-by date</span></li>
+    <li><span class="lgw"><i class="b over" data-v="map"></i><i class="mk late" data-v="map"></i><i class="xk late" data-v="map"></i><i class="lt">Overdue 2d</i></span><span><b>Overdue</b> Not done, past its due date</span></li>
+    <li><span class="lgw"><i class="b risk" data-v="map"></i><i class="mk risk" data-v="map"></i><i class="lt rk">At risk</i></span><span><b>At risk</b> Waits on work due or expected after its own date</span></li>
+    <li><span class="lgw"><i class="b waiting lchain" data-v="map"></i><i class="dot waiting lchain" data-v="map"></i><i class="mk lchain" data-v="map"></i><i class="xk lchain" data-v="map"></i><i class="lt rk" data-v="list">Held by overdue</i></span><span><b>Held up by overdue work</b> Something it waits on is overdue</span></li>
+    <li data-v="map"><span class="lgw"><span class="du">Dec 5</span></span><span><b>Due date</b> On open tasks with no date flag</span></li>
+    <li data-v="map"><span class="lgw"><span class="xd">Due Dec 5</span><span class="xd late">Due Dec 1</span></span><span><b>Milestone or external date</b> Orange when overdue</span></li>
+    <li data-v="map"><span class="lgw"><span class="ltc">2 late</span></span><span><b>In a step header</b> Tasks in that step that are overdue or late to start</span></li>
+   </ul></section>
+   <section data-v="map"><h3>Links</h3><ul>
+    <li><span class="lgw"><svg class="lgl" width="34" height="12" aria-hidden="true"><path class="e FS" d="M1 6H27"/><path class="ah FS" d="M26 2L34 6L26 10z"/></svg><i class="tp lk FS">FS</i></span><span><b>Finish to start</b> Starts after the other finishes</span></li>
+    <li><span class="lgw"><svg class="lgl" width="34" height="12" aria-hidden="true"><path class="e SS" d="M1 6H27"/><path class="ah SS" d="M26 2L34 6L26 10z"/></svg><i class="tp lk SS">SS</i></span><span><b>Start to start</b> Starts once the other has started</span></li>
+    <li><span class="lgw"><svg class="lgl" width="34" height="12" aria-hidden="true"><path class="e FF" d="M1 6H27"/><path class="ah FF" d="M26 2L34 6L26 10z"/></svg><i class="tp lk FF">FF</i></span><span><b>Finish to finish</b> Can finish only after the other finishes</span></li>
+    <li><span class="lgw"><svg class="lgl" width="34" height="12" aria-hidden="true"><path class="e SF" d="M1 6H27"/><path class="ah SF" d="M26 2L34 6L26 10z"/></svg><i class="tp lk SF">SF</i></span><span><b>Start to finish</b> Can finish only after the other has started</span></li>
+   </ul>
+   <h4>Link states</h4><ul>
+    <li><span class="lgw"><svg class="lgl" width="34" height="12" aria-hidden="true"><path class="e FS sat" d="M1 6H27"/><path class="ah ok" d="M26 2L34 6L26 10z"/></svg><i class="tp lk FS sat">FS</i></span><span><b>Satisfied</b> The other side has done its part</span></li>
+    <li><span class="lgw"><svg class="lgl" width="34" height="12" aria-hidden="true"><path class="e FS bk" d="M1 6H27"/><path class="ah bk" d="M26 2L34 6L26 10z"/></svg><i class="tp lk FS bk">FS blocked</i></span><span><b>Blocked</b> Set to Blocked, or comes from blocked work</span></li>
+    <li><span class="lgw"><svg class="lgl" width="34" height="12" aria-hidden="true"><path class="e FS ovd" d="M1 6H27"/><path class="ah ovd" d="M26 2L34 6L26 10z"/></svg><i class="tp lk FS ovd">FS</i></span><span><b>From overdue work</b> The item it comes from is overdue</span></li>
+    <li><span class="lgw"><i class="tp lk FS">FS+1</i></span><span><b>Lag</b> +1 waits one more step, −1 one fewer</span></li>
+   </ul></section>
+   <section><h3>Milestones and externals</h3><ul>
+    <li><span class="lgw"><i class="mk" data-v="map"></i><svg class="lgl" width="10" height="20" aria-hidden="true" data-v="map"><line class="g" x1="5" y1="0" x2="5" y2="20"/></svg><i class="dia"></i></span><span><b>Milestone</b> A gate after its last input; what links from it waits until it's reached</span></li>
+    <li><span class="lgw"><i class="mk reached" data-v="map"></i><svg class="lgl" width="10" height="20" aria-hidden="true" data-v="map"><line class="g reached" x1="5" y1="0" x2="5" y2="20"/></svg><i class="dia reached"></i></span><span><b>Reached</b></span></li>
+    <li><span class="lgw"><i class="xb" data-v="map"></i><i class="xk" data-v="map"></i><i class="xq"></i></span><span><b>External dependency</b> Another team's work, not delivered yet<span data-v="map">. Its bar leads up to where it's expected</span></span></li>
+    <li><span class="lgw"><i class="xk committed" data-v="map"></i><i class="xq committed"></i></span><span><b>Committed</b> The team has committed to a date</span></li>
+    <li><span class="lgw"><i class="xb atrisk" data-v="map"></i><i class="xk atrisk" data-v="map"></i><i class="xq atrisk"></i></span><span><b>At risk</b> The team says it may slip</span></li>
+    <li><span class="lgw"><i class="xb blocked" data-v="map"></i><i class="xk blocked" data-v="map"></i><i class="xq blocked"></i></span><span><b>Blocked</b> The team is blocked</span></li>
+    <li><span class="lgw"><i class="xb delivered" data-v="map"></i><i class="xk delivered" data-v="map"></i><i class="xq delivered"></i></span><span><b>Delivered</b></span></li>
+    <li data-v="map"><span class="lgw"><i class="rp">Ops team</i></span><span><b>Team</b> Who delivers an external item</span></li>
+   </ul></section>
+   <section data-v="map"><h3>On the map</h3><ul>
+    <li><span class="lgw"><i class="sp obj"></i></span><span><b>Objective</b> Spans its features' steps; counts features done</span></li>
+    <li><span class="lgw"><i class="sp feat"></i></span><span><b>Feature</b> Spans its tasks' steps; counts tasks done</span></li>
+    <li><span class="lgw"><i class="fcs feat lgf"></i><i class="b lgf"></i></span><span><b>Feature colour</b> Stripe on its rows and the top edge of its task bars</span></li>
+    <li><span class="lgw"><i class="rp">R1</i><span class="ch"><em>R1</em></span></span><span><b>Release</b> Pill: the release a task or feature is in. Flag in a step header: where its last task lands</span></li>
+    <li><span class="lgw"><i class="b crit"></i><svg class="lgl" width="34" height="12" aria-hidden="true"><path class="e u" d="M4 6H30"/><path class="e FS" d="M4 6H30"/></svg></span><span><b>Critical path</b> The longest chain of linked work, with Critical path on</span></li>
+    <li><span class="lgw"><i class="b warn"></i></span><span><b>Status breaks a link</b> Started or done before a link it needs is met</span></li>
+    <li><span class="lgw"><i class="b ext"></i></span><span><b>Needed by the release</b> With a release selected: work outside it that it waits on</span></li>
+    <li><span class="lgw"><i class="b on"></i></span><span><b>Selected</b> Open in the editor</span></li>
+    <li><span class="lgw"><i class="b dim"></i></span><span><b>Faded</b> Not part of what's highlighted</span></li>
+    <li><span class="lgw"><i class="gapl"></i></span><span><b>Hidden steps</b> Steps the filter skips</span></li>
+   </ul></section>
+   <section data-v="map gantt"><h3>Timeline and Gantt</h3><ul>
+    <li><span class="lgw tlp"><i class="tk"></i></span><span><b>Plan</b> Start-by to due date</span></li>
+    <li><span class="lgw tlp"><i class="tk"><i class="sg prog"></i></i></span><span><b>In progress</b> Started, up to today</span></li>
+    <li><span class="lgw tlp"><i class="tk"><i class="sg done"></i></i></span><span><b>Done</b> Started to done</span></li>
+    <li><span class="lgw tlp"><i class="tk"><i class="sg over"></i></i></span><span><b>Past due</b> Time past its due date</span></li>
+    <li><span class="lgw tlp"><i class="tk"><i class="sg ls"></i></i></span><span><b>Should have started</b> Not started, past its start-by date</span></li>
+    <li><span class="lgw tlp"><i class="tk blk"></i></span><span><b>Blocked</b></span></li>
+    <li><span class="lgw tlp"><i class="tsum obj"><i></i></i><i class="tsum feat"><i></i></i></span><span><b>Objective or feature</b> Span of its dated work; green is the share done</span></li>
+    <li><span class="lgw tlp"><i class="tsum feat late"><i></i></i></span><span><b>Late inside</b> Has late work, or ends after its release is due</span></li>
+    <li><span class="lgw tlp"><i class="tmk"><i class="dia"></i></i><i class="tmk"><i class="xq"></i></i></span><span><b>Milestone or external</b> On its due or expected date</span></li>
+    <li><span class="lgw tlp"><i class="tmk od"><i class="dia"></i></i><i class="tmk od"><i class="xq"></i></i></span><span><b>Overdue</b></span></li>
+    <li><span class="lgw tlp"><i class="tmk"><i class="dia reached"></i></i><i class="tln"></i><i class="tmk"><i class="xq delivered"></i></i></span><span><b>Reached or delivered</b> A dotted line joins the expected and delivered dates</span></li>
+    <li><span class="lgw"><span class="lgv"><i class="tlt"></i></span></span><span><b>Today</b></span></li>
+    <li><span class="lgw"><span class="lgv"><i class="tlr"></i></span></span><span><b>Release due</b></span></li>
+    <li><span class="lgw"><span class="lgv"><i class="tlw"></i></span></span><span><b>Weekend</b> On the Days scale</span></li>
+   </ul></section>
+  </div>
+  <h2 class="lgh">How it works</h2>
+  <div class="lgc lgt">
+   <section data-v="map"><h3>Drawing links</h3><ul>
+    <li>Point at a task, milestone or external item: a circle shows on its start (left) and end (right) edge.</li>
+    <li>Drag a circle onto another item's start or end. End to start makes FS, start to start SS, end to end FF, start to end SF.</li>
+    <li>The new link opens in the editor, where you can set its lag or mark it blocked.</li>
+   </ul></section>
+   <section data-v="map"><h3>Milestones and externals</h3><ul>
+    <li>A milestone sits on the step line after its last input.</li>
+    <li>An external item sits where its expected date falls; what links to it waits until it's delivered.</li>
+    <li>Link a whole feature to make every task in it wait.</li>
+    <li>Drag a diamond or square sideways to pin it to another gate.</li>
+   </ul></section>
+   <section data-v="map list"><h3>Releases</h3><ul>
+    <li>Put a feature or task in a release from its editor.</li>
+    <li>Show on map, on a release's page, highlights its work and what it waits on.</li>
+   </ul></section>
+   <section data-v="map gantt"><h3>Timeline and Gantt</h3><ul>
+    <li>Drag a plan bar to move it, or drag an end to resize it.</li>
+    <li>Drag a milestone or external marker to change its date.</li>
+   </ul></section>
+   <section><h3>Dates</h3><ul>
+    <li>Steps are a sequence and carry no dates.</li>
+    <li>Give tasks a start-by and due date, and milestones, external items and releases a due date, to flag late starts, overdue work and anything waiting on work due later.</li>
+    <li>The status date in Plan settings sets what counts as today.</li>
+   </ul></section>
+  </div>
+  </div>
  </div>
  <p class="fltsum" id="fltsum" hidden></p>
  <div id="views">
@@ -61,14 +164,6 @@
   <div id="ganttv" class="ganttv" hidden></div>
   <div id="relv" class="relv" hidden aria-label="Releases"></div>
  </div>
-<details class="lgd" id="lgd"><summary>Legend and how it works</summary>
-<div class="legend" aria-label="Legend">
- <div class="lg"><b>Tasks</b><span><i class="sw ready"></i>Ready to start</span><span><i class="sw doing"></i>In progress</span><span><i class="sw done"></i>Done</span><span><i class="sw waiting"></i>Waiting on a link</span><span><i class="sw blocked"></i>Blocked</span><span><i class="sw warn"></i>Status breaks a link</span><span><i class="sw crit"></i>Critical path</span><span><i class="dia" style="margin:0 4px"></i>Milestone</span><span><i class="dia reached" style="margin:0 4px"></i>Reached</span><span><i class="xq" style="margin:0 4px"></i>External dependency</span><span><i class="xq committed" style="margin:0 4px"></i>Committed</span><span><i class="xq delivered" style="margin:0 4px"></i>Delivered</span><span><i class="rp">R1</i>Release</span></div>
- <div class="lg"><b>Links</b><span><i class="ln FS"></i><i class="tp FS">FS</i>Finish to start</span><span><i class="ln SS"></i><i class="tp SS">SS</i>Start to start</span><span><i class="ln FF"></i><i class="tp FF">FF</i>Finish to finish</span><span><i class="ln SF"></i><i class="tp SF">SF</i>Start to finish</span><span><i class="ln FS sat"></i><i class="tp lk sat" style="position:static;transform:none;box-shadow:none">FS</i>Satisfied</span><span><i class="ln bk"></i><i class="tp bk">FS blocked</i>Blocked link</span><span><i class="tp FS">FS+1</i>Lag in steps</span></div>
- <div class="lg"><b>Dates</b><span><i class="sw lstart"></i>Late start</span><span><i class="sw over"></i>Overdue</span><span><i class="sw risk"></i>Waits on work due later</span><span><i class="sw lchain"></i>Held up by overdue work</span><span><i class="ln" style="border-top-color:var(--late)"></i>Link from overdue work</span><span><i class="lt">Late start 3d</i>Flag in the list</span></div>
-</div>
-<p class="help">FS: starts after the other finishes. SS: starts once the other has started. FF: can finish only after the other finishes. SF: can finish only after the other has started. Lag adds or removes whole steps. To draw a link on the map, point at a task, milestone or external item and drag the circle on its start (left) or end (right) edge onto another item's start or end: end to start makes FS, start to start SS, end to end FF, start to end SF. Milestones are gates on the line after their last input. External dependencies sit where their expected date falls, and anything linked to them waits until they are delivered; link a whole feature to make every ticket in it wait. A flag in a step header marks where a release's last task lands. Steps carry no dates. Give tasks a start-by and due date, and milestones, external items and releases a due date, to flag late starts, overdue work and anything waiting on work due later.</p>
-</details>
  </div>
 </main>
 </div>
