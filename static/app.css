@@ -208,6 +208,9 @@ button.t{cursor:pointer}button.t:hover{border-color:var(--conc)}
 .lkh:hover,.lkh.on{background:var(--accent)}
 .grid.dragging .lkh{display:none}
 .grid.linking,.grid.linking *{cursor:crosshair}
+.grid{cursor:grab}.grid .hdr,.grid .labels,.grid .tl{cursor:auto}
+.board.spacepan .grid,.board.spacepan .grid *{cursor:grab}.board.spacepan .lkh{display:none}
+.board.panning,.board.panning *{cursor:grabbing;-webkit-user-select:none;user-select:none}
 .lkd{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:6}
 .lkd .e{stroke-width:2.4;stroke-dasharray:6 4}
 .lkd.idle,.lke.idle,.lkt.idle{--c:var(--mute)}.lkd.bad,.lke.bad,.lkt.bad{--c:var(--red)}

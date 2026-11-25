@@ -172,6 +172,12 @@ Releases get `od`/`rk` from their tasks and externals.
     so the embedded timeline keeps its own scale. `zoomTo()` batches
     requests to one redraw per frame and keeps the point under the cursor
     in place. Drag code reads `geo`, so it follows the zoom.
+  - Panning (`pan`, `panMove`/`panEnd`) is view-only: a mouse press on
+    empty map space (not `[data-id]`, link tags, handles, the header, labels
+    or timeline) that moves 6px sets `board.scrollLeft`/`scrollTop` from the
+    pointer, so sticky header and labels keep working. Its `pointerdown` runs
+    in the capture phase; while Space is held (`spaceOn`) it starts over bars
+    too and stops the press reaching the bar, link and date drag handlers.
 - **Grid** (`renderGrid`):
   - Columns come from `GCOLS`; which cells each type can edit comes from
     `GEDIT`.
