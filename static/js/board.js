@@ -560,6 +560,41 @@ window.addEventListener('pointercancel',()=>tdEnd(true));
 window.addEventListener('pointermove',dragMove,{passive:false});
 window.addEventListener('pointerup',()=>dragEnd(false));
 window.addEventListener('pointercancel',()=>dragEnd(true));
+// Panning the map is view-only, so it skips mut(). Press on empty map space and drag to scroll the
+// board both ways, 1:1 with the pointer; the sticky header and labels column stay put. Bars, milestones,
+// externals, link tags and handles keep their own drag and click. Holding Space pans from anywhere on
+// the map, bars included. Touch already scrolls the board natively, so it is left alone.
+let pan=null,spaceOn=false;
+views.addEventListener('pointerdown',e=>{
+ if(e.button!==0||e.pointerType==='touch'||view!=='map'||!grid.contains(e.target)||e.target.closest('button,input,select,textarea,a,label,summary'))return;
+ if(!spaceOn&&e.target.closest('[data-id],.lk,.lkh,[data-tdrag],[data-tog],.hdr,.labels,.tl'))return;
+ pan={x0:e.clientX,y0:e.clientY,sl:board.scrollLeft,st:board.scrollTop,pid:e.pointerId,on:false};
+ // Space-pan starts over bars too, so keep the bar drag, link and date handlers from seeing this press.
+ if(spaceOn){e.stopPropagation();e.preventDefault()}
+},true);
+function panMove(e){
+ if(!pan||e.pointerId!==pan.pid)return;
+ const dx=e.clientX-pan.x0,dy=e.clientY-pan.y0;
+ if(!pan.on){if(Math.abs(dx)+Math.abs(dy)<6)return;pan.on=true;try{board.setPointerCapture(pan.pid)}catch(_){}board.classList.add('panning');lkHide()}
+ e.preventDefault();
+ board.scrollLeft=pan.sl-dx;board.scrollTop=pan.st-dy;
+}
+function panEnd(){
+ if(!pan)return;const p=pan;pan=null;board.classList.remove('panning');
+ if(p.on){noClick=true;setTimeout(()=>{noClick=false},0)}
+}
+window.addEventListener('pointermove',panMove,{passive:false});
+window.addEventListener('pointerup',panEnd);
+window.addEventListener('pointercancel',panEnd);
+document.addEventListener('selectstart',e=>{if(pan)e.preventDefault()});
+// Space is only taken over when focus is not on a field, button or row, so typing and keyboard activation still work.
+function spacePan(on){if(spaceOn!==on){spaceOn=on;board.classList.toggle('spacepan',on)}}
+document.addEventListener('keydown',e=>{
+ if(e.code!=='Space'||view!=='map'||e.ctrlKey||e.metaKey||e.altKey||e.target.closest?.('input,textarea,select,button,a,summary,[contenteditable],[role=button],[tabindex]'))return;
+ e.preventDefault();spacePan(true);
+});
+document.addEventListener('keyup',e=>{if(e.code==='Space')spacePan(false)});
+window.addEventListener('blur',()=>spacePan(false));
 views.addEventListener('click',e=>{
  if(!e.target.isConnected||e.target.closest('#gridv,#relv'))return;
  if(noClick){noClick=false;return}
@@ -654,7 +689,7 @@ const zClamp=v=>Number.isFinite(v)?Math.min(ZMAX,Math.max(ZMIN,v)):1;
 // Zoom to z keeping the map point under (cx,cy) where it is; default is the middle of the map.
 // Requests are batched to one redraw per frame.
 function zoomTo(z,cx,cy){
- if(view!=='map'||drag||td||ld)return;
+ if(view!=='map'||drag||td||ld||pan?.on)return;
  const r=board.getBoundingClientRect();
  zPend={z:zClamp(z),cx:cx??r.left+r.width/2,cy:cy??r.top+r.height/2};
  if(!zRaf)zRaf=requestAnimationFrame(zoomApply);
