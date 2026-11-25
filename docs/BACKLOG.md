@@ -100,3 +100,10 @@ time, and an edited export updates only what changed.
   collapsed objective or feature shows their markers on its row; deleting it
   moves them back to the top section. Dragging rows in and out of groups
   waits on #19.
+- **Legend opens from the toolbar** (Nov 2026). *Legend* in the toolbar
+  opens a panel over the view, also in full screen; Esc or a click outside
+  closes it. Short sections (task status, dates and risk, links and link
+  states, milestones and externals, map extras, timeline and Gantt) each
+  draw their swatches with the views' own classes, plus "How it works"
+  bullets. It shows only what the current view draws. The bottom-of-page
+  legend and the timeline's own key strip are gone.
