@@ -29,6 +29,7 @@ try {
     w.Element.prototype.scrollIntoView = function () {};
     w.fetch = (u, o) => fetch(new URL(u, base), o);
     w.localStorage.setItem('planner.user', 'Smoke test');
+    w.localStorage.setItem('planner.theme', 'dark');
     w.addEventListener('error', e => errors.push(e.message));
     w.onunhandledrejection = e => errors.push(String(e.reason && e.reason.stack || e.reason));
     loaded = new Promise(r => w.addEventListener('load', r));
@@ -120,7 +121,10 @@ try {
     row('1.1.2').click(); await sleep(30);
     const k = $('#f-key'); k.focus(); k.value = 'UDM-1031'; k.dispatchEvent(new w.Event('input', {bubbles: true})); await sleep(300);
     $('#dr [data-act=close]').click(); await sleep(30);
-    $('#more [data-m=settings]').click(); await sleep(30);
+    $('#set-btn').click(); await sleep(20);
+    ok(!$('#set').hidden && $('#set-btn').getAttribute('aria-expanded') === 'true', 'Settings menu opens');
+    $('#set [data-set=plan]').click(); await sleep(30);
+    ok($('#set').hidden && $('#dr').classList.contains('open') && $('#c-ids'), 'Settings > Plan settings opens the plan settings');
     const s = $('#c-ids'); s.value = 'key'; s.dispatchEvent(new w.Event('change', {bubbles: true})); await sleep(50);
     ok(bar('UDM-1031') && !bar('1.1.2') && !row('UDM-1031').querySelector('.ky') && row('1') && row('M1'), 'Ticket keys shows a task\'s key in place of its outline number; objectives and milestones keep theirs');
     $('#dr [data-act=close]').click(); $('[data-view=grid]').click(); await sleep(50);
@@ -129,7 +133,7 @@ try {
     td().dispatchEvent(new w.MouseEvent('dblclick', {bubbles: true})); await sleep(20);
     const inp = td().querySelector('input'); inp.value = 'udm-1031 ss'; inp.dispatchEvent(new w.KeyboardEvent('keydown', {key: 'Enter', bubbles: true})); await sleep(50);
     ok(td().textContent === 'UDM-1031 SS', 'typing a key and link type in the grid links to it');
-    $('[data-view=map]').click(); $('#more [data-m=settings]').click(); await sleep(30);
+    $('[data-view=map]').click(); $('#set [data-set=plan]').click(); await sleep(30);
     const s2 = $('#c-ids'); s2.value = 'outline'; s2.dispatchEvent(new w.Event('change', {bubbles: true})); await sleep(50);
     ok(bar('1.1.2') && row('1.1.2').querySelector('.ky')?.textContent === 'UDM-1031', 'Outline numbers brings the numbers back');
     $('#dr [data-act=close]').click(); for (let i = 0; i < 4; i++) $('#undo').click(); await sleep(50)}
@@ -210,6 +214,19 @@ try {
   ok($('#grid .lr.task .nm').textContent === 'Renamed by smoke test', 'editing a name updates the map');
   $('#undo').click(); await sleep(50);
   ok($('#grid .lr.task .nm').textContent === name0, 'undo restores it');
+
+  // System settings: theme is per browser, outside the plan
+  const thm = () => [d.documentElement.dataset.theme || 'system', $('#sysp [aria-pressed=true]')?.dataset.thm, w.localStorage.getItem('planner.theme')].join();
+  ok(d.documentElement.dataset.theme === 'dark', 'saved Dark theme is applied on load');
+  $('#set-btn').click(); await sleep(20); $('#set [data-set=sys]').click(); await sleep(20);
+  ok($('#sysp').classList.contains('open') && thm() === 'dark,dark,dark', 'Settings > System settings opens with Dark shown as pressed');
+  $('#sysp [data-thm=light]').click(); await sleep(20);
+  ok(thm() === 'light,light,light', 'Light overrides and is remembered');
+  $('#sysp [data-thm=system]').click(); await sleep(20);
+  ok(thm() === 'system,system,system' && !d.documentElement.hasAttribute('data-theme'), 'System hands control back to the OS setting');
+  $('#grid .b').click(); await sleep(30);
+  ok(!$('#sysp').classList.contains('open') && $('#dr').classList.contains('open'), 'opening an item closes System settings');
+  $('#dr [data-act=close]').click(); await sleep(30);
 
   ok(errors.length === 0, 'no script errors' + (errors.length ? ': ' + errors.join(' | ') : ''));
 } catch (e) {

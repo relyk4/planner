@@ -48,7 +48,7 @@ const Store={
   const all=[];for(const p of [...this.lidx()])all.push(await this.get(p.id));return {exported:Date.now()/1000,plans:all};
  }
 };
-let cur=null,plans=[],archList=[],showArch=false,lastSaved='',saveT=0,saving=false,histOpen=false,histTab='changes',view='map',relPage=null,gsel=null,gedit=null,lastVW=0;
+let cur=null,plans=[],archList=[],showArch=false,lastSaved='',saveT=0,saving=false,histOpen=false,sysOpen=false,histTab='changes',view='map',relPage=null,gsel=null,gedit=null,lastVW=0;
 const tmFmt=ts=>{const d=new Date(ts*1000);return d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})};
 const dtFmt=ts=>{const d=new Date(ts*1000);return d.toLocaleDateString([],{month:'short',day:'numeric'})+' '+tmFmt(ts)};
 const ago=ts=>{const s=Date.now()/1000-ts;return s<60?'just now':s<3600?Math.floor(s/60)+'m ago':s<86400?Math.floor(s/3600)+'h ago':new Date(ts*1000).toLocaleDateString([],{month:'short',day:'numeric'})};

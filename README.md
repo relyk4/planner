@@ -64,9 +64,11 @@ If your registry already has an approved Python image, build against it instead:
   or row numbers (Smartsheet "Predecessors").
 - It also takes a plan `.json` or a full backup `.json` from this app.
 - *More* > *Download backup of every plan* saves everything to one JSON file.
-- *More* > *Plan settings* > *Item IDs* switches features and tasks from outline
+- *Settings* > *Plan settings* > *Item IDs* switches features and tasks from outline
   numbers (`1.2.3`) to their ticket keys (`UDM-123`) everywhere, CSV export
   included. Items without a key keep their number.
+- *Settings* > *System settings* > *Theme* picks Light, Dark or System (follow
+  your computer). It is saved in your browser, not in the plan.
 
 ## Backups
 
