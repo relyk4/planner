@@ -169,7 +169,7 @@ function renderBoard(){
   const ef=C.eff[it.id],chn=(it.type==='task'||it.type==='ms'||it.type==='ext')&&held(it.id)?' chain':'';
   const relN=it.type==='task'?S.releases.find(r=>r.id===C.relOf[it.id])?.name:it.type==='feat'?S.releases.find(r=>r.id===it.rel)?.name:'';
   const icon=it.type==='task'?`<span class="dot ${ef}${lateHeld(it.id)?' lchain':''}${chn}" title="${LBL[ef]}${lateHeld(it.id)?', held up by overdue work':''}"></span>`:it.type==='ms'?`<span class="dia ${ef}${chn}" title="${LBL[ef]}"></span>`:it.type==='ext'?`<span class="xq ${ef}" title="${LBL[ef]}"></span>`:`<button class="car" data-tog="${it.id}" aria-expanded="${!it.collapsed}" aria-label="${it.collapsed?'Expand':'Collapse'} ${cd}">${it.collapsed?'▸':'▾'}</button>`;
-  L+=`<div class="lr ${it.type}${on}${dim}" data-id="${it.id}" role="button" tabindex="0" style="height:${RH}px;padding-left:${(4+lvl*(W<600?10:18))*zf}px">${fcs(it)}${icon}<span class="cd${idk(it.id)}">${cd}</span>${it.key&&!(S.itemIds==='key'&&(it.type==='feat'||it.type==='task'))?`<span class="ky">${esc(it.key)}</span>`:''}<span class="nm">${esc(it.name)||'Untitled'}</span>${relN&&(it.type==='feat'||it.rel)?`<i class="rp" title="Release: ${esc(relN)}">${esc(relN)}</i>`:''}${it.type==='ext'&&!C.df[it.id]?.od&&C.df[it.id]?.their?'':latePill(it.id)}${it.type==='task'&&it.due&&it.status!=='done'&&!latePill(it.id)?`<span class="du" title="Due">${fd(dn(it.due))}</span>`:''}${it.type==='ext'?`${it.team?`<i class="rp" title="External team">${esc(it.team)}</i>`:''}<span class="ow">${LBL[ef]}</span>`:it.type==='ms'?(it.target?`<span class="ow">${esc(it.target)}</span>`:''):it.owner?`<span class="ow">${esc(it.owner)}</span>`:''}</div>`;
+  L+=`<div class="lr ${it.type}${on}${dim}" data-id="${it.id}" role="button" tabindex="0" style="height:${RH}px;padding-left:${(4+lvl*(W<600?10:18))*zf}px">${fcs(it)}${icon}${idk(it.id)?tkHtml(it,cd,'cd idk'):`<span class="cd">${cd}</span>`}${it.key&&!(S.itemIds==='key'&&(it.type==='feat'||it.type==='task'))?tkHtml(it,esc(it.key),'ky'):''}<span class="nm">${esc(it.name)||'Untitled'}</span>${relN&&(it.type==='feat'||it.rel)?`<i class="rp" title="Release: ${esc(relN)}">${esc(relN)}</i>`:''}${it.type==='ext'&&!C.df[it.id]?.od&&C.df[it.id]?.their?'':latePill(it.id)}${it.type==='task'&&it.due&&it.status!=='done'&&!latePill(it.id)?`<span class="du" title="Due">${fd(dn(it.due))}</span>`:''}${it.type==='ext'?`${it.team?`<i class="rp" title="External team">${esc(it.team)}</i>`:''}<span class="ow">${LBL[ef]}</span>`:it.type==='ms'?(it.target?`<span class="ow">${esc(it.target)}</span>`:''):it.owner?`<span class="ow">${esc(it.owner)}</span>`:''}</div>`;
   if(it.type==='task'){
    const s=C.step[it.id],h=Math.round(RH-14*zf);occ[i]=[bx(s-1)+P,bx(s)-P];pt[it.id]={l:bx(s-1)+P,r:bx(s)-P,y:cy(i),h,row:i};const ext=rx&&F&&F.has(it.id)&&!rx.ids.has(it.id)?'ext':'';
    const df=C.df[it.id]||{},cls=[ef,lateHeld(it.id)?'lchain':'',chn,C.warn[it.id]?'warn':'',df.ls?'lstart':'',df.od?'over':df.rk?'risk':'',critOn&&C.crit.has(it.id)?'crit':'',ext,on,dim].join(' ');
@@ -237,12 +237,20 @@ function msDates(it){
  return `<label class="f">Due date<input id="f-due" data-f="due" type="date" value="${esc(it.due)}"></label>${l.length?`<p class="dsay">${l.join('<br>')}</p>`:''}`;
 }
 function calForm(){
- const k=S.itemIds==='key';
+ const k=S.itemIds==='key',a=okUrl(S.ticketUrl),ex=S.items.map(tkKey).find(x=>x&&!okUrl(x))||'UDM-123';
  return `<div class="dh"><span>Plan settings</span><button class="x" data-act="close" aria-label="Close editor">×</button></div>
  <p class="dsay" style="margin-top:0">Late starts, overdue work and risks are worked out as of the status date.</p>
  <label class="f">Status date<input id="c-asof" data-cf="asof" type="date" value="${esc(S.cal.asof)}"></label><p class="none" style="margin-top:4px">Leave it blank to use today, ${fd(dn(todayIso()))}.</p>
- <label class="f">Item IDs<select id="c-ids" data-pf="itemIds"><option value="outline"${k?'':' selected'}>Outline numbers (1.2.3)</option><option value="key"${k?' selected':''}>Ticket keys (UDM-123)</option></select></label><p class="none" style="margin-top:4px">With ticket keys, features and tasks show their ticket key in place of the outline number. Ones without a key keep their number. Objectives, milestones and external items always keep theirs.</p>`;
+ <label class="f">Item IDs<select id="c-ids" data-pf="itemIds"><option value="outline"${k?'':' selected'}>Outline numbers (1.2.3)</option><option value="key"${k?' selected':''}>Ticket keys (UDM-123)</option></select></label><p class="none" style="margin-top:4px">With ticket keys, features and tasks show their ticket key in place of the outline number. Ones without a key keep their number. Objectives, milestones and external items always keep theirs.</p>
+ <label class="f">Ticket link address<input id="c-tku" data-pf="ticketUrl" type="url" value="${esc(S.ticketUrl)}" placeholder="e.g. https://jira.example/browse/" autocomplete="off"></label><p class="none" style="margin-top:4px">${a?`Ticket keys open in a new tab. ${esc(ex)} opens ${esc(a+encodeURIComponent(ex))}`:S.ticketUrl?'<span class="ltc">Only http:// and https:// addresses work.</span> Ticket keys stay plain text until this is fixed':'With an address, each ticket key becomes a link to the address plus the key. Leave it blank to keep keys as plain text'}. An item\'s link override always wins.</p>`;
 }
+// Link override for an item's ticket, and a line that opens the ticket (or says why it can't).
+// tkSay() is also called while typing, so the line keeps up with the key and override fields.
+function tkSay(it){
+ const u=tkUrl(it),k=tkKey(it),v=String(it.url||'').trim();
+ return v&&!okUrl(v)?'<span class="ltc">Only http:// and https:// links work.</span>':u?`<a class="tkl" href="${esc(u)}" target="_blank" rel="noopener noreferrer">Open ${k?esc(k):'ticket'} in a new tab ↗</a>`:k?'Set a ticket link address in <button class="lnk" data-cal="0" style="display:inline;padding:0;font-size:inherit;text-decoration:underline">plan settings</button>, or a link override here, to open this ticket from the plan.':'Leave it blank to use the plan\'s ticket link address.';
+}
+const tkField=it=>`<label class="f">Link override<input id="f-url" data-f="url" type="url" value="${esc(it.url)}" placeholder="Optional full https:// link" autocomplete="off"></label><p class="none" id="f-tkl" style="margin-top:4px">${tkSay(it)}</p>`;
 function openCal(k){sel=null;selRel=null;calOpen=true;calStep=k||null;render();if(k){const el=document.getElementById('srow-'+k);if(el)el.scrollIntoView({block:'nearest'})}}
 const icon=d=>map[d].type==='feat'||map[d].type==='obj'?'':map[d].type==='ext'?`<span class="xq ${C.eff[d]}"></span>`:map[d].type==='ms'?`<span class="dia ${C.eff[d]}"></span>`:`<span class="dot ${C.eff[d]}"></span>`;
 const nameOf=d=>`${esc(C.lbl[d])} ${esc(map[d].name)}`;
@@ -298,7 +306,7 @@ function renderDrawer(){
   const kind=KIND[it.type];
   h=`<div class="dh"><span>${kind} ${esc(C.lbl[it.id]||'')}</span><button class="x" data-act="close" aria-label="Close editor">×</button></div>
   <label class="f">Name<input id="f-name" data-f="name" value="${esc(it.name)}"></label>
-  ${['task','feat','obj'].includes(it.type)?`<label class="f">Ticket key<input id="f-key" data-f="key" value="${esc(it.key||'')}" placeholder="e.g. UDM-1031"></label>`:''}
+  ${['task','feat','obj'].includes(it.type)?`<label class="f">Ticket key<input id="f-key" data-f="key" value="${esc(it.key||'')}" placeholder="e.g. UDM-1031"></label>${tkField(it)}`:''}
   <label class="f">${it.type==='ext'?'Contact':'Owner'}<input id="f-owner" data-f="owner" value="${esc(it.owner)}" placeholder="${it.type==='ext'?'Who to ask on their side':'Unassigned'}"></label>`;
   if(it.type==='task'){
    const s=C.step[it.id],ef=C.eff[it.id],ls=C.links(it);
@@ -324,7 +332,7 @@ function renderDrawer(){
    ${gateRow(it)}${underRow(it)}
    <label class="f">Team<input id="f-team" data-f="team" value="${esc(it.team)}" placeholder="e.g. Platform team"></label>
    <div class="two"><label class="f">Status<select id="f-status" data-f="status">${XS.map(([v,l])=>`<option value="${v}"${it.status===v?' selected':''}>${l}</option>`).join('')}</select></label><label class="f">Expected date<input id="f-due" data-f="due" type="date" value="${esc(it.due)}"></label></div>
-   <div class="two"><label class="f">Their ticket or link<input id="f-ref" data-f="ref" value="${esc(it.ref)}" placeholder="e.g. PLAT-412"></label><label class="f">Delivered on<input id="f-doneOn" data-f="doneOn" type="date" value="${esc(it.doneOn)}"></label></div>`+depBlock(it,'Needs from us first');
+   <div class="two"><label class="f">Their ticket or link<input id="f-ref" data-f="ref" value="${esc(it.ref)}" placeholder="e.g. PLAT-412"></label><label class="f">Delivered on<input id="f-doneOn" data-f="doneOn" type="date" value="${esc(it.doneOn)}"></label></div>${tkField(it)}`+depBlock(it,'Needs from us first');
   }else if(it.type==='feat'){
    const ts=tasksUnder(it),ss=ts.map(t=>C.step[t.id]),own=new Set(ts.map(t=>t.id));
    const waits=[...new Set(ts.flatMap(t=>ids(t)).filter(d=>!own.has(d)).map(d=>C.isP(d)?d:map[d].parent))];
@@ -601,6 +609,8 @@ window.addEventListener('blur',()=>spacePan(false));
 views.addEventListener('click',e=>{
  if(!e.target.isConnected||e.target.closest('#gridv,#relv'))return;
  if(noClick){noClick=false;return}
+ // Ticket links open in a new tab on their own; the row under them stays as it is.
+ if(e.target.closest('a[href]'))return;
  const tb=e.target.closest('[data-tl]');if(tb){const a=tb.dataset.tl;if(a==='toggle'){S.tl.open=!S.tl.open;tlReset=true}else if(a==='only')S.tl.only=!S.tl.only;else{S.tl.zoom=a.slice(2);tlReset=true}render();return}
  const cb=e.target.closest('[data-cal]');if(cb){openCal(null);return}
  const lk=e.target.closest('.lk');if(lk){go(lk.dataset.lk,lk.dataset.from);return}
@@ -639,7 +649,7 @@ dr.addEventListener('input',e=>{
  if(pend){hist.push(pend);pend=null}
  if(rf){const r=S.releases.find(r=>r.id===selRel);if(r)r[rf]=t.value}
  else if(lk){const l=map[sel]?.deps.find(x=>x.id===lk);if(l)l.note=t.value}
- else{const it=map[sel];if(!it)return;if(f==='earliest')it.earliest=+t.value>0?Math.floor(+t.value):null;else it[f]=t.value}
+ else{const it=map[sel];if(!it)return;if(f==='earliest')it.earliest=+t.value>0?Math.floor(+t.value):null;else it[f]=t.value;if(f==='key'||f==='ref'||f==='url'){const p=$('#f-tkl');if(p)p.innerHTML=tkSay(it)}}
  S.sample=false;soft();
 });
 dr.addEventListener('change',e=>{
@@ -647,6 +657,7 @@ dr.addEventListener('change',e=>{
  if(t.dataset.rf==='status'){const r=S.releases.find(r=>r.id===selRel);if(r)mut(()=>{r.status=t.value});return}
  if(t.dataset.cf){const f=t.dataset.cf;mut(()=>{S.cal[f]=f==='len'?Math.max(1,Math.min(120,Math.round(+t.value)||14)):okd(t.value)});return}
  if(t.dataset.pf==='itemIds'){mut(()=>{S.itemIds=t.value==='key'?'key':'outline'});return}
+ if(t.dataset.pf==='ticketUrl'){mut(()=>{S.ticketUrl=t.value.trim()});return}
  if(t.dataset.rf==='due'){render();return}
  const it=map[sel];if(!it)return;
  if(t.dataset.lk){const lf=t.dataset.lf,l=it.deps.find(x=>x.id===t.dataset.lk);if(!l)return;if(lf==='note'){render();return}pend=null;mut(()=>{l[lf]=lf==='lag'?clampLag(t.value):t.value});return}
@@ -779,7 +790,7 @@ function fullScreen(on){
 }
 $('#fs-btn').onclick=()=>fullScreen(!fsOn);
 document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&fsOn)fullScreen(false)});
-const exportText=()=>JSON.stringify({title:S.title,tl:S.tl,msCollapsed:S.msCollapsed,extCollapsed:S.extCollapsed,itemIds:S.itemIds,cal:S.cal,releases:S.releases,items:S.items},null,1);
+const exportText=()=>JSON.stringify({title:S.title,tl:S.tl,msCollapsed:S.msCollapsed,extCollapsed:S.extCollapsed,itemIds:S.itemIds,ticketUrl:S.ticketUrl,cal:S.cal,releases:S.releases,items:S.items},null,1);
 const _unused_json=()=>ov('Export plan','Copy this and keep it somewhere safe. Paste it into Import to restore the plan or hand it to someone else.',JSON.stringify({title:S.title,tl:S.tl,msCollapsed:S.msCollapsed,extCollapsed:S.extCollapsed,cal:S.cal,releases:S.releases,items:S.items},null,1),'json');
 const _unused_csv=()=>ov('Export CSV','One row per milestone, objective, feature, task and release. Links read like "1.2.2 FS", "1.1.3 SS+1" or "1.2.2 FS blocked". Paste into Excel, or save as .csv for a Jira import.',csv(),'csv');
 

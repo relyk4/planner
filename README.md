@@ -67,6 +67,11 @@ If your registry already has an approved Python image, build against it instead:
 - *Settings* > *Plan settings* > *Item IDs* switches features and tasks from outline
   numbers (`1.2.3`) to their ticket keys (`UDM-123`) everywhere, CSV export
   included. Items without a key keep their number.
+- *Settings* > *Plan settings* > *Ticket link address* (for example
+  `https://jira.example/browse/`) makes every ticket key a link to that
+  address plus the key, opening in a new tab. An item's *Link override* takes
+  a full URL instead. Only `http://` and `https://` links are made; leave the
+  address blank and keys stay plain text.
 - *Settings* > *System settings* > *Theme* picks Light, Dark or System (follow
   your computer). It is saved in your browser, not in the plan.
 

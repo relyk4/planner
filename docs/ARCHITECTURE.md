@@ -67,6 +67,7 @@ time can only use names from its own file or an earlier one.
 {
   title, view: 'map'|'grid'|'gantt'|'rel', relOpen, sample, msCollapsed, extCollapsed,
   itemIds: 'outline'|'key',                  // Plan settings > Item IDs; default 'outline'
+  ticketUrl: '',                             // Plan settings > Ticket link address; '' = keys stay plain text
   cal: { asof: 'YYYY-MM-DD' | '' },          // status date; blank = today
   tl:  { open, zoom: 'days'|'weeks'|'months'|'quarters', only },
   releases: [{ id, name, target, status: 'planned'|'active'|'released', notes, due }],
@@ -80,6 +81,7 @@ time can only use names from its own file or an earlier one.
     rel,                // release id; '' = inherit from feature; '-' = none
     target, due, startBy, startedOn, doneOn,   // ISO dates or ''
     team, ref,          // external items: team name, their ticket
+    url,                // link override for the item's ticket: a full http(s) URL, or ''
     color               // features: '#rrggbb'
   }]
 }
@@ -105,6 +107,13 @@ that cleans and defaults all of this, and it must accept every older shape.
     CSV) uses `C.lbl`. Keys are shown in full; the name next to them truncates
     instead. `idk(id)` adds the `idk` class to a row's code span when it shows
     a key, which caps only very long keys (12em) so the name keeps some room.
+  - Ticket links (`core.js`): `tkUrl(it)` is the item's `url` override, else
+    `ticketUrl` plus the URI-encoded key (`key`, or `ref` for externals; an
+    external `ref` that is itself a URL is used as is). `okUrl()` lets only
+    `http(s)` through, so anything else stays plain text. `tkHtml()` wraps a
+    key in `<a class="tkl" target="_blank">` on the map row labels and the
+    Grid's Ticket column; the editor shows an "Open" link (`tkSay()`). Task
+    bars don't link, so dragging a bar never opens a ticket.
 - **Links**: `C.links(task)` is the task's own deps plus its feature's deps.
   A feature-level link makes every task in it wait.
 - **Steps** (`C.step`): positions are measured in step boundaries. A task

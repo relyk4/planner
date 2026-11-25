@@ -70,7 +70,7 @@ def init_db():
 # ---------------------------------------------------------------- change log
 
 ITEM_FIELDS = [
-    ("name", "Name"), ("key", "Ticket key"), ("parent", "Parent"),
+    ("name", "Name"), ("key", "Ticket key"), ("url", "Link override"), ("parent", "Parent"),
     ("owner", "Owner"), ("team", "Team"), ("status", "Status"),
     ("startBy", "Start by"), ("due", "Due"), ("startedOn", "Started"),
     ("doneOn", "Done"), ("blocker", "External blocker"), ("rel", "Release"),
