@@ -57,6 +57,8 @@ const featDone=f=>{const ts=tasksUnder(f);return ts.length>0&&ts.every(t=>t.stat
 const featLate=f=>tasksUnder(f).some(t=>C.df[t.id]?.od||C.df[t.id]?.ls);
 const featRisk=f=>!featLate(f)&&tasksUnder(f).some(t=>C.df[t.id]?.rk);
 const objCount=o=>{const fs=featsOf(o);return {n:fs.length,d:fs.filter(featDone).length,fs}};
+// Left padding of a Work breakdown row at outline level lvl. The first 14px hold the reorder grip.
+const rowPad=(lvl,W,zf)=>(14+lvl*(W<600?10:18))*zf;
 function tlDates(n){
  if(n.type==='task')return [n.startBy,n.startedOn,n.due,n.doneOn].map(dn).filter(v=>v!==null);
  if(n.type==='ms')return [dn(n.due)].filter(v=>v!==null);
@@ -156,20 +158,20 @@ function renderBoard(){
  rows.forEach((it,i)=>{
   const y=i*RH;
   // Section headers count and, when collapsed, mark only the items in their section (not those shown under an objective or feature).
-  if(it.type==='exth'){BG+=`<div class="rbg exth" style="top:${y}px;height:${RH}px"></div>`;const xs=C.exts.filter(x=>!x.parent),xd=xs.filter(x=>C.done(x.id)).length;L+=`<div class="lr exth" data-tog="__ext" role="button" tabindex="0" aria-expanded="${!S.extCollapsed}" style="height:${RH}px;padding-left:4px"><span class="car" aria-hidden="true">${S.extCollapsed?'▸':'▾'}</span><span class="nm">External dependencies</span><span class="ow">${xd} of ${xs.length} delivered</span></div>`;if(S.extCollapsed)xs.filter(x=>!FV||FV.has(x.id)).forEach(x=>B+=xMark(x,i,false));return}
+  if(it.type==='exth'){BG+=`<div class="rbg exth" style="top:${y}px;height:${RH}px"></div>`;const xs=C.exts.filter(x=>!x.parent),xd=xs.filter(x=>C.done(x.id)).length;L+=`<div class="lr exth" data-tog="__ext" role="button" tabindex="0" aria-expanded="${!S.extCollapsed}" style="height:${RH}px;padding-left:${rowPad(0,W,zf)}px"><span class="car" aria-hidden="true">${S.extCollapsed?'▸':'▾'}</span><span class="nm">External dependencies</span><span class="ow">${xd} of ${xs.length} delivered</span></div>`;if(S.extCollapsed)xs.filter(x=>!FV||FV.has(x.id)).forEach(x=>B+=xMark(x,i,false));return}
   BG+=`<div class="rbg ${it.type}" style="top:${y}px;height:${RH}px"></div>`;
   if(it.type==='msh'){
    const ms=C.mss.filter(m=>!m.parent),mr=ms.filter(m=>C.done(m.id)).length;
-   L+=`<div class="lr msh" data-tog="__ms" role="button" tabindex="0" aria-expanded="${!S.msCollapsed}" style="height:${RH}px;padding-left:4px"><span class="car" aria-hidden="true">${S.msCollapsed?'▸':'▾'}</span><span class="nm">Milestones</span><span class="ow">${mr} of ${ms.length} reached</span></div>`;
+   L+=`<div class="lr msh" data-tog="__ms" role="button" tabindex="0" aria-expanded="${!S.msCollapsed}" style="height:${RH}px;padding-left:${rowPad(0,W,zf)}px"><span class="car" aria-hidden="true">${S.msCollapsed?'▸':'▾'}</span><span class="nm">Milestones</span><span class="ow">${mr} of ${ms.length} reached</span></div>`;
    if(S.msCollapsed)ms.filter(m=>!FV||FV.has(m.id)).forEach(m=>B+=msMark(m,i));
    return;
   }
-  const lvl=lvlOf(it),cd=esc(C.lbl[it.id]);
+  const lvl=lvlOf(it),cd=esc(C.lbl[it.id]),pad=rowPad(lvl,W,zf);
   const dim=(it.type==='task'||it.type==='ms'||it.type==='ext'?F&&!F.has(it.id):!grpIn(it))?' dim':'',on=sel===it.id?' on':'';
   const ef=C.eff[it.id],chn=(it.type==='task'||it.type==='ms'||it.type==='ext')&&held(it.id)?' chain':'';
   const relN=it.type==='task'?S.releases.find(r=>r.id===C.relOf[it.id])?.name:it.type==='feat'?S.releases.find(r=>r.id===it.rel)?.name:'';
   const icon=it.type==='task'?`<span class="dot ${ef}${lateHeld(it.id)?' lchain':''}${chn}" title="${LBL[ef]}${lateHeld(it.id)?', held up by overdue work':''}"></span>`:it.type==='ms'?`<span class="dia ${ef}${chn}" title="${LBL[ef]}"></span>`:it.type==='ext'?`<span class="xq ${ef}" title="${LBL[ef]}"></span>`:`<button class="car" data-tog="${it.id}" aria-expanded="${!it.collapsed}" aria-label="${it.collapsed?'Expand':'Collapse'} ${cd}">${it.collapsed?'▸':'▾'}</button>`;
-  L+=`<div class="lr ${it.type}${on}${dim}" data-id="${it.id}" role="button" tabindex="0" style="height:${RH}px;padding-left:${(4+lvl*(W<600?10:18))*zf}px">${fcs(it)}${icon}<span class="cd${idk(it.id)}">${cd}</span>${it.key&&!(S.itemIds==='key'&&(it.type==='feat'||it.type==='task'))?`<span class="ky">${esc(it.key)}</span>`:''}<span class="nm">${esc(it.name)||'Untitled'}</span>${relN&&(it.type==='feat'||it.rel)?`<i class="rp" title="Release: ${esc(relN)}">${esc(relN)}</i>`:''}${it.type==='ext'&&!C.df[it.id]?.od&&C.df[it.id]?.their?'':latePill(it.id)}${it.type==='task'&&it.due&&it.status!=='done'&&!latePill(it.id)?`<span class="du" title="Due">${fd(dn(it.due))}</span>`:''}${it.type==='ext'?`${it.team?`<i class="rp" title="External team">${esc(it.team)}</i>`:''}<span class="ow">${LBL[ef]}</span>`:it.type==='ms'?(it.target?`<span class="ow">${esc(it.target)}</span>`:''):it.owner?`<span class="ow">${esc(it.owner)}</span>`:''}</div>`;
+  L+=`<div class="lr ${it.type}${on}${dim}" data-id="${it.id}" role="button" tabindex="0" style="height:${RH}px;padding-left:${pad}px">${fcs(it)}<span class="grip" style="left:${pad-13*zf}px" title="Drag up or down to reorder" aria-hidden="true">⋮⋮</span>${icon}<span class="cd${idk(it.id)}">${cd}</span>${it.key&&!(S.itemIds==='key'&&(it.type==='feat'||it.type==='task'))?`<span class="ky">${esc(it.key)}</span>`:''}<span class="nm">${esc(it.name)||'Untitled'}</span>${relN&&(it.type==='feat'||it.rel)?`<i class="rp" title="Release: ${esc(relN)}">${esc(relN)}</i>`:''}${it.type==='ext'&&!C.df[it.id]?.od&&C.df[it.id]?.their?'':latePill(it.id)}${it.type==='task'&&it.due&&it.status!=='done'&&!latePill(it.id)?`<span class="du" title="Due">${fd(dn(it.due))}</span>`:''}${it.type==='ext'?`${it.team?`<i class="rp" title="External team">${esc(it.team)}</i>`:''}<span class="ow">${LBL[ef]}</span>`:it.type==='ms'?(it.target?`<span class="ow">${esc(it.target)}</span>`:''):it.owner?`<span class="ow">${esc(it.owner)}</span>`:''}</div>`;
   if(it.type==='task'){
    const s=C.step[it.id],h=Math.round(RH-14*zf);occ[i]=[bx(s-1)+P,bx(s)-P];pt[it.id]={l:bx(s-1)+P,r:bx(s)-P,y:cy(i),h,row:i};const ext=rx&&F&&F.has(it.id)&&!rx.ids.has(it.id)?'ext':'';
    const df=C.df[it.id]||{},cls=[ef,lateHeld(it.id)?'lchain':'',chn,C.warn[it.id]?'warn':'',df.ls?'lstart':'',df.od?'over':df.rk?'risk':'',critOn&&C.crit.has(it.id)?'crit':'',ext,on,dim].join(' ');
@@ -394,9 +396,16 @@ function del(id){
  mut(()=>{bl.forEach(i=>i.parent=null);if(ms)S.msCollapsed=false;if(xs)S.extCollapsed=false;S.items=S.items.filter(i=>!gone.has(i.id));S.items.forEach(i=>i.deps=i.deps.filter(l=>!gone.has(l.id)));sel=null});
  if(bl.length)toast(`${names} ${bl.length===1?'was':'were'} shown under it and ${bl.length===1?'is':'are'} back in ${ms&&xs?'their sections':ms?'the Milestones section':'the External dependencies section'} at the top.`);
 }
+// Puts item id under parent p (null: top level), just before or after sibling ref, or last when ref is
+// null. Sibling order is S.items order among items with the same parent and type, so only S.items
+// order and the item's parent change: steps, links and children (they follow via parent) stay. Call inside mut().
+function placeItem(id,p,ref,after){
+ if(ref===id)return;const it=map[id];S.items.splice(S.items.indexOf(it),1);it.parent=p||null;
+ S.items.splice(ref?S.items.indexOf(map[ref])+(after?1:0):S.items.length,0,it);
+}
 function move(id,dir){
  const it=map[id],sib=S.items.filter(i=>i.parent===it.parent&&i.type===it.type),o=sib[sib.indexOf(it)+dir];if(!o)return;
- mut(()=>{const a=S.items.indexOf(it),b=S.items.indexOf(o);S.items[a]=o;S.items[b]=it});
+ mut(()=>placeItem(id,it.parent,o.id,dir>0));
 }
 function go(id,from){
  const n=map[id];if(!n)return;if(n.type==='ms'&&!n.parent)S.msCollapsed=false;if(n.type==='ext'&&!n.parent)S.extCollapsed=false;let p=n;while(p&&(p=map[p.parent]))p.collapsed=false;
@@ -455,6 +464,79 @@ function dragEnd(cancel){
  if(cancel){render();return}
  (d.gt?moveGate:moveTo)(d.id,d.tgt);
 }
+// Reordering rows. Press a Work breakdown row (or its grip) and drag it up or down; a line and hint
+// show where it lands. Tasks land in any feature and features in any objective (as the editor's
+// Feature field does), objectives among objectives, milestones and externals among their siblings.
+// What is shown under a row moves with it. Steps and links don't change. One drop is one mut().
+let rowMv=null;
+const rowUnder=(n,a)=>{for(let p=map[n.parent];p;p=map[p.parent])if(p===a)return true;return false};
+const rowNo=it=>'Not here: '+(it.type==='task'?'tasks go inside a feature':it.type==='feat'?'features go inside an objective':it.type==='obj'?'objectives go between objectives':`it stays ${it.parent?'under '+C.lbl[it.parent]:'in its section'}. Show under in its editor moves it`);
+views.addEventListener('pointerdown',e=>{
+ if(e.button!==0||view!=='map'||!e.target.isConnected)return;
+ const el=e.target.closest('.labels>.lr[data-id]');if(!el||!map[el.dataset.id])return;
+ rowMv={id:el.dataset.id,el,lab:el.parentNode,y0:e.clientY,cy:e.clientY,pid:e.pointerId,on:false,raf:0};
+});
+// Drop spots for it among the visible rows: before or after a row of its type ("after" is below
+// everything shown under that row), or into an objective or feature that shows none of its type.
+// Spots at the same height collapse into one; same marks a spot that leaves the order as it is.
+// spans are the rows each row of its type covers with what's shown under it: over one, the nearer
+// of its two edges is the spot. Elsewhere only a spot within 3/4 of a row counts.
+function rowSlots(it,rows){
+ const T=it.type,pk=it.parent||null,RH=geo.RH,by=new Map(),spans=[];
+ const at=S.items.filter(n=>(n.parent||null)===pk&&n.type===T&&n!==it).map(n=>n.id),now=S.items.filter(n=>(n.parent||null)===pk&&n.type===T).indexOf(it);
+ const add=(y,p,ref,after)=>{const same=ref===it.id||p===pk&&(ref?at.indexOf(ref)+(after?1:0):at.length)===now,o=by.get(y);if(o&&(o.same||!same&&!after))return;by.set(y,{y,p,ref,after,same})};
+ rows.forEach((n,i)=>{
+  if(n.type===T&&(T==='task'||T==='feat'||T==='obj'||(n.parent||null)===pk)){
+   let j=i;while(j+1<rows.length&&rowUnder(rows[j+1],n))j++;
+   add(i*RH,n.parent||null,n.id,false);add((j+1)*RH,n.parent||null,n.id,true);spans.push([i*RH,(j+1)*RH]);
+  }else if((T==='task'&&n.type==='feat'||T==='feat'&&n.type==='obj')&&!(rows[i+1]?.type===T&&rows[i+1].parent===n.id))add((i+1)*RH,n.id,null,false);
+ });
+ return {by,spans};
+}
+function rowSlotAt(m,y){
+ const sp=m.spans.find(([a,b])=>y>=a&&y<b);if(sp)return m.by.get(y-sp[0]<sp[1]-y?sp[0]:sp[1]);
+ let s=null,bd=geo.RH*.75;for(const o of m.by.values()){const d=Math.abs(o.y-y);if(d<bd){bd=d;s=o}}return s;
+}
+function rowMvStart(m){
+ const it=map[m.id],rows=rowsVisible(),i=rows.findIndex(r=>r.id===m.id),els=[...m.lab.children].filter(c=>c.classList.contains('lr'));
+ if(i<0||els.length!==rows.length){rowMv=null;return}
+ let j=i;while(j+1<rows.length&&rowUnder(rows[j+1],it))j++;
+ m.on=true;try{m.el.setPointerCapture(m.pid)}catch(_){}
+ m.blk=els.slice(i,j+1);m.blk.forEach(r=>r.classList.add('rmv'));m.lo=-i*geo.RH;m.hi=(rows.length-j-1)*geo.RH;
+ m.ly0=m.y0-m.lab.getBoundingClientRect().top;Object.assign(m,rowSlots(it,rows));m.x=rowPad(lvlOf(it),lastW,mapZ);
+ m.ln=document.createElement('div');m.ln.innerHTML='<span></span>';m.lab.appendChild(m.ln);
+ grid.classList.add('rowdrag');lkHide();
+}
+function rowMvMove(e){
+ const m=rowMv;if(!m||e.pointerId!==m.pid)return;
+ if(!m.on){if(Math.abs(e.clientY-m.y0)<6)return;rowMvStart(m);if(!rowMv)return}
+ e.preventDefault();m.cy=e.clientY;rowMvAt();
+}
+// Follows the pointer within the rows, and keeps scrolling the map while the pointer rests near its top or bottom edge.
+function rowMvAt(){
+ const m=rowMv;if(!m||!m.on)return;m.raf=0;
+ const r=board.getBoundingClientRect(),top=Math.max(r.top,grid.querySelector('.hdr').getBoundingClientRect().bottom),st=board.scrollTop;
+ const v=r.height?(m.cy>r.bottom-36?1:m.cy<top+36?-1:0):0;if(v)board.scrollTop+=v*14;
+ const y=m.cy-m.lab.getBoundingClientRect().top,dy=Math.max(m.lo,Math.min(m.hi,y-m.ly0));m.blk.forEach(el=>el.style.transform=`translateY(${dy}px)`);
+ const s=rowSlotAt(m,y);
+ m.tgt=s;m.ln.className='rdl'+(s?'':' bad');m.ln.style.cssText=`top:${s?s.y:y}px;left:${m.x}px`;
+ m.ln.firstChild.textContent=s?(s.same?'No change':s.ref?`Move to ${s.after?'after':'before'} ${C.lbl[s.ref]}`:`Move into ${C.lbl[s.p]}`):rowNo(map[m.id]);
+ if(v&&board.scrollTop!==st)m.raf=requestAnimationFrame(rowMvAt);
+}
+// esc: the button is still down, so the click that follows its release is swallowed too.
+function rowMvEnd(cancel,esc){
+ const m=rowMv;if(!m)return;rowMv=null;if(!m.on)return;
+ cancelAnimationFrame(m.raf);grid.classList.remove('rowdrag');noClick=true;
+ if(esc){const off=()=>{removeEventListener('pointerup',off);removeEventListener('pointercancel',off);setTimeout(()=>{noClick=false},0)};addEventListener('pointerup',off);addEventListener('pointercancel',off)}
+ else setTimeout(()=>{noClick=false},0);
+ const s=m.tgt,it=map[m.id];
+ if(cancel||!s||s.same||!it){render();return}
+ const np=s.p!==(it.parent||null);
+ mut(()=>{placeItem(it.id,s.p,s.ref,s.after);if(np&&map[s.p])map[s.p].collapsed=false});
+}
+window.addEventListener('pointermove',rowMvMove,{passive:false});
+window.addEventListener('pointerup',()=>rowMvEnd(false));
+window.addEventListener('pointercancel',()=>rowMvEnd(true));
 // Drawing links. Hovering a task bar, milestone or external shows a handle on its start (left) and
 // end (right) edge. Dragging a handle onto another item adds a link to the item it is dropped on:
 // the dragged edge is the predecessor's, the drop edge the successor's (end → start = FS, and so on).
@@ -589,7 +671,7 @@ function panEnd(){
 window.addEventListener('pointermove',panMove,{passive:false});
 window.addEventListener('pointerup',panEnd);
 window.addEventListener('pointercancel',panEnd);
-document.addEventListener('selectstart',e=>{if(pan)e.preventDefault()});
+document.addEventListener('selectstart',e=>{if(pan||rowMv)e.preventDefault()});
 // Space is only taken over when focus is not on a field, button or row, so typing and keyboard activation still work.
 function spacePan(on){if(spaceOn!==on){spaceOn=on;board.classList.toggle('spacepan',on)}}
 document.addEventListener('keydown',e=>{
@@ -655,7 +737,7 @@ dr.addEventListener('change',e=>{
   if(it.type==='ext'){if(v==='delivered'){if(!it.doneOn)it.doneOn=td}else it.doneOn=''}
   if(it.type==='task'){if(v==='doing'){if(!it.startedOn)it.startedOn=td;it.doneOn=''}else if(v==='done'){if(!it.startedOn)it.startedOn=td;if(!it.doneOn)it.doneOn=td}else if(v==='todo'){it.startedOn='';it.doneOn=''}else it.doneOn=''}});
  else if(f==='rel')mut(()=>{it.rel=t.value});
- else if(f==='parent'&&it.type==='task')mut(()=>{it.parent=t.value;S.items.splice(S.items.indexOf(it),1);S.items.push(it);map[t.value].collapsed=false});
+ else if(f==='parent'&&it.type==='task')mut(()=>{placeItem(it.id,t.value,null);map[t.value].collapsed=false});
  // Milestones and externals keep their place in S.items, so their M#/X# code doesn't change.
  else if(f==='parent')mut(()=>{const p=map[t.value];it.parent=p&&(p.type==='obj'||p.type==='feat')?p.id:null;if(!it.parent){if(it.type==='ms')S.msCollapsed=false;else S.extCollapsed=false}for(let a=p;a;a=map[a.parent])a.collapsed=false});
  else if(['earliest','blocker','due','startBy','startedOn','doneOn','color'].includes(f))render();
@@ -790,6 +872,7 @@ $('#ovgo').onclick=async()=>{let s=null;try{s=norm(JSON.parse($('#ovx').value))}
 document.addEventListener('keydown',e=>{
  if(e.key==='Escape'&&ld){lkEnd(true);return}
  if(e.key==='Escape'&&drag){dragEnd(true);return}
+ if(e.key==='Escape'&&rowMv?.on){rowMvEnd(true,true);return}
  if(e.key==='Escape'&&td){tdEnd(true);return}
  if(e.key==='Escape'&&lb){lbEnd(true);return}
  if(e.key==='Escape'){for(const d of ['#impd','#vdl'])if(!$(d).hidden){$(d).hidden=true;return}if(!$('#lgd').hidden){lgdOpen(false);$('#lgd-btn').focus();return}if(!$('#more').hidden||!$('#set').hidden){closeMenu();return}if(!$('#add').hidden){addMenu(false);$('#add-btn').focus();return}if(!$('#flt').hidden){fltMenu(false);$('#flt-btn').focus();return}if(histOpen&&!sel&&!selRel&&!calOpen){histOpen=false;renderHist();return}if(sysOpen){sysPanel(false);$('#set-btn').focus();return}if(!$('#ov').hidden)$('#ov').hidden=true;else if(sel||selRel||calOpen){sel=null;selRel=null;calOpen=false;render()}else if(fsOn)fullScreen(false)}
