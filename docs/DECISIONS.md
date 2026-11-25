@@ -15,7 +15,7 @@ bottom.
 | 7 | **Overdue work has a knock-on effect.** Downstream items get an orange outline and "Held up by overdue …", parallel to the red blocked-chain outline. The effect clears when the overdue item is done. | Shows who is affected by a slip, not just who slipped. |
 | 8 | **Objectives count features, not tasks.** | Objectives are tracked at feature level. |
 | 9 | **Map link routing stays as is.** A lanes and casing redesign to stop overlaps was built, then reverted at the owner's request. | It looked worse. Overlap fixes need a different idea and the owner's sign-off. |
-| 10 | **The legend is a collapsible dropdown at the bottom.** | It kept getting in the way at the top. |
+| 10 | **The legend opens on demand over the view, from *Legend* in the toolbar**, also in full screen, and shows only what applies to the current view. It replaced the collapsible dropdown at the bottom (#17), which replaced a legend at the top. | At the top it got in the way; at the bottom it sat below the fold and was hidden in full screen. Swatches reuse the views' own classes so they can't drift. |
 | 11 | **Per-feature colors** show as a stripe on task bars and a tint on feature bars. | Features are easier to tell apart at a glance. |
 | 12 | **History is server-side:** field-level change log, versions with coalescing, restore, and optimistic conflict check. | "Retains information" with an audit trail; ready for a team later. |
 | 13 | **Status filter state is per viewer** (localStorage per plan), not stored in the plan. | When the team shares a plan, one person's filter must not change anyone else's view. |

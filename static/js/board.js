@@ -72,7 +72,7 @@ function renderTimeline(rows,W,LW,full){
  const mY=n=>{const d=dObj(n);return MON[d.getUTCMonth()]+' '+d.getUTCFullYear()};
  const rangeTxt=list.length?`${mY(lo0)} to ${mY(hi0)}`:'No dates yet';
  const open=full||tl.open;
- const head=`<div class="tlh">${full?'':`<button class="car" data-tl="toggle" aria-expanded="${tl.open}" aria-label="${tl.open?'Collapse':'Expand'} timeline">${tl.open?'▾':'▸'}</button>`}<b>${full?'Gantt':'Timeline'}</b><span class="none">${rangeTxt}</span>${open?`<span class="tlsp"></span><span class="seg" role="group" aria-label="Timeline scale">${Object.entries(ZO).map(([k,o])=>`<button data-tl="z-${k}" aria-pressed="${tl.zoom===k}">${o.label}</button>`).join('')}</span><button class="tgl" data-tl="only" aria-pressed="${tl.only}">Dated items only</button>`:''}</div>`+(open?`<div class="tlk"><span><i class="ks plan"></i>Plan, start by to due</span><span><i class="ks prog"></i>In progress so far</span><span><i class="ks done"></i>Done</span><span><i class="ks over"></i>Past due</span><span><i class="ks ls"></i>Should have started</span><span><i class="ks sum"></i>Objective or feature, green is share done</span><span><i class="ks today"></i>Today</span><span><i class="ks rel"></i>Release due</span><span class="tlhint">Drag a plan bar to move it, or its ends to resize</span></div>`:'');
+ const head=`<div class="tlh">${full?'':`<button class="car" data-tl="toggle" aria-expanded="${tl.open}" aria-label="${tl.open?'Collapse':'Expand'} timeline">${tl.open?'▾':'▸'}</button>`}<b>${full?'Gantt':'Timeline'}</b><span class="none">${rangeTxt}</span>${open?`<span class="tlsp"></span><span class="seg" role="group" aria-label="Timeline scale">${Object.entries(ZO).map(([k,o])=>`<button data-tl="z-${k}" aria-pressed="${tl.zoom===k}">${o.label}</button>`).join('')}</span><button class="tgl" data-tl="only" aria-pressed="${tl.only}">Dated items only</button>`:''}</div>`;
  if(!open){tlGeo=null;return {html:`<div class="tl" style="width:${W}px">${head}</div>`,h:50,tx:0}}
  const ppd=z.ppd,lo=uStart(lo0-2,z.bot);let hi=uNext(uStart(hi0+3,z.bot),z.bot);
  while((hi-lo)*ppd<W-LW-6)hi=uNext(hi,z.bot);
@@ -121,7 +121,7 @@ function renderTimeline(rows,W,LW,full){
  tlGeo={lo,ppd,RH2,ids:list.map(n=>n.id)};
  const bodyH=full?Math.max(320,full):Math.min(42+H2+2,380);
  const body=list.length?`<div class="tlb" style="height:${bodyH}px"><div class="tli" style="width:${LW+span}px"><div class="tla"><div class="tlc" style="width:${LW}px">Calendar</div><div class="tlx" style="width:${span}px">${ax}</div></div>${lab}<div class="tlp" style="left:${LW}px;top:42px;width:${span}px;height:${H2}px">${gl}${bars}</div></div></div>`:`<p class="none" style="padding:12px 14px;margin:0">Add start-by, due, started or done dates to tasks, or due dates to milestones and external items, to see them here.</p>`;
- return {html:`<div class="tl" style="width:${W}px">${head}${body}</div>`,h:86+(list.length?bodyH+1:48),tx:LW+tx};
+ return {html:`<div class="tl" style="width:${W}px">${head}${body}</div>`,h:52+(list.length?bodyH+1:48),tx:LW+tx};
 }
 // Width at 100% zoom of the widest ticket key shown on a task bar (0 when none is). renderBoard()
 // widens the step columns so a bar fits that key in full, plus its padding, borders and status
@@ -720,7 +720,7 @@ board.addEventListener('wheel',e=>{
 board.addEventListener('gesturestart',e=>{e.preventDefault();gz=mapZ});
 board.addEventListener('gesturechange',e=>{e.preventDefault();if(gz!==null)zoomTo(gz*e.scale,e.clientX,e.clientY)});
 board.addEventListener('gestureend',e=>{e.preventDefault();gz=null});
-// Full screen hides the sidebar, header, tallies and legend, and asks the browser for real full screen
+// Full screen hides the sidebar, header and tallies (the Legend button still works), and asks the browser for real full screen
 // when it can. Without the Fullscreen API (or if the browser refuses) the page still fills the window.
 function fullScreen(on){
  fsOn=on;$('#app').classList.toggle('fullmap',on);
@@ -744,7 +744,7 @@ document.addEventListener('keydown',e=>{
  if(e.key==='Escape'&&ld){lkEnd(true);return}
  if(e.key==='Escape'&&drag){dragEnd(true);return}
  if(e.key==='Escape'&&td){tdEnd(true);return}
- if(e.key==='Escape'){for(const d of ['#impd','#vdl'])if(!$(d).hidden){$(d).hidden=true;return}if(!$('#more').hidden||!$('#set').hidden){closeMenu();return}if(!$('#add').hidden){addMenu(false);$('#add-btn').focus();return}if(!$('#flt').hidden){fltMenu(false);$('#flt-btn').focus();return}if(histOpen&&!sel&&!selRel&&!calOpen){histOpen=false;renderHist();return}if(sysOpen){sysPanel(false);$('#set-btn').focus();return}if(!$('#ov').hidden)$('#ov').hidden=true;else if(sel||selRel||calOpen){sel=null;selRel=null;calOpen=false;render()}else if(fsOn)fullScreen(false)}
+ if(e.key==='Escape'){for(const d of ['#impd','#vdl'])if(!$(d).hidden){$(d).hidden=true;return}if(!$('#lgd').hidden){lgdOpen(false);$('#lgd-btn').focus();return}if(!$('#more').hidden||!$('#set').hidden){closeMenu();return}if(!$('#add').hidden){addMenu(false);$('#add-btn').focus();return}if(!$('#flt').hidden){fltMenu(false);$('#flt-btn').focus();return}if(histOpen&&!sel&&!selRel&&!calOpen){histOpen=false;renderHist();return}if(sysOpen){sysPanel(false);$('#set-btn').focus();return}if(!$('#ov').hidden)$('#ov').hidden=true;else if(sel||selRel||calOpen){sel=null;selRel=null;calOpen=false;render()}else if(fsOn)fullScreen(false)}
  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'&&!e.shiftKey&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName||'')){e.preventDefault();undo()}
 });
 
@@ -753,12 +753,13 @@ function renderView(){
  board.hidden=view!=='map';$('#gridv').hidden=view!=='grid';$('#ganttv').hidden=view!=='gantt';$('#relv').hidden=view!=='rel';
  document.querySelectorAll('.tabs [data-view]').forEach(b=>b.setAttribute('aria-selected',b.dataset.view===view));
  const rv=view==='rel';for(const s of ['#flt-btn','#exp','#col','#crit','#tags'])$(s).disabled=rv;if(rv)fltMenu(false);$('#fltsum').hidden=rv||!fltOn();zoomUi();
+ $('#lgd').dataset.view=view==='map'||view==='gantt'?view:'list';$('#lgd-on').textContent={map:'Dependency map',grid:'Grid',gantt:'Gantt',rel:'Releases'}[view];
  lastVW=views.clientWidth;
  if(view==='map')renderBoard();else if(view==='grid')renderGrid();else if(view==='gantt')renderGantt();else renderRelv();
 }
 function renderGantt(){
  const el=$('#ganttv'),W=el.clientWidth||1000,LW=W<700?190:320;
- const hgt=Math.max(320,innerHeight-el.getBoundingClientRect().top-110);
+ const hgt=Math.max(320,innerHeight-el.getBoundingClientRect().top-76);
  const o=el.querySelector('.tlb'),sl=o?o.scrollLeft:null,st=o?o.scrollTop:null;
  const TL=renderTimeline(rowsVisible(),W,LW,hgt);el.innerHTML=TL.html;
  const n=el.querySelector('.tlb');if(n){if(sl!==null&&!tlReset){n.scrollLeft=sl;n.scrollTop=st}else n.scrollLeft=Math.max(0,TL.tx-LW-(W-LW)/2);tlReset=false}

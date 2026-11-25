@@ -3,7 +3,7 @@
    PICTURE the step grid itself: bars placed by typed dependencies, colour-coded elbow links with FS/SS/FF/SF tags, milestone gates, blocked links in red; a release ledger above it
    COLOUR white ground, black ink, concrete planes; link types ink, blue, amber, magenta; safety yellow for ready and the critical path; signal red only for blocked
    TYPE Hanken Grotesk throughout
-   LAYOUT title and tallies across the top, then the toolbar band directly above the active view (map, grid, Gantt or releases), legend; plan and release navigation in the left rail; editor drawer slides over from the right, full screen on a phone */
+   LAYOUT title and tallies across the top, then the toolbar band directly above the active view (map, grid, Gantt or releases); the legend opens over the view from the toolbar; plan and release navigation in the left rail; editor drawer slides over from the right, full screen on a phone */
 :root{color-scheme:light dark;--bg:light-dark(#fff,#1a1a19);--ink:light-dark(#151514,#ecece8);--mute:light-dark(#5f5f59,#a8a8a0);--line:light-dark(#e6e6e2,#30302d);--pane:light-dark(#f2f2ef,#232321);--conc:light-dark(#d8d8d4,#3c3c38);--yel:#ffe600;--red:light-dark(#d0241b,#ff6a5c);--redbg:light-dark(#fde9e7,#3d211e);--FS:var(--ink);--SS:light-dark(#1f5fd6,#86adff);--FF:light-dark(#6b45c9,#b8a2ff);--ok:light-dark(#17853b,#5fd08a);--late:light-dark(#e05a00,#ff9a3d);--SF:light-dark(#a6287a,#f08bc9);--onyel:#151514;--onfill:light-dark(#fff,#151514);--shade:light-dark(rgb(0 0 0/.5),#000)}
 :root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
 /* --onyel: ink on safety yellow, which is the same in both themes. --onfill: text on solid accent, red or orange fills, which are pale in dark mode so they take dark text.
@@ -41,27 +41,11 @@ button.t{cursor:pointer}button.t:hover{border-color:var(--conc)}
 .rf{white-space:nowrap;color:var(--mute)}.rf b{color:var(--ink);font-variant-numeric:tabular-nums}.rf.red,.rf.red b{color:var(--red)}
 .st{justify-self:start;padding:2px 10px;border-radius:12px;font-size:13px;font-weight:600;border:1px solid var(--ink);white-space:nowrap}
 .st.active{background:var(--conc)}.st.released{background:var(--ink);color:var(--bg)}
-.legend{display:grid;gap:6px;padding:14px max(3vw,16px) 4px;font-size:13px;color:var(--mute)}
-.lg{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center}
-.lg>b{color:var(--ink);width:3.6em;flex:none}
-.lg span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
-.sw{display:inline-block;width:22px;height:12px;border:1.5px solid var(--ink);border-radius:2px;background:var(--bg)}
-.sw.doing{background:var(--conc)}.sw.done{background:color-mix(in srgb,var(--ok) 40%,transparent);border-color:var(--ok)}.sw.waiting{border-style:dashed;border-color:var(--mute)}.sw.blocked{background:var(--redbg);border-color:var(--red)}.sw.ready{background:linear-gradient(90deg,var(--yel) 0 7px,var(--bg) 7px)}.sw.crit{box-shadow:0 0 0 3px var(--yel)}
-.sw.warn{position:relative}.sw.warn::after{content:'';position:absolute;top:-1px;right:-1px;border-top:8px solid var(--red);border-left:8px solid transparent}
-.ln{display:inline-block;width:26px;height:0;border-top:2.5px solid var(--ink)}
-.ln.sat{border-top-style:dotted;border-top-color:var(--ok)!important}.ln.bk{border-top-color:var(--red);border-top-width:3px}
 .tp{flex:none;display:inline-block;font-size:13px;font-weight:800;line-height:16px;padding:0 4px;border:1.5px solid currentColor;border-radius:3px;background:var(--bg);white-space:nowrap;font-style:normal}
 .FS{--c:var(--FS)}.SS{--c:var(--SS)}.FF{--c:var(--FF)}.SF{--c:var(--SF)}
-.tp.FS,.tp.SS,.tp.FF,.tp.SF{color:var(--c)}.ln.FS,.ln.SS,.ln.FF,.ln.SF{border-top-color:var(--c)}
+.tp.FS,.tp.SS,.tp.FF,.tp.SF{color:var(--c)}
 .tp.bk{background:var(--red);border-color:var(--red);color:var(--onfill)}
-.help{padding:4px max(3vw,16px) 12px;margin:0;font-size:13px;color:var(--mute);max-width:120ch}
 .note{margin:0 max(3vw,16px) 10px;font-size:13px;color:var(--mute)}
-.lgd{margin:0 max(3vw,16px) 28px;border:1.5px solid var(--ink);border-radius:3px;background:var(--bg)}
-.lgd>summary{display:flex;align-items:center;gap:10px;min-height:46px;padding:0 14px;font-weight:700;cursor:pointer;list-style:none;background:var(--pane)}
-.lgd>summary::-webkit-details-marker{display:none}
-.lgd>summary::before{content:'▸';width:14px}.lgd[open]>summary::before{content:'▾'}
-.lgd[open]>summary{border-bottom:1px solid var(--line)}
-.lgd .legend{padding-top:12px}.lgd .help{padding-bottom:16px}
 .board{margin:0 max(3vw,16px) 16px;border:1.5px solid var(--ink);overflow:auto;max-height:max(460px,calc(100svh - 120px));background:var(--bg);overscroll-behavior:contain}
 .grid{position:relative}
 .hdr{position:sticky;top:0;z-index:6;display:flex;background:var(--bg);border-bottom:2px solid var(--ink)}
@@ -128,15 +112,8 @@ button.t{cursor:pointer}button.t:hover{border-color:var(--conc)}
 .lk.sat{color:var(--ok);border-style:dashed}.lk:hover{transform:translate(-50%,-50%) scale(1.12)}
 .dim{opacity:.22}.lk.dim{opacity:.1}
 :root{--plan:color-mix(in srgb,var(--ink) 11%,var(--bg));--planb:color-mix(in srgb,var(--ink) 36%,var(--bg))}
-.tl{--z:1}
+.tl,.lgd{--z:1}
 .tlsp{flex:1}
-.tlk{display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;padding:7px 12px;font-size:13px;color:var(--mute);border-top:1px solid var(--line);background:var(--bg)}
-.tlk span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}.tlk .tlhint{margin-left:auto;font-style:italic}
-.ks{display:inline-block;width:26px;height:12px;border-radius:3px;flex:none}
-.ks.plan{background:var(--plan);border:1px solid var(--planb)}.ks.prog{background:var(--SS)}.ks.done{background:var(--ok)}.ks.over{background:var(--late)}
-.ks.ls{background:repeating-linear-gradient(135deg,var(--late) 0 3px,transparent 3px 6px);border:1px solid var(--late)}
-.ks.sum{height:10px;background:linear-gradient(90deg,var(--ok) 45%,var(--plan) 45%);border:1px solid var(--planb)}
-.ks.today{width:2px;height:16px;border-radius:0;background:var(--ink)}.ks.rel{width:0;height:16px;border-radius:0;border-left:2px dashed var(--mute)}
 .tk{position:absolute;height:18px;border-radius:4px;background:var(--plan);border:1px solid var(--planb);cursor:grab;touch-action:none}
 .tk.blk{border:2px solid var(--red)}
 .tko{position:absolute;height:18px;pointer-events:auto}
@@ -229,8 +206,6 @@ button.t{cursor:pointer}button.t:hover{border-color:var(--conc)}
 .rn .lt{align-self:flex-start;margin-top:3px}
 .today{stroke:var(--late);stroke-width:2}
 .tdy{position:absolute;bottom:3px;transform:translateX(-50%);background:var(--late);color:var(--onfill);font-size:13px;font-weight:700;line-height:17px;padding:0 6px;border-radius:3px;pointer-events:none}
-.sw.lstart{box-shadow:inset 5px 0 0 var(--late)}.sw.over{box-shadow:inset -5px 0 0 var(--late)}.sw.risk{box-shadow:inset -5px 0 0 color-mix(in srgb,var(--late) 45%,var(--bg))}.sw.lchain{border:2px dashed var(--late)}
-.ln.today{border-top:0;border-left:2px solid var(--late);width:0;height:16px}
 .three{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:8px}
 .srow{display:grid;grid-template-columns:4.2em minmax(0,1fr) minmax(0,10.5em);gap:4px 10px;align-items:end;padding:10px 6px;border-bottom:1px solid var(--line)}
 .srow.on{background:var(--pane)}.srow>b{align-self:center;font-size:14px}
@@ -279,7 +254,7 @@ button.t{cursor:pointer}button.t:hover{border-color:var(--conc)}
 #ovmsg{font-size:14px;color:var(--mute)}
 @media(max-width:980px){.rr{grid-template-columns:minmax(0,1fr) minmax(0,1fr) max-content}.rn{grid-column:1/3}.pg{grid-column:1/-1;order:9}}
 .corner .lnk{flex:none;padding:0;font-size:13px;font-weight:700;text-decoration:underline}
-@media(max-width:600px){.srow{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.srow>b{grid-column:1/-1}.srow .meta{grid-column:1/-1}.lr .ow,.lr .rp{display:none}.two,.drow{grid-template-columns:minmax(0,1fr)}.sep{display:none}.t b{font-size:22px}.board{margin-inline:8px}.rr{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.rn{grid-column:1/-1}.lg>b{width:100%}}
+@media(max-width:600px){.srow{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.srow>b{grid-column:1/-1}.srow .meta{grid-column:1/-1}.lr .ow,.lr .rp{display:none}.two,.drow{grid-template-columns:minmax(0,1fr)}.sep{display:none}.t b{font-size:22px}.board{margin-inline:8px}.rr{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.rn{grid-column:1/-1}}
 @media(prefers-reduced-motion:reduce){.dr{transition:none}.dep.flash{animation:none;box-shadow:0 0 0 4px var(--yel)}}
 /* ---------- enterprise app shell (offline build: system fonts only) */
 :root{--accent:light-dark(#1f5fd6,#7aa7ff);--accentbg:light-dark(#e9f0ff,#1c2944);--rail:#18202f;--railhi:#243047;--railline:#334058;--railmute:#9aa6bc;--chrome:light-dark(#f5f6f8,#20201e);--hair:light-dark(#dcdfe4,#34342f)}
@@ -334,9 +309,9 @@ button,input,select,textarea{font-family:inherit}
 /* zoom and full screen stay pinned to the right end of the toolbar while the rest scrolls under them */
 .zm{display:flex;align-items:center;gap:2px;margin-left:auto;position:sticky;right:-6px;z-index:1;padding-left:6px;background:var(--chrome);box-shadow:-1px 0 0 var(--hair)}
 .zmg{display:flex;align-items:center;gap:2px}.toolbar .zmg .tbtn{min-width:32px;padding:0 6px;font-variant-numeric:tabular-nums}.toolbar #zm-0{min-width:54px}.toolbar #zm-out,.toolbar #zm-in{font-size:17px;line-height:1}
-/* full screen: hide the app chrome so the toolbar and the view fill the screen */
+/* full screen: hide the app chrome so the toolbar and the view fill the screen. The legend still opens over it. */
 .app.fullmap{grid-template-columns:minmax(0,1fr)}
-.app.fullmap :is(.rail,.appbar,.tal,.note,.lgd){display:none}
+.app.fullmap :is(.rail,.appbar,.tal,.note){display:none}
 .app.fullmap .main{height:100vh}
 .app.fullmap .content{flex:1;min-height:0;padding-bottom:12px}
 .app.fullmap #views{flex:1;min-height:0;display:flex;flex-direction:column}
@@ -359,6 +334,40 @@ button,input,select,textarea{font-family:inherit}
 .fn{margin:8px 6px 2px;font-size:12px;color:var(--mute);line-height:1.4;max-width:260px}
 .fltsum{margin:-6px 0 0 6px;font-size:13px;color:var(--mute)}.fltsum b{color:var(--ink)}
 .fltsum button{border:0;background:none;color:var(--accent);font-weight:600;cursor:pointer;padding:4px 6px;font-size:13px}.fltsum button:hover{text-decoration:underline}
+/* legend: a panel over the view, opened with Legend in the toolbar and placed by placeMenu(). Its swatches are the
+   views' own elements (.b, .dot, .mk, .tk ...) taken out of absolute positioning, so they always match what's drawn. */
+.lgd{position:fixed;z-index:40;width:min(1120px,calc(100vw - 16px));overflow:auto;overscroll-behavior:contain;background:var(--bg);border:1px solid var(--hair);border-radius:8px;box-shadow:0 12px 32px color-mix(in srgb,var(--shade) 36%,transparent);font-size:13px;line-height:1.35;color:var(--mute)}
+.lgd[hidden]{display:none}.lgd:focus{outline:none}
+.lgd-hd{position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:10px;padding:0 4px 0 16px;background:var(--chrome);border-bottom:1px solid var(--hair)}
+.lgd-hd h2{margin:0;font-size:15px;color:var(--ink)}.lgd-hd .x{margin-left:auto}
+.lgd-bd{isolation:isolate;padding:2px 16px 16px}
+.lgc{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:4px 28px;align-items:start}
+.lgd h3{margin:12px 0 6px;font-size:12px;font-weight:700;color:var(--ink);text-transform:uppercase;letter-spacing:.04em}
+.lgd h4{margin:12px 0 6px;font-size:13px;font-weight:700;color:var(--ink)}
+.lgh{margin:16px 0 0;padding-top:12px;border-top:1px solid var(--hair);font-size:15px;color:var(--ink)}
+.lgd ul{margin:0;padding:0 0 0 18px}.lgd li+li{margin-top:4px}
+.lgk ul{display:grid;gap:6px;padding:0;list-style:none}.lgk li+li{margin:0}
+.lgk li{display:grid;grid-template-columns:120px minmax(0,1fr);gap:10px;align-items:center}
+.lgd li b{font-weight:600;color:var(--ink);margin-right:3px}
+.lgw{display:flex;flex-wrap:wrap;align-items:center;gap:6px;min-height:20px}
+.lgd .lgw>*{margin:0;flex:none;cursor:default}
+.lgd :is(.b,.mk,.xk,.xb,.xd,.sp,.lk,.gapl,.fcs,.tk,.tmk,.tsum,.tln){position:relative;left:auto;top:auto}
+.lgd .b{display:inline-block;width:36px;height:18px;padding:0 4px;line-height:14px}.lgd .b:hover{filter:none}
+.lgd .lgw>.mk{margin:0 3px}.lgd .lgw>.dia{margin:0 2px}
+.lgd .lk,.lgd .lk:hover{transform:none}
+.lgd .xb{display:inline-block;width:30px}
+.lgd .sp{display:inline-block;width:52px;height:16px}
+.lgd .gapl,.lgd .fcs{display:inline-block;height:20px}
+/* #2f6fdb is PAL[0], the first feature colour */
+.lgd .fcs.lgf{background:#2f6fdb}.lgd .b.lgf{--fc:inset 0 4px 0 #2f6fdb}
+.lgd .ch{display:inline-block;padding:0;border:0;overflow:visible;font-size:13px}.lgd .ch em{margin:0}
+.lgd .tlp{position:static;overflow:visible;z-index:auto}
+.lgd .tk,.lgd .tsum{display:inline-block;width:40px}.lgd .tk .sg{left:3px;right:3px}.lgd .tsum i{width:45%}
+.lgd .tln{display:inline-block;width:20px}
+.lgv{position:relative;display:inline-block;width:24px;height:20px}.lgv>*{left:11px}.lgv>.tlw{left:3px;width:18px}
+.lgl{flex:none;overflow:visible}
+/* only the entries that apply to the current view (renderView sets data-view) */
+.lgd[data-view=map] [data-v]:not([data-v~=map]),.lgd[data-view=gantt] [data-v]:not([data-v~=gantt]),.lgd[data-view=list] [data-v]:not([data-v~=list]){display:none}
 .ch.gap{box-shadow:inset 3px 0 0 var(--hair)}.gapl{position:absolute;top:0;width:0;border-left:3px solid var(--hair);pointer-events:none}
 .content{padding:12px 18px 28px;display:flex;flex-direction:column;gap:12px;min-width:0}
 .tal{gap:6px}
@@ -371,7 +380,6 @@ button.t:hover{border-color:var(--accent)}.t[aria-pressed=true]{border-color:var
 .tgl[aria-pressed=true]{background:var(--accentbg);color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,transparent)}
 .note{margin:0;padding:8px 12px;border-radius:6px;background:var(--accentbg);color:var(--ink);font-size:14px}
 .board{margin:0;border:1px solid var(--hair);border-radius:8px;max-height:calc(100vh - 150px)}
-.lgd{margin:0;border:1px solid var(--hair);border-radius:8px}.lgd>summary{background:var(--chrome);border-radius:8px}
 .lr .ky{flex:none;font-size:calc(13px*var(--z,1));color:var(--accent);font-weight:600;white-space:nowrap}
 .dr{top:0;border-left:1px solid var(--hair);box-shadow:-16px 0 40px color-mix(in srgb,var(--shade) 28%,transparent);z-index:22}
 .hp{z-index:23}

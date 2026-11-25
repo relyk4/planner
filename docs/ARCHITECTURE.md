@@ -212,7 +212,7 @@ Releases get `od`/`rk` from their tasks and externals.
 - One row directly above the active view (not sticky): view tabs, Filter,
   **Add ▾** (objective, milestone, external, release), Undo, Expand all,
   Collapse features, Critical path, Link tags, then map zoom (`−`, level,
-  `+`) and Full screen pinned to the right end (`position: sticky`).
+  `+`), Legend and Full screen pinned to the right end (`position: sticky`).
 - It never wraps. When it doesn't fit it scrolls sideways, so its menus are
   `position: fixed` and placed by `placeMenu()` to avoid being clipped.
 - The "Showing X of Y tasks" filter summary sits on its own line under the
@@ -220,11 +220,20 @@ Releases get `od`/`rk` from their tasks and externals.
 - In the Releases tab the tools that only affect Map, Grid and Gantt (Filter,
   Expand all, Collapse features, Critical path, Link tags) are disabled.
   Zoom is disabled outside the map.
+- *Legend* (`lgdOpen()` in `wiring.js`) opens `#lgd`, a panel over the view
+  placed by `placeMenu()`. Its markup is static in `index.html`, and every
+  swatch is the real element the views draw (`.b`, `.dot`, `.mk`, `.xk`,
+  `.tk`, an SVG `path.e` ...), taken out of absolute positioning by `.lgd`
+  rules, so it can't drift from the map. Entries carry `data-v` (`map`,
+  `gantt`, `list` for Grid and Releases); `renderView()` sets
+  `#lgd[data-view]` and CSS hides what doesn't apply. Esc or a click
+  outside closes it. Open or closed is never saved. The timeline and Gantt
+  have no key strip of their own; their entries live in the legend.
 - *Full screen* (`fullScreen()`) adds `.fullmap` to `#app`, which hides the
-  sidebar, header, tallies and legend so the toolbar and view fill the
-  window, and asks for browser full screen on the whole page (so the drawer
-  and dialogs still show). Without the Fullscreen API the class alone is the
-  fallback. Esc exits; it works from any tab.
+  sidebar, header and tallies so the toolbar and view fill the window
+  (Legend still opens over it), and asks for browser full screen on the
+  whole page (so the drawer and dialogs still show). Without the Fullscreen
+  API the class alone is the fallback. Esc exits; it works from any tab.
 
 ### Storage (`Store`)
 

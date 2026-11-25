@@ -72,6 +72,20 @@ try {
   ok($('#app').classList.contains('fullmap') && $('#fs-btn').getAttribute('aria-pressed') === 'true', 'Full screen hides the sidebar and header');
   d.dispatchEvent(new w.KeyboardEvent('keydown', {key: 'Escape', bubbles: true})); await sleep(20);
   ok(!$('#app').classList.contains('fullmap'), 'Esc leaves full screen');
+  // legend: opens from the toolbar (also in full screen), trims to the view, closes with Esc or a click outside
+  const shown = s => {for (let e = $(s); e; e = e.parentElement) if (w.getComputedStyle(e).display === 'none') return false; return true};
+  $('#fs-btn').click(); await sleep(20);
+  $('#lgd-btn').click(); await sleep(20);
+  ok(!$('#lgd').hidden && $('#lgd-btn').getAttribute('aria-expanded') === 'true' && shown('#lgd .b.blocked') && shown('#lgd .tp.SF'), 'Legend opens from the toolbar in full screen with map bars and link types');
+  d.dispatchEvent(new w.KeyboardEvent('keydown', {key: 'Escape', bubbles: true})); await sleep(20);
+  ok($('#lgd').hidden && $('#app').classList.contains('fullmap'), 'Esc closes the legend first, then full screen');
+  d.dispatchEvent(new w.KeyboardEvent('keydown', {key: 'Escape', bubbles: true})); await sleep(20);
+  $('[data-view=gantt]').click(); await sleep(50);
+  $('#lgd-btn').click(); await sleep(20);
+  ok(shown('#lgd .tk.blk') && !shown('#lgd .tp.SF') && !shown('#lgd .b.blocked'), 'Legend in Gantt shows Gantt bars, not map links or bars');
+  $('#tal').click(); await sleep(20);
+  ok($('#lgd').hidden, 'a click outside closes the legend');
+  $('[data-view=map]').click(); await sleep(50);
   // milestones and externals: pin to a later gate, reset to auto, undo
   const x2 = () => $$('#grid .xk').find(e => e.title.startsWith('X2')), bar221 = () => $$('#grid .b').find(b => b.querySelector('.cd').textContent === '2.2.1').style.left;
   const left0 = bar221();
