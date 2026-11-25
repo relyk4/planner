@@ -183,9 +183,12 @@ function renderBoard(){
    // Collapsed: milestones and externals shown under it put their markers on this row, as on a collapsed top section.
    if(it.collapsed)placedIn(it).filter(n=>!FV||FV.has(n.id)).forEach(n=>B+=n.type==='ms'?msMark(n,i):xMark(n,i,false));
    const ts=tasksUnder(it);if(!ts.length)return;
-   const ss=ts.map(t=>C.step[t.id]),a=Math.min(...ss),z=Math.max(...ss),d=ts.filter(t=>t.status==='done').length,h=Math.round(RH-20*zf);occ[i]=[bx(a-1)+P/2,bx(z)-P/2];
-   const oc=it.type==='obj'?objCount(it):null;
-   B+=`<div class="sp ${it.type}${on}${dim}" data-id="${it.id}" title="${cd} spans steps ${a} to ${z}" style="${it.type==='feat'&&fcol(it)?`background:color-mix(in srgb,${fcol(it)} 30%,var(--bg));box-shadow:inset 6px 0 0 ${fcol(it)};`:''}left:${bx(a-1)+P/2}px;top:${y+10*zf}px;width:${Math.max(24*zf,bx(z)-bx(a-1)-P)}px;height:${h}px;line-height:${h}px">${oc?`${oc.d} of ${oc.n} ${oc.n===1?'feature':'features'} done`:`${d} of ${ts.length} done`}</div>`;
+   const ss=ts.map(t=>C.step[t.id]),a=Math.min(...ss),z=Math.max(...ss),d=ts.filter(t=>t.status==='done').length,h=Math.round(RH-20*zf),l=bx(a-1)+P/2,w=Math.max(24*zf,bx(z)-bx(a-1)-P);occ[i]=[l,bx(z)-P/2];
+   if(it.type==='obj'){
+    // A thin summary bracket in a transparent hit area that fills most of the row, so clicks and selection still cover the row. --p fills the bar by the share of features done.
+    const oc=objCount(it),ct=`${oc.d} of ${oc.n} ${oc.n===1?'feature':'features'} done`;
+    B+=`<div class="sp obj${on}${dim}" data-id="${it.id}" title="${cd} spans steps ${a} to ${z}. ${ct}" style="--p:${oc.n?Math.round(oc.d/oc.n*100):0}%;left:${l}px;top:${y+4*zf}px;width:${w}px;height:${RH-8*zf}px"><span>${ct}</span></div>`;
+   }else B+=`<div class="sp feat${on}${dim}" data-id="${it.id}" title="${cd} spans steps ${a} to ${z}" style="${fcol(it)?`background:color-mix(in srgb,${fcol(it)} 30%,var(--bg));box-shadow:inset 6px 0 0 ${fcol(it)};`:''}left:${l}px;top:${y+10*zf}px;width:${w}px;height:${h}px;line-height:${h}px">${d} of ${ts.length} done</div>`;
   }
  });
   const port=(id,side,row,tgt)=>{const n=map[id],y=cy(row);if(n.type==='ms'||n.type==='ext')return {x:bx(C.step[id]),y,v:true};if(n.type==='feat'){const ss=tasksUnder(n).map(t=>C.step[t.id]),a=Math.min(...ss),z=Math.max(...ss);return side==='S'?{x:bx(a-1)+P/2,y,d:tgt?1:-1}:{x:bx(z)-P/2,y,d:tgt?-1:1}}const s=C.step[id];return side==='S'?{x:bx(s-1)+P,y,d:tgt?1:-1}:{x:bx(s)-P,y,d:tgt?-1:1}};

@@ -117,11 +117,18 @@ button.t{cursor:pointer}button.t:hover{border-color:var(--conc)}
 .b:hover{filter:brightness(.95)}
 .mk{position:absolute;z-index:3;width:calc(15px*var(--z,1));height:calc(15px*var(--z,1));transform:rotate(45deg);border:2px solid var(--ink);background:var(--bg);cursor:pointer}
 .mk.lchain{border-color:var(--late)}.mk.reached{background:var(--ink)}.mk.chain{border-color:var(--red);background:var(--redbg)}.mk.late{background:var(--late);border-color:var(--late)}.mk.risk{border-color:var(--late)}
-.sp.obj{background:var(--ink);color:var(--bg);font-weight:600}.sp.feat{background:var(--conc)}
+.sp.feat{background:var(--conc)}
+/* Objective span: a thin summary bracket in the Gantt summary tones (bar plus end ticks turned down toward the rows below), drawn inside a transparent hit area. --p is the share of features done. */
+.sp.obj{background:none;padding:0}
+.sp.obj::before{content:'';position:absolute;left:0;right:0;top:calc(50% - 4px*var(--z,1));height:calc(8px*var(--z,1));box-sizing:border-box;border:1px solid var(--planb);border-radius:2px;background:linear-gradient(90deg,color-mix(in srgb,var(--ok) 45%,var(--plan)) var(--p,0%),var(--plan) 0)}
+.sp.obj::after{content:'';position:absolute;left:0;right:0;top:calc(50% + 3px*var(--z,1));height:calc(9px*var(--z,1));border:solid var(--planb);border-width:0 calc(2px*var(--z,1))}
+.sp.obj span{position:absolute;left:calc(8px*var(--z,1));right:calc(8px*var(--z,1));bottom:0;overflow:hidden;text-overflow:ellipsis;text-align:right;font-size:calc(11px*var(--z,1));line-height:calc(14px*var(--z,1));color:var(--mute)}
+.sp.obj:hover{--planb:var(--mute)}
 .lk{position:absolute;z-index:4;transform:translate(-50%,-50%);cursor:pointer;box-shadow:0 0 0 2px var(--bg);font-size:calc(13px*var(--z,1));line-height:calc(16px*var(--z,1));padding:0 calc(4px*var(--z,1))}
 .lk.sat{color:var(--ok);border-style:dashed}.lk:hover{transform:translate(-50%,-50%) scale(1.12)}
 .dim{opacity:.22}.lk.dim{opacity:.1}
-.tl{--z:1;--plan:color-mix(in srgb,var(--ink) 11%,var(--bg));--planb:color-mix(in srgb,var(--ink) 36%,var(--bg))}
+:root{--plan:color-mix(in srgb,var(--ink) 11%,var(--bg));--planb:color-mix(in srgb,var(--ink) 36%,var(--bg))}
+.tl{--z:1}
 .tlsp{flex:1}
 .tlk{display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;padding:7px 12px;font-size:13px;color:var(--mute);border-top:1px solid var(--line);background:var(--bg)}
 .tlk span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}.tlk .tlhint{margin-left:auto;font-style:italic}

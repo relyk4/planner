@@ -43,6 +43,9 @@ try {
   ok(bars > 10, `map shows task bars (${bars})`);
   ok($$('#grid path.e').length > 10, 'map draws dependency links');
   ok($$('#grid .ch').length >= 5, 'map shows step columns');
+  {const ob = $('#grid .sp.obj'); ob.querySelector('span').click(); await sleep(30);
+    ok(ob.textContent === '1 of 3 features done' && $('#dr').classList.contains('open') && $('#f-name').value === 'Stand up data ingest' && $('#grid .sp.obj.on'), 'objective bracket shows its features-done count and clicking it opens the objective');
+    $('#dr [data-act=close]').click(); await sleep(30)}
 
   // status filter
   $('#flt-btn').click(); await sleep(20);
