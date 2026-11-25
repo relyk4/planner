@@ -104,8 +104,8 @@ time, and an edited export updates only what changed.
   (feature level) or a feature (task level) in the map, grid and Gantt. It
   only moves the row: links, steps, dates and tallies don't change. A
   collapsed objective or feature shows their markers on its row; deleting it
-  moves them back to the top section. Dragging rows in and out of groups
-  waits on #19.
+  moves them back to the top section. Dragging their rows (#19) reorders
+  them among their siblings only; moving one to another group is *Show under*.
 - **Drag to resize the Work breakdown column** (Nov 2026). Drag the divider
   between the Work breakdown column and *Step 1* on the map (or focus it and
   use the Left/Right arrow keys) to make the column narrower or wider;
@@ -120,3 +120,11 @@ time, and an edited export updates only what changed.
   draw their swatches with the views' own classes, plus "How it works"
   bullets. It shows only what the current view draws. The bottom-of-page
   legend and the timeline's own key strip are gone.
+- **Drag rows to reorder the Work breakdown** (Nov 2026). On the map, drag a
+  row up or down by its label (a ⋮⋮ grip shows on hover); a line and a hint
+  ("Move to after 1.2.3") show where it lands, the map scrolls at the edges
+  and Esc cancels. Features carry their tasks, objectives their features and
+  tasks. A task can land in another feature and a feature in another
+  objective; milestones and externals reorder within their own group. Steps
+  and links don't change; one drop is one Undo. *Move up* / *Move down* in the
+  editor still work.

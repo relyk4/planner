@@ -185,6 +185,14 @@ Releases get `od`/`rk` from their tasks and externals.
     pointer, so sticky header and labels keep working. Its `pointerdown` runs
     in the capture phase; while Space is held (`spaceOn`) it starts over bars
     too and stops the press reaching the bar, link and date drag handlers.
+  - Reordering rows (`rowMv`, `rowMvStart`/`rowMvAt`/`rowMvEnd`): a press on
+    a `.labels` row that moves 6px vertically drags it and the rows shown
+    under it. `rowSlots` lists the drop spots from `rowsVisible()`: before or
+    after a row of the same type (after = below its subtree), or into an
+    objective or feature showing none of that type; milestones and externals
+    only among siblings with the same `parent`. The drop calls `placeItem`,
+    which only moves the item in `S.items` and sets `parent`; the editor's
+    *Move up*/*Move down* (`move`) and task *Feature* field use it too.
 - **Grid** (`renderGrid`):
   - Columns come from `GCOLS`; which cells each type can edit comes from
     `GEDIT`.

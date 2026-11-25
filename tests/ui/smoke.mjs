@@ -151,6 +151,26 @@ try {
     fire(b, 'pointerdown', 300, 200); fire(b, 'pointermove', 200, 200); fire(bd, 'pointerup', 200, 200); await sleep(30);
     d.body.dispatchEvent(new w.KeyboardEvent('keyup', {code: 'Space', key: ' ', bubbles: true}));
     ok(bd.scrollLeft === 240 && barOf('2.1.4').style.left === l0 && !$('#grid .ghost'), 'holding Space and dragging a bar pans instead of moving it')}
+  // reorder rows: drag a Work breakdown row up or down (no layout in jsdom: row i spans y = i*42 to (i+1)*42)
+  {const rows = () => $$('#grid .labels > .lr'), row = c => rows().find(r => r.querySelector('.cd')?.textContent === c), yOf = c => rows().indexOf(row(c)) * 42;
+    const name = c => row(c).querySelector('.nm').textContent, n1 = name('1.1.1'), n2 = name('1.1.2'), open = () => $('#dr').classList.contains('open');
+    // The pointerup and click go to whatever row is under the pointer by then (Esc redraws the rows).
+    const dragRow = (c, y, esc) => {const r = row(c); fire(r, 'pointerdown', 20, yOf(c) + 21); fire(r, 'pointermove', 20, y); const hint = $('#grid .rdl')?.textContent || '';
+      if (esc) d.dispatchEvent(new w.KeyboardEvent('keydown', {key: 'Escape', bubbles: true})); fire(r.isConnected ? r : row(c), 'pointerup', 20, y); row(c).click(); return hint};
+    let hint = dragRow('1.1.1', yOf('1.1.2') + 40); await sleep(30);
+    ok(hint === 'Move to after 1.1.2' && name('1.1.1') === n2 && name('1.1.2') === n1 && !$('#grid .rdl') && !open(), 'dragging a task row below the next one swaps their outline numbers without opening the editor');
+    $('#undo').click(); await sleep(30);
+    ok(name('1.1.1') === n1 && name('1.1.2') === n2, 'one undo puts the dragged row back');
+    hint = dragRow('1.1.1', yOf('1.2.1') + 40); await sleep(30);
+    ok(hint === 'Move to after 1.2.1' && name('1.2.2') === n1 && name('1.1.1') === n2, 'a task row dropped among another feature\'s tasks moves into that feature');
+    $('#undo').click(); await sleep(30);
+    hint = dragRow('1.1.1', yOf('1') + 10); await sleep(30);
+    ok(hint.startsWith('Not here') && name('1.1.1') === n1, 'a task row dropped at objective level is refused');
+    hint = dragRow('1.1.1', yOf('1.1.2') + 40, true); await sleep(30);
+    ok(name('1.1.1') === n1 && !$('#grid .rdl') && !open(), 'Esc cancels a row drag');
+    row('1.1.2').click(); await sleep(30); $('#dr [data-act=up]').click(); await sleep(30);
+    ok(open() && name('1.1.1') === n2, 'a plain click on a row opens the editor, and Move up still works');
+    $('#undo').click(); $('#dr [data-act=close]').click(); await sleep(30)}
 
   // grid and gantt
   $('[data-view=grid]').click(); await sleep(50);
