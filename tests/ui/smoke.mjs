@@ -43,6 +43,9 @@ try {
   ok(bars > 10, `map shows task bars (${bars})`);
   ok($$('#grid path.e').length > 10, 'map draws dependency links');
   ok($$('#grid .ch').length >= 5, 'map shows step columns');
+  {const ob = $('#grid .sp.obj'); ob.querySelector('span').click(); await sleep(30);
+    ok(ob.textContent === '1 of 3 features done' && $('#dr').classList.contains('open') && $('#f-name').value === 'Stand up data ingest' && $('#grid .sp.obj.on'), 'objective bracket shows its features-done count and clicking it opens the objective');
+    $('#dr [data-act=close]').click(); await sleep(30)}
 
   // status filter
   $('#flt-btn').click(); await sleep(20);
@@ -122,6 +125,18 @@ try {
     fire(b, 'pointerdown', x, y); fire(b, 'pointermove', x + cw, y); fire(b, 'pointerup', x + cw, y); await sleep(30);
     ok(barOf('2.1.4').style.left !== l0 && $('#toast').textContent.includes('pinned to step'), 'dragging the middle of a bar still moves it');
     $('#undo').click(); await sleep(30)}
+  // pan: drag empty map space to scroll both ways; a click after a pan does nothing, a plain click still closes the editor
+  {const bd = $('#board'), bg = () => $('#grid .rbg');
+    $('#grid .b').click(); await sleep(30); bd.scrollLeft = 100; bd.scrollTop = 50;
+    fire(bg(), 'pointerdown', 300, 200); fire(bg(), 'pointermove', 260, 170); fire(bd, 'pointerup', 260, 170); bg().click(); await sleep(30);
+    ok(bd.scrollLeft === 140 && bd.scrollTop === 80 && $('#dr').classList.contains('open'), 'dragging empty map space pans the map and does not close the editor');
+    fire(bg(), 'pointerdown', 300, 200); fire(bg(), 'pointerup', 300, 200); bg().click(); await sleep(30);
+    ok(bd.scrollLeft === 140 && !$('#dr').classList.contains('open'), 'a click on empty map space without dragging still closes the editor');
+    const b = barOf('2.1.4'), l0 = b.style.left;
+    d.body.dispatchEvent(new w.KeyboardEvent('keydown', {code: 'Space', key: ' ', bubbles: true}));
+    fire(b, 'pointerdown', 300, 200); fire(b, 'pointermove', 200, 200); fire(bd, 'pointerup', 200, 200); await sleep(30);
+    d.body.dispatchEvent(new w.KeyboardEvent('keyup', {code: 'Space', key: ' ', bubbles: true}));
+    ok(bd.scrollLeft === 240 && barOf('2.1.4').style.left === l0 && !$('#grid .ghost'), 'holding Space and dragging a bar pans instead of moving it')}
 
   // grid and gantt
   $('[data-view=grid]').click(); await sleep(50);
