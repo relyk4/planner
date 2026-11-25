@@ -15,7 +15,14 @@ addEventListener('scroll',placeMenus,true);addEventListener('resize',placeMenus)
 const addItems=()=>[...$('#add').querySelectorAll('[role=menuitem]')];
 function addMenu(open,last){
  const m=$('#add');m.hidden=!open;$('#add-btn').setAttribute('aria-expanded',String(open));if(!open)return;
- closeMenu();fltMenu(false);placeMenu(m,$('#add-btn'));const it=addItems();it[last?it.length-1:0].focus();
+ addState();closeMenu();fltMenu(false);placeMenu(m,$('#add-btn'));const it=addItems();it[last?it.length-1:0].focus();
+}
+// Feature and Task say where they will go, or stay disabled (but focusable, as menus expect) with a hint when there's nowhere yet.
+function addState(){
+ for(const [t,need] of [['feat','an objective'],['task','a feature']]){
+  const b=$(`#add [data-add="${t}"]`),h=addHome(t);
+  b.setAttribute('aria-disabled',String(!h));b.querySelector('.msub').textContent=h?`In ${C.lbl[h.id]} ${h.name||'Untitled'}`:`Add ${need} first`;
+ }
 }
 $('#add-btn').onclick=e=>{e.stopPropagation();addMenu($('#add').hidden)};
 $('#add-btn').addEventListener('keydown',e=>{if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();addMenu(true,e.key==='ArrowUp')}});
@@ -25,7 +32,7 @@ $('#add').addEventListener('keydown',e=>{
  else if(e.key==='Home'||e.key==='End'){e.preventDefault();it[e.key==='Home'?0:it.length-1].focus()}
  else if(e.key==='Tab')addMenu(false);
 });
-$('#add').addEventListener('click',e=>{const b=e.target.closest('[data-add]');if(!b)return;addMenu(false);const t=b.dataset.add;if(t==='rel')addRel();else addItem(t)});
+$('#add').addEventListener('click',e=>{const b=e.target.closest('[data-add]');if(!b||b.getAttribute('aria-disabled')==='true')return;addMenu(false);const t=b.dataset.add;if(t==='rel')addRel();else if(t==='feat'||t==='task')addItem(t,addHome(t).id);else addItem(t)});
 document.addEventListener('click',e=>{if(!$('#add').hidden&&e.target.isConnected&&!e.target.closest('#add-m'))addMenu(false)});
 function renderFlt(){
  const on=fltOn(),c={};C.order.forEach(t=>{c[C.eff[t.id]]=(c[C.eff[t.id]]||0)+1});

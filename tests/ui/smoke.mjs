@@ -196,9 +196,9 @@ try {
   const key = k => d.activeElement.dispatchEvent(new w.KeyboardEvent('keydown', {key: k, bubbles: true}));
   $('#add-btn').focus(); key('ArrowDown'); await sleep(20);
   ok(!$('#add').hidden && d.activeElement === $('#add [data-add=obj]'), 'ArrowDown opens the Add menu on its first item');
-  key('ArrowDown'); key('ArrowDown');
+  key('ArrowDown'); key('ArrowDown'); key('ArrowDown'); key('ArrowDown');
   ok(d.activeElement === $('#add [data-add=ext]'), 'arrow keys move through the Add menu');
-  key('ArrowUp'); key('ArrowUp'); key('ArrowUp');
+  key('Home'); key('ArrowUp');
   ok(d.activeElement === $('#add [data-add=rel]'), 'arrow keys wrap around');
   key('Escape'); await sleep(20);
   ok($('#add').hidden && d.activeElement === $('#add-btn'), 'Esc closes the Add menu and returns focus');
@@ -213,6 +213,29 @@ try {
   $('#undo').click(); await sleep(50);
   ok($('#relv .relp') === null && $$('#relv .rr').length === 3, 'undoing it returns to the release list');
   $('[data-view=map]').click(); await sleep(50);
+  // "+" on objective and feature rows; Add > Task and Feature go under the selection
+  {const lc = r => r.querySelector('.cd').textContent, feat = $$('#grid .lr.feat')[1], fc = lc(feat), bars0 = $$('#grid .b').length;
+    const plus = feat.querySelector('.lra');
+    ok(plus && plus.getAttribute('aria-label') === `Add task to ${fc} ${feat.querySelector('.nm').textContent}` && !$('#grid .lr.task .lra'), 'feature rows have a labelled "+", task rows do not');
+    plus.click(); await sleep(50);
+    const rows = $$('#grid .lr'), nr = $('#grid .lr.on'), next = rows[rows.indexOf(nr) + 1];
+    ok($$('#grid .b').length === bars0 + 1 && nr?.classList.contains('task') && lc(nr).startsWith(fc + '.') && !(next?.classList.contains('task') && lc(next).startsWith(fc + '.')) && d.activeElement === $('#f-name') && $('#f-name').value === 'New task', '"+" on a feature adds a task at its end and opens it with the name focused');
+    $('#undo').click(); await sleep(50);
+    ok($$('#grid .b').length === bars0 && !$('#grid .lr.on') && !$('#dr').classList.contains('open'), 'one undo removes the new task');
+    const feats0 = $$('#grid .lr.feat').length;
+    $('#grid .lr.obj .lra').click(); await sleep(50);
+    ok($$('#grid .lr.feat').length === feats0 + 1 && $('#grid .lr.feat.on') && $('#f-name').value === 'New feature', '"+" on an objective adds a feature');
+    $('#undo').click(); await sleep(50);
+    $$('#grid .b').find(b => lc(b) === '2.2.1').click(); await sleep(50);
+    $('#add-btn').click(); await sleep(20);
+    ok($('#add [data-add=task] .msub').textContent.startsWith('In 2.2 ') && $('#add [data-add=feat] .msub').textContent.startsWith('In 2 '), 'Add > Task and Feature name where they will go');
+    $('#add [data-add=task]').click(); await sleep(50);
+    ok(lc($('#grid .lr.on')).startsWith('2.2.') && $('#f-parent').selectedOptions[0].textContent.startsWith('2.2 '), 'Add > Task adds to the selected task\'s feature');
+    $('#undo').click(); await sleep(50);
+    $('#flt-btn').click(); await sleep(20); $('#flt [data-fs=ready]').click(); await sleep(50);
+    $('#grid .lr.feat .lra').click(); await sleep(50);
+    ok($('#grid .lr.task.on') && !$('#toast').hidden && $('#toast').textContent.includes('filter'), 'a task the filter would hide still shows, with a note');
+    $('#undo').click(); await sleep(50); $('#fltsum [data-fp=all]').click(); await sleep(50)}
 
   // milestones and externals shown under an objective or feature
   {const codes = sel => $$(sel).map(r => r.querySelector('.cd, .gcd')?.textContent), at = (l, c) => l.indexOf(c);
