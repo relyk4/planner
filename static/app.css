@@ -388,6 +388,8 @@ button.t:hover{border-color:var(--accent)}.t[aria-pressed=true]{border-color:var
 .note{margin:0;padding:8px 12px;border-radius:6px;background:var(--accentbg);color:var(--ink);font-size:14px}
 .board{margin:0;border:1px solid var(--hair);border-radius:8px;max-height:calc(100vh - 150px)}
 .lr .ky{flex:none;font-size:calc(13px*var(--z,1));color:var(--accent);font-weight:600;white-space:nowrap}
+/* ticket keys that link to the team's tracker (plan settings > Ticket link address, or an item's link override) */
+.tkl,.lr .cd.tkl{color:var(--accent);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:2px}.tkl:hover{text-decoration-thickness:2px}
 .dr{top:0;border-left:1px solid var(--hair);box-shadow:-16px 0 40px color-mix(in srgb,var(--shade) 28%,transparent);z-index:22}
 .hp{z-index:23}
 .ganttv{border:1px solid var(--hair);border-radius:8px;overflow:hidden}

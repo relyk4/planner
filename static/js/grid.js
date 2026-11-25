@@ -27,7 +27,7 @@ function flagsHtml(it){
 function cellHtml(it,k){
  const dv=v=>v?`<span title="${esc(v)}">${fd(dn(v))}</span>`:'';
  switch(k){
-  case 'key':return esc(it.type==='ext'?it.ref:it.key||'');
+  case 'key':return tkHtml(it,esc(it.type==='ext'?it.ref:it.key||''));
   case 'kind':return esc(KIND[it.type]+(it.type==='ext'&&it.team?' · '+it.team:''));
   case 'owner':return esc(it.owner);
   case 'status':{const s=statusLabel(it);if(!s)return '';const ef=C.eff[it.id];return `<span class="gst"><i class="${it.type==='ms'?'dia':it.type==='ext'?'xq':'dot'} ${ef}" style="margin:0 6px 0 0;${it.type==='task'?'width:10px;height:10px':it.type==='ms'?'width:9px;height:9px':'width:10px;height:10px'}"></i>${esc(s)}</span>`}
@@ -151,10 +151,12 @@ $('#gridv').addEventListener('click',e=>{
  const tg=e.target.closest('[data-tog]');if(tg){const id=tg.dataset.tog;if(id==='__ms')S.msCollapsed=!S.msCollapsed;else if(id==='__ext')S.extCollapsed=!S.extCollapsed;else map[id].collapsed=!map[id].collapsed;render();return}
  const op=e.target.closest('[data-open]');if(op){sel=op.dataset.open;selRel=null;q='';render();return}
  const td=e.target.closest('td[data-k]');if(!td)return;
+ // A ticket link opens in a new tab on its own, without selecting the cell.
+ if(e.target.closest('a[href]'))return;
  const was=gsel&&gsel.id===td.dataset.id&&gsel.k===td.dataset.k;gsel={id:td.dataset.id,k:td.dataset.k};renderGrid();$('#gridv').focus({preventScroll:true});
  if(was)gridEdit();
 });
-$('#gridv').addEventListener('dblclick',e=>{const td=e.target.closest('td[data-k]');if(!td||gedit)return;gsel={id:td.dataset.id,k:td.dataset.k};renderGrid();gridEdit()});
+$('#gridv').addEventListener('dblclick',e=>{const td=e.target.closest('td[data-k]');if(!td||gedit||e.target.closest('a[href]'))return;gsel={id:td.dataset.id,k:td.dataset.k};renderGrid();gridEdit()});
 $('#gridv').addEventListener('keydown',e=>{
  if(gedit||e.target!==$('#gridv'))return;
  const k=e.key;

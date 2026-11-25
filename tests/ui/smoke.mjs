@@ -181,6 +181,35 @@ try {
     ok(bar('1.1.2') && row('1.1.2').querySelector('.ky')?.textContent === 'UDM-1031', 'Outline numbers brings the numbers back');
     $('#dr [data-act=close]').click(); for (let i = 0; i < 4; i++) $('#undo').click(); await sleep(50)}
 
+  // Ticket link address: keys become links that open in a new tab; clearing it makes them plain text again
+  {const row = c => $$('#grid .lr').find(r => r.querySelector('.cd')?.textContent === c), ky = () => row('1.1.2').querySelector('.ky');
+    const tkt = () => $$('#gridv td[data-k=key]').find(t => t.parentNode.querySelector('.gcd')?.textContent === '1.1.2');
+    const setAddr = async v => {$('#set [data-set=plan]').click(); await sleep(30); const a = $('#c-tku'); a.focus(); a.value = v; a.dispatchEvent(new w.Event('change', {bubbles: true})); await sleep(50); $('#dr [data-act=close]').click(); await sleep(30)};
+    const noNav = e => {if (e.target.closest?.('a[href]')) e.preventDefault()}; w.addEventListener('click', noNav, true);
+    row('1.1.2').click(); await sleep(30);
+    const k = $('#f-key'); k.focus(); k.value = 'UDM-1031'; k.dispatchEvent(new w.Event('input', {bubbles: true})); await sleep(300);
+    ok(ky()?.tagName === 'SPAN' && !$('#f-tkl a') && $('#f-tkl [data-cal]'), 'with no ticket link address a key stays plain text');
+    $('#dr [data-act=close]').click(); await sleep(30);
+    await setAddr('https://jira.example/browse/');
+    ok(ky()?.tagName === 'A' && ky().href === 'https://jira.example/browse/UDM-1031' && ky().target === '_blank', 'setting the address makes the key a link on the map that opens in a new tab');
+    ky().click(); await sleep(30);
+    ok(!$('#dr').classList.contains('open'), 'clicking a ticket link on the map does not open the editor');
+    $('[data-view=grid]').click(); await sleep(50);
+    ok(tkt().querySelector('a')?.href === 'https://jira.example/browse/UDM-1031' && $$('#gridv td[data-k=key] a').some(a => a.href === 'https://jira.example/browse/PLAT-412'), 'grid Ticket column links keys, external references included');
+    $('[data-view=map]').click(); await sleep(50);
+    row('1.1.2').click(); await sleep(30);
+    ok($('#f-tkl a')?.href === 'https://jira.example/browse/UDM-1031', 'the editor links the key');
+    const u = $('#f-url'); u.focus(); u.value = 'https://other.example/t/1'; u.dispatchEvent(new w.Event('input', {bubbles: true})); await sleep(300);
+    ok($('#f-tkl a')?.href === 'https://other.example/t/1' && ky().href === 'https://other.example/t/1', 'a link override replaces the address for that item');
+    u.value = 'javascript:alert(1)'; u.dispatchEvent(new w.Event('input', {bubbles: true})); await sleep(300);
+    ok(!$('#f-tkl a') && $('#f-tkl').textContent.includes('Only http') && ky().href === 'https://jira.example/browse/UDM-1031', 'a non-http override is refused and the address is used');
+    $('#dr [data-act=close]').click(); await sleep(30);
+    await setAddr('ftp://jira.example/');
+    ok(ky()?.tagName === 'SPAN', 'a non-http address makes no links');
+    await setAddr('');
+    ok(ky()?.tagName === 'SPAN' && !$('#grid .lr a'), 'clearing the address turns keys back into plain text');
+    w.removeEventListener('click', noNav, true); for (let i = 0; i < 5; i++) $('#undo').click(); await sleep(50)}
+
   // releases: own tab, a page per release, and links in the left rail
   $('[data-view=rel]').click(); await sleep(50);
   ok(!$('#relv').hidden && $$('#relv .rr').length === 3, 'Releases tab lists the releases');

@@ -31,7 +31,16 @@ const uStart=(n,u)=>{const d=dObj(n),y=d.getUTCFullYear(),m=d.getUTCMonth(),U=(Y
 const uNext=(n,u)=>{const d=dObj(n),y=d.getUTCFullYear(),m=d.getUTCMonth(),U=(Y,M)=>Math.round(Date.UTC(Y,M,1)/864e5);return u==='day'?n+1:u==='week'?n+7:u==='month'?U(y,m+1):u==='quarter'?U(y,m+3):U(y+1,0)};
 const uLabel=(n,u,top)=>{const d=dObj(n),m=d.getUTCMonth(),y=d.getUTCFullYear();return u==='day'?String(d.getUTCDate()):u==='week'?MON[m]+' '+d.getUTCDate():u==='month'?(top?'':MON[m]):u==='quarter'?'Q'+(Math.floor(m/3)+1):String(y)};
 const link=(id,type='FS',lag=0,st='auto',note='')=>({id,type,lag,st,note});
-const mk=(id,type,parent,name,o={})=>({id,type,parent,name,owner:o.owner||'',status:o.status||'todo',deps:o.deps||[],blocker:o.blocker||'',earliest:o.earliest||null,gate:o.gate||null,collapsed:false,notes:o.notes||'',rel:o.rel||'',target:o.target||'',due:o.due||'',startBy:o.startBy||'',startedOn:o.startedOn||'',doneOn:o.doneOn||'',team:o.team||'',ref:o.ref||'',color:o.color||'',key:o.key||''});
+const mk=(id,type,parent,name,o={})=>({id,type,parent,name,owner:o.owner||'',status:o.status||'todo',deps:o.deps||[],blocker:o.blocker||'',earliest:o.earliest||null,gate:o.gate||null,collapsed:false,notes:o.notes||'',rel:o.rel||'',target:o.target||'',due:o.due||'',startBy:o.startBy||'',startedOn:o.startedOn||'',doneOn:o.doneOn||'',team:o.team||'',ref:o.ref||'',color:o.color||'',key:o.key||'',url:o.url||''});
+// Ticket links. Only http(s) addresses count, so a typo or a script: address never becomes a link.
+const okUrl=v=>{v=String(v??'').trim();return /^https?:\/\/[^\s"'<>]+$/i.test(v)?v:''};
+// The ticket an item points at: its key, or for an external item, their ticket or link.
+const tkKey=it=>String((it.type==='ext'?it.ref:it.key)??'').trim();
+// Where an item's ticket opens: its link override, else the plan's ticket link address plus the key
+// (an external whose reference is already an http(s) address uses that). '' when there is no link.
+const tkUrl=it=>{if(it.type==='ms')return '';const o=okUrl(it.url),k=tkKey(it);if(o||!k)return o;const a=okUrl(S.ticketUrl);return (it.type==='ext'&&okUrl(k))||(a?a+encodeURIComponent(k):'')};
+// Ticket text as HTML: a link opening in a new tab when the item has one, else plain text. Pass txt already escaped.
+const tkHtml=(it,txt,cls='')=>{const u=tkUrl(it);return u?`<a class="tkl${cls?' '+cls:''}" href="${esc(u)}" target="_blank" rel="noopener noreferrer" title="Open ${esc(tkKey(it))} in a new tab">${txt}</a>`:cls?`<span class="${cls}">${txt}</span>`:txt};
 const DEFS=`<defs>${['FS','SS','FF','SF','bk','ok','ovd'].map(c=>`<marker id="m${c}" viewBox="0 0 8 8" refX="8" refY="4" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto"><path class="ah ${c}" d="M0,0L8,4L0,8z"/></marker>`).join('')}</defs>`;
 
 function sample(){
@@ -92,13 +101,13 @@ function blank(){const o=nid(),f=nid(),t=nid();return {title:'Untitled plan',msC
 function normLinks(ds){const seen=new Set();return (Array.isArray(ds)?ds:[]).map(l=>typeof l==='string'?{id:l}:l).filter(l=>l&&l.id&&!seen.has(String(l.id))&&seen.add(String(l.id))).map(l=>link(String(l.id),TYPES[l.type]?l.type:'FS',clampLag(l.lag||0),l.st==='blocked'?'blocked':'auto',String(l.note??'')))}
 function norm(s){
  if(!s||!Array.isArray(s.items))return null;
- const items=s.items.filter(i=>i&&i.id&&['obj','feat','task','ms','ext'].includes(i.type)).map(i=>({id:String(i.id),type:i.type,parent:i.parent?String(i.parent):null,name:String(i.name??''),owner:String(i.owner??''),status:(i.type==='ext'?XSV:['todo','doing','done','blocked']).includes(i.status)?i.status:i.type==='ext'?'pending':'todo',deps:normLinks(i.deps),blocker:String(i.blocker??''),earliest:+i.earliest>0?Math.floor(+i.earliest):null,gate:(i.type==='ms'||i.type==='ext')&&+i.gate>0?Math.floor(+i.gate):null,collapsed:!!i.collapsed,notes:String(i.notes??''),rel:String(i.rel??''),target:String(i.target??''),due:okd(i.due),startBy:okd(i.startBy),startedOn:okd(i.startedOn),doneOn:okd(i.doneOn),team:String(i.team??''),ref:String(i.ref??''),color:/^#[0-9a-fA-F]{6}$/.test(String(i.color??''))?String(i.color):'',key:String(i.key??'')}));
+ const items=s.items.filter(i=>i&&i.id&&['obj','feat','task','ms','ext'].includes(i.type)).map(i=>({id:String(i.id),type:i.type,parent:i.parent?String(i.parent):null,name:String(i.name??''),owner:String(i.owner??''),status:(i.type==='ext'?XSV:['todo','doing','done','blocked']).includes(i.status)?i.status:i.type==='ext'?'pending':'todo',deps:normLinks(i.deps),blocker:String(i.blocker??''),earliest:+i.earliest>0?Math.floor(+i.earliest):null,gate:(i.type==='ms'||i.type==='ext')&&+i.gate>0?Math.floor(+i.gate):null,collapsed:!!i.collapsed,notes:String(i.notes??''),rel:String(i.rel??''),target:String(i.target??''),due:okd(i.due),startBy:okd(i.startBy),startedOn:okd(i.startedOn),doneOn:okd(i.doneOn),team:String(i.team??''),ref:String(i.ref??''),color:/^#[0-9a-fA-F]{6}$/.test(String(i.color??''))?String(i.color):'',key:String(i.key??''),url:String(i.url??'')}));
  // A milestone or external may be shown under an objective or feature ("Show under"). Any other parent puts it back in its top section.
  const ty=Object.fromEntries(items.map(i=>[i.id,i.type]));
  for(const i of items)if((i.type==='ms'||i.type==='ext')&&i.parent&&ty[i.parent]!=='obj'&&ty[i.parent]!=='feat')i.parent=null;
  const releases=Array.isArray(s.releases)?s.releases.filter(r=>r&&r.id).map(r=>({id:String(r.id),name:String(r.name??''),target:String(r.target??''),status:RST[r.status]?r.status:'planned',notes:String(r.notes??''),due:okd(r.due)})):[];
  const cal={asof:okd((s.cal||{}).asof)},t=s.tl||{},tl={open:!!t.open,zoom:ZO[t.zoom]?t.zoom:'weeks',only:t.only!==false};
- return {title:String(s.title||'Untitled plan'),view:['map','grid','gantt','rel'].includes(s.view)?s.view:'map',relOpen:s.relOpen!==false,sample:!!s.sample,msCollapsed:!!s.msCollapsed,extCollapsed:!!s.extCollapsed,itemIds:s.itemIds==='key'?'key':'outline',cal,tl,releases,items};
+ return {title:String(s.title||'Untitled plan'),view:['map','grid','gantt','rel'].includes(s.view)?s.view:'map',relOpen:s.relOpen!==false,sample:!!s.sample,msCollapsed:!!s.msCollapsed,extCollapsed:!!s.extCollapsed,itemIds:s.itemIds==='key'?'key':'outline',ticketUrl:String(s.ticketUrl??'').trim(),cal,tl,releases,items};
 }
 
 let S=blank();

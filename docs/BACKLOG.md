@@ -8,23 +8,6 @@ run them one at a time or rebase often.
 
 ---
 
-## 5. Ticket keys become links
-
-**Do:**
-- A plan setting, "Ticket link address", for example
-  `https://jira.example/browse/`. Each key (for example `UDM-123`) becomes
-  that address plus the key.
-- Each item gets an optional "Link override" field holding a full URL.
-- Keys show as links in the editor, in the grid's Ticket column and on map
-  labels. Links open in a new tab.
-- With no address set, keys stay plain text, so nothing breaks offline.
-- Only `http(s)` URLs are allowed.
-
-**Done when:** setting the address makes every key clickable, and clearing it
-reverts them to plain text.
-
----
-
 ## 6. Re-import from Jira by key (update, don't duplicate)
 
 **Do:**
@@ -120,3 +103,10 @@ time, and an edited export updates only what changed.
   draw their swatches with the views' own classes, plus "How it works"
   bullets. It shows only what the current view draws. The bottom-of-page
   legend and the timeline's own key strip are gone.
+- **Ticket keys become links** (Nov 2026). *Plan settings* > *Ticket link
+  address* (for example `https://jira.example/browse/`) turns every ticket
+  key into a link to that address plus the key, opening in a new tab: in the
+  editor, the Grid's Ticket column and the map's row labels. Each item with a
+  ticket field also has an optional *Link override* holding a full URL.
+  External items use *Their ticket or link* the same way. Only `http(s)`
+  addresses become links; with no address, keys stay plain text.
