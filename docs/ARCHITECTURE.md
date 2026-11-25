@@ -172,6 +172,13 @@ Releases get `od`/`rk` from their tasks and externals.
     so the embedded timeline keeps its own scale. `zoomTo()` batches
     requests to one redraw per frame and keeps the point under the cursor
     in place. Drag code reads `geo`, so it follows the zoom.
+  - The label column's width (`lbW`, at 100% zoom; `null` is the default
+    for the window size, 170/250/330px) is set by dragging its right edge
+    (`.lbw` in `.corner` and `.labels`), Left/Right on the focused edge, or
+    a double-click to reset (`lbSet`). `lbWidth()` clamps it to 120px and
+    60% of the visible width at the current zoom, and it feeds `LW` and the
+    step width `CW`. Under 240px `#grid` gets `lbn`, which hides owners and
+    release pills. `lbSet` keeps the first visible step in place.
 - **Grid** (`renderGrid`):
   - Columns come from `GCOLS`; which cells each type can edit comes from
     `GEDIT`.
@@ -228,7 +235,8 @@ Releases get `od`/`rk` from their tasks and externals.
 - Autosave is debounced in `save()` and done in `flush()`. On a 409 the
   conflict dialog offers "load theirs" or "keep mine".
 - Per-viewer preferences use `LS` keys (`planner.user`, `planner.last`,
-  `planner.flt.<planId>`, `planner.mapzoom` for the map zoom,
+  `planner.flt.<planId>`, `planner.mapzoom` for the map zoom, `planner.lbw`
+  for the map's Work breakdown column width,
   `planner.theme` (`system` | `light` | `dark`) for *System settings* > *Theme*, and
   `planner.plansrail` / `planner.relrail` for the sidebar's Plans and
   Releases sections being collapsed) and never go into plan data.

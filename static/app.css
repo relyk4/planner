@@ -72,6 +72,13 @@ button.t{cursor:pointer}button.t:hover{border-color:var(--conc)}
 .ch em{display:block;margin-top:calc(3px*var(--z,1));font-style:normal;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ch em::before{content:'';display:inline-block;width:0;height:0;border-left:calc(8px*var(--z,1)) solid var(--ink);border-block:calc(5px*var(--z,1)) solid transparent;margin-right:calc(5px*var(--z,1));vertical-align:0}
 .labels{position:sticky;left:0;z-index:5;background:var(--bg);border-right:2px solid var(--ink)}
+/* Drag handle on the Work breakdown column's right edge (one in the corner, one along the labels). */
+.lbw{position:absolute;top:0;bottom:0;right:-7px;width:12px;z-index:3;cursor:col-resize;touch-action:none}
+.lbw::after{content:'';position:absolute;top:0;bottom:0;left:4px;width:4px}
+.lbw:focus{outline:none}
+.grid:has(.lbw:hover) .lbw::after,.lbw:focus-visible::after,html.lbdrag .lbw::after{background:var(--accent)}
+html.lbdrag,html.lbdrag *{cursor:col-resize!important;user-select:none}
+.grid.lbn .lr .ow,.grid.lbn .lr .rp{display:none}.grid.lbn .lr{overflow:hidden}
 .lr{display:flex;align-items:center;gap:calc(6px*var(--z,1));padding-right:calc(10px*var(--z,1));border-bottom:1px solid var(--line);cursor:pointer;white-space:nowrap;font-size:calc(14px*var(--z,1));background:var(--bg)}
 .lr.obj{background:var(--conc);font-weight:700}.lr.feat{background:var(--pane);font-weight:600}
 .lr.msh,.lr.exth{background:var(--ink);color:var(--bg);font-weight:700}.lr.msh .ow,.lr.exth .ow{color:var(--bg);opacity:.8}

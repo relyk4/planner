@@ -71,9 +71,10 @@ $('#rail-tg').onclick=()=>$('#app').classList.toggle('railopen');
 $('#scrim').onclick=()=>$('#app').classList.remove('railopen');
 document.querySelector('.tabs').addEventListener('click',e=>{const b=e.target.closest('[data-view]');if(!b)return;view=b.dataset.view;if(view==='rel')relPage=null;tlReset=true;gsel=null;render();if(view==='grid')$('#gridv').focus({preventScroll:true})});
 $('#rail-rel-l').addEventListener('click',e=>{const b=e.target.closest('[data-rp]');if(b)openRel(b.dataset.rp)});
-// Collapsed sidebar sections and the map zoom are per-viewer preferences.
+// Collapsed sidebar sections, the map zoom and the Work breakdown width are per-viewer preferences.
 for(const d of document.querySelectorAll('.rsec[data-ls]')){if(LS.get(d.dataset.ls)==='0')d.open=false;d.addEventListener('toggle',()=>LS.set(d.dataset.ls,d.open?'1':'0'))}
 mapZ=zClamp(parseFloat(LS.get('planner.mapzoom')));
+{const v=parseFloat(LS.get('planner.lbw'));lbW=Number.isFinite(v)?Math.max(LBMIN,v):null}
 // System settings: per-viewer preferences that apply on every plan, kept in this browser and never
 // in the plan. Theme: System (no data-theme) follows the OS live through CSS color-scheme; the
 // inline script in index.html applies the saved choice before the first paint.
